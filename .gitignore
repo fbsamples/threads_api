@@ -1,0 +1,14 @@
+# Dependency directories
+node_modules/
+
+# Ignore Pem
+*.pem
+
+# Local folder
+local/
+
+.DS_Store
+
+.env
+
+package-lock.json

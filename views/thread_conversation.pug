@@ -1,0 +1,6 @@
+extends layout_with_account
+
+block content
+    p Conversation for <a href="/threads/#{threadId}">thread #{threadId}</a>
+
+    include thread_replies_layout.pug

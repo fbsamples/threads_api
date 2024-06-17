@@ -1,0 +1,79 @@
+extends layout_with_account
+
+block content
+    style(type="text/css").
+        div.attachments-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        div.attachment-controls {
+            height: 100%;
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+        }
+        div.attachment-item {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+        textarea::placeholder {
+            text-align: center;
+            line-height: 15px;
+        }
+        textarea {
+            text-align: center;
+            padding: 5px 0;
+        }
+        img {
+            margin-bottom: 15px;
+        }
+
+    if (replyToId !== undefined)
+        p(style='color: gray') Replying to #{replyToId}
+
+    form(action='/upload' id='form' method='POST')
+        label(for='text')
+        | Text:
+        textarea(placeholder='Start a thread...' id='text' name='text' autocomplete='off')
+        br
+        | To attach an image or video, click the image below
+        div.attachments-area
+            img#attachments-button(src='/img/attachment.png')
+            div.attachment-controls
+                div#attachments-list.attachments
+
+        label(for="reply-control") Who Can Reply
+        select#reply-control(name='replyControl' hint="Reply Control")
+            option(value="" selected)
+            option(value="everyone") Everyone
+            option(value="accounts_you_follow") Accounts You Follow
+            option(value="mentioned_only") Mentioned Only
+
+        input(type='hidden' name='replyToId' value=replyToId)
+        input.threads-button(type='submit' id='submit' value='Post')
+
+        p#media-type-explanation Media Type:&nbsp;
+            span#media-type
+
+    script#attachment-template(type='text/template')
+        div.attachment-item
+            label(for='attachmentType')
+            | Type &nbsp;&nbsp;
+            select(name='attachmentType[]')
+                option(value='Image') Image
+                option(value='Video') Video
+            label(for='attachmentUrl')
+            | URL &nbsp;&nbsp;
+            input(type='text' name='attachmentUrl[]' autocomplete='off')
+
+            // The parent of this node will be removed from the DOM
+            span.delete ❌
+            br
+
+block scripts
+    script(src='/scripts/form.js' type='text/javascript')
+    script(src='/scripts/upload.js', type='text/javascript')

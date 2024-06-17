@@ -1,0 +1,28 @@
+extends layout.pug
+
+block content
+    p Your container was successfully created.
+    p You will be able to publish it once it finishes processing the content.
+
+    div
+        p Current status:&nbsp;
+            span#container-status Unknown
+
+    div#status-explanation
+
+    p#error-message
+
+    form#form(action='/publish' method='POST')
+        input#container-id(type='hidden' name='containerId' value=containerId)
+        input#submit.threads-button(type='submit' value='Publish' disabled='disabled')
+
+    template#template-status-FINISHED
+        p All set! Your can publish your thread now. 🧵
+    template#template-status-IN_PROGRESS
+        p Your content is still processing. The status will be refresed automatically. ⏳
+    template#template-status-ERROR
+        p Publish failed. ❌
+
+block scripts
+    script(src='/scripts/form.js' type='text/javascript')
+    script(src='/scripts/publish.js', type='text/javascript')

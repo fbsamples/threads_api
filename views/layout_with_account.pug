@@ -1,0 +1,13 @@
+extends layout
+
+append content
+    style(type="text/css").
+        a.account-link {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+        }
+
+    a.account-link(href='/account') Go to Account
+
+    block content

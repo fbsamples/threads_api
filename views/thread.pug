@@ -1,0 +1,40 @@
+extends layout_with_account
+
+block content
+    table
+        thead
+            tr
+                th Field
+                th Value
+        tbody
+            tr
+                td Media Type
+                td #{media_type}
+            tr
+                td Text
+                td #{text}
+            tr
+                td Created On
+                td #{timestamp}
+            tr
+                td Media URL
+                td
+                    a(href=media_url target='_blank') #{media_url}
+            tr
+                td Permalink
+                td
+                    a(href=permalink target='_blank') #{permalink}
+            tr
+                td Replies
+                td
+                    a(href=`/threads/${threadId}/replies?username=${username}`) View Direct Replies
+                    br
+                    if (!is_reply)
+                        a(href=`/threads/${threadId}/conversation?username=${username}`) View Conversation
+            tr
+                td Reply Audience
+                td #{reply_audience}
+            tr
+                td Insights
+                td
+                    a(href=`/threads/${threadId}/insights`) View Insights

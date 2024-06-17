@@ -1,0 +1,32 @@
+extends layout_with_account
+
+block content
+    table.threads-list
+        thead
+            tr
+                th ID
+                th Created On
+                th Media Type
+                th Text
+                th Permalink
+                th Reply Audience
+        tbody
+            each thread in threads
+                tr.threads-list-item
+                    td.thread-id
+                        a(href=`/threads/${thread.id}`)=thread.id
+                    td.thread-timestamp=thread.timestamp
+                    td.thread-type=thread.media_type
+                    td.thread-text=thread.text
+                    td.thread-permalink
+                        a(href=thread.permalink target='_blank') View on Threads
+                    td.thread-reply-audience=thread.reply_audience
+
+    div.paging
+        if paging.nextUrl
+            div.paging-next
+                a(href=paging.nextUrl) Next
+
+        if paging.previousUrl
+            div.paging-previous
+                a(href=paging.previousUrl) Previous

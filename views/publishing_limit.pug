@@ -1,0 +1,25 @@
+extends layout_with_account
+
+block content
+    table
+        tbody
+            tr
+                th(colspan=2) Quota Usage
+                td(colspan=2)=quotaUsage
+            tr
+                th(rowspan=2) Config
+                th Quota Total
+                td=config.quota_total
+            tr
+                th Quota Duration
+                td=config.quota_duration
+            tr
+                th(colspan=2) Reply Quota Usage
+                td(colspan=2)=replyQuotaUsage
+            tr
+                th(rowspan=2) Reply Config
+                th Reply Quota Total
+                td=replyConfig.quota_total
+            tr
+                th Reply Quota Duration
+                td=replyConfig.quota_duration

@@ -1,0 +1,157 @@
+/*
+//  Copyright (c) Meta Platforms, Inc. and affiliates.
+//  All rights reserved.
+//  This source code is licensed under the license found in the
+//  LICENSE file in the root directory of this source tree.
+*/
+* {
+	font-family: sans-serif;
+}
+
+button {
+	background-color: #2196F3; /* Green */
+	border: none;
+	color: white;
+	padding: 10px 20px;
+	text-align: center;
+	font-size: 15px;
+	display: block;
+	margin: 10px auto;
+	width: 200px;
+}
+
+body {
+	margin: 60px 40px;
+	text-align: center;
+}
+
+input[type='submit']{
+	justify-content: center;
+	width: 100px;
+	background-color: #2196F3; /* Green */
+	border: none;
+	color: white;
+	padding: 10px 20px;
+	text-align: center;
+	font-size: 15px;
+	display: block;
+	margin: 10px auto;
+	width: 200px;
+}
+
+input[type='submit']:disabled{
+	background-color: #cccccc;
+}
+
+input[type='text'] {
+	width: 500px;
+	height: 20px;
+}
+
+textarea {
+	width: 500px;
+	overflow: hidden;
+    resize: none;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+form {
+	flex-direction: column;
+	display: flex;
+	align-items: center;
+}
+
+label {
+	text-align: center;
+}
+
+.btn-group {
+	margin: 20px auto;
+	width: 30%;
+}
+
+.title {
+	display: inline-block;
+	padding-bottom: -10px;
+	text-align: center;
+	margin: 20px;
+}
+
+.radio-group {
+	margin: 20px auto;
+	text-align: center;
+	width: 500px;
+}
+
+.radio-child {
+	text-align: left;
+}
+
+.alert {
+	margin: 30px 10px;
+	padding: 10px;
+	background-color: #3b9610;
+	color: white;
+}
+
+.alert-error {
+	margin: 30px 10px;
+	padding: 10px;
+	background-color: #a51414;
+	color: white;
+}
+
+.closebtn {
+	margin-left: 15px;
+	color: white;
+	font-weight: bold;
+	float: right;
+	font-size: 22px;
+	line-height: 20px;
+	cursor: pointer;
+	transition: 0.3s;
+}
+
+.closebtn:hover {
+	color: black;
+}
+
+table {
+	margin-left: auto;
+	margin-right: auto;
+	border: 1px solid black;
+	table-layout: auto;
+	width: 100%;
+}
+
+th, td {
+	padding: 10px;
+	text-align: left;
+	border: 1px solid black;
+}
+
+th {
+	padding-top: 12px;
+	padding-bottom: 12px;
+	text-align: left;
+	background-color: #2196F3;
+	color: white;
+}
+
+.attachments-area {
+	width: 100%;
+	padding-top: 12px;
+	padding-bottom: 4px;
+}
+
+.attachment-controls {
+	width: 42px;
+	height: 42px;
+	position: relative;
+	cursor: pointer;
+}
+
+.profile-picture img {
+	border-radius: 50%;
+}

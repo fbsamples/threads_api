@@ -1,0 +1,13 @@
+extends layout_with_account
+
+block content
+    include insights
+    br
+    form.insights(action='/userInsights' method='GET')
+        span
+            label(for='since') Since
+            input#since(type='date' name='since' value=since)
+        span
+            label(for='until') Until
+            input#until(type='date' name='until' value=until)
+        input#submit.threads-button(type='submit' value='Refine')
