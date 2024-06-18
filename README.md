@@ -3,7 +3,7 @@
 You can use this Sample App to test the [Threads API](https://developers.facebook.com/docs/threads).
 
 1. Make sure that you are using the APP ID and Secret defined for the Threads API of your app. These ARE not the same as the regular app ID and app secret.
-2. Make sure you add your application's redirect URL e.g. https://threads-sample.app:8000/callback, to your app's redirect callback URLs in the app dashboard.
+2. Make sure you add your application's redirect URL e.g. https://threads-sample.meta:8000/callback, to your app's redirect callback URLs in the app dashboard.
 
 ## Required software
 
