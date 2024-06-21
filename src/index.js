@@ -109,7 +109,7 @@ app.use(
 
 // Middleware to ensure the user is logged in
 const loggedInUserChecker = (req, res, next) => {
-    if (req.session.access_token && req.session.user_id) {
+    if (req.session.access_token) {
         next();
     } else if (initial_access_token && initial_user_id) {
         useInitialAuthenticationValues(req);
@@ -121,7 +121,7 @@ const loggedInUserChecker = (req, res, next) => {
 };
 
 app.get('/', async (req, res) => {
-    if (!(req.session.access_token || req.session.user_id) &&
+    if (!(req.session.access_token) &&
         (initial_access_token && initial_user_id)) {
         useInitialAuthenticationValues(req);
         res.redirect('/account');
@@ -163,7 +163,6 @@ app.get('/callback', async (req, res) => {
             },
         });
         req.session.access_token = response.data.access_token;
-        req.session.user_id = response.data.user_id;
         res.redirect('/account');
     } catch (err) {
         console.error(err?.response?.data);
@@ -186,6 +185,11 @@ app.get('/account', loggedInUserChecker, async (req, res) => {
     try {
         const response = await axios.get(getUserDetailsUrl);
         userDetails = response.data;
+
+        // This value is not currently used but it may come handy in the future
+        if (!req.session.user_id)
+            req.session.user_id = response.data.id;
+
         userDetails.user_profile_url = `https://www.threads.net/@${userDetails.username}`;
     } catch (e) {
         console.error(e);
@@ -217,7 +221,7 @@ app.get('/userInsights', loggedInUserChecker, async (req, res) => {
         params.until = until;
     }
 
-    const queryThreadUrl = buildGraphAPIURL(`${req.session.user_id}/threads_insights`, params, req.session.access_token);
+    const queryThreadUrl = buildGraphAPIURL(`me/threads_insights`, params, req.session.access_token);
 
     let data = [];
     try {
@@ -258,7 +262,7 @@ app.get('/publishingLimit', loggedInUserChecker, async (req, res) => {
         ].join(','),
     };
 
-    const publishingLimitUrl = buildGraphAPIURL(`${req.session.user_id}/threads_publishing_limit`, params, req.session.access_token);
+    const publishingLimitUrl = buildGraphAPIURL(`me/threads_publishing_limit`, params, req.session.access_token);
 
     let data = [];
     try {
@@ -325,7 +329,7 @@ app.post('/upload', upload.array(), async (req, res) => {
     if (params.media_type === MEDIA_TYPE__CAROUSEL) {
         const createChildPromises = params.children.map(child => (
             axios.post(
-                buildGraphAPIURL(`${req.session.user_id}/threads`, child, req.session.access_token),
+                buildGraphAPIURL(`me/threads`, child, req.session.access_token),
                 {},
             )
         ));
@@ -346,7 +350,7 @@ app.post('/upload', upload.array(), async (req, res) => {
         }
     }
 
-    const postThreadsUrl = buildGraphAPIURL(`${req.session.user_id}/threads`, params, req.session.access_token);
+    const postThreadsUrl = buildGraphAPIURL(`me/threads`, params, req.session.access_token);
     try {
         const postResponse = await axios.post(postThreadsUrl, {});
         const containerId = postResponse.data.id;
@@ -394,7 +398,7 @@ app.get('/container/status/:containerId', loggedInUserChecker, async (req, res) 
 
 app.post('/publish', upload.array(), async (req, res) => {
     const { containerId } = req.body;
-    const publishThreadsUrl = buildGraphAPIURL(`${req.session.user_id}/threads_publish`, {
+    const publishThreadsUrl = buildGraphAPIURL(`me/threads_publish`, {
         creation_id: containerId,
     }, req.session.access_token);
 
@@ -467,7 +471,7 @@ app.get('/threads', loggedInUserChecker, async (req, res) => {
     let threads = [];
     let paging = {};
 
-    const queryThreadsUrl = buildGraphAPIURL(`${req.session.user_id}/threads`, params, req.session.access_token);
+    const queryThreadsUrl = buildGraphAPIURL(`me/threads`, params, req.session.access_token);
 
     try {
         const queryResponse = await axios.get(queryThreadsUrl);
