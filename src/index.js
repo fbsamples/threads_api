@@ -507,6 +507,57 @@ app.get('/threads', loggedInUserChecker, async (req, res) => {
     });
 });
 
+app.get('/replies', loggedInUserChecker, async (req, res) => {
+    const { before, after, limit } = req.query;
+    const params = {
+        [PARAMS__FIELDS]: [
+            FIELD__TEXT,
+            FIELD__MEDIA_TYPE,
+            FIELD__MEDIA_URL,
+            FIELD__PERMALINK,
+            FIELD__TIMESTAMP,
+            FIELD__REPLY_AUDIENCE,
+        ].join(','),
+        limit: limit ?? DEFAULT_THREADS_QUERY_LIMIT,
+    };
+    if (before) {
+        params.before = before;
+    }
+    if (after) {
+        params.after = after;
+    }
+
+    let threads = [];
+    let paging = {};
+
+    const queryRepliesUrl = buildGraphAPIURL(`me/replies`, params, req.session.access_token);
+
+    try {
+        const queryResponse = await axios.get(queryRepliesUrl);
+        threads = queryResponse.data.data;
+
+        if (queryResponse.data.paging) {
+            const { next, previous } = queryResponse.data.paging;
+
+            if (next) {
+                paging.nextUrl = getCursorUrlFromGraphApiPagingUrl(req, next);
+            }
+
+            if (previous) {
+                paging.previousUrl = getCursorUrlFromGraphApiPagingUrl(req, previous);
+            }
+        }
+    } catch (e) {
+        console.error(e?.response?.data?.error?.message ?? e.message);
+    }
+
+    res.render('threads', {
+        paging,
+        threads,
+        title: 'My Replies',
+    });
+});
+
 app.get('/threads/:threadId/replies', loggedInUserChecker, (req, res) => {
     showReplies(req, res, true);
 });
