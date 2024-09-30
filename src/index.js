@@ -20,6 +20,7 @@ const upload = multer();
 
 const DEFAULT_THREADS_QUERY_LIMIT = 10;
 
+const FIELD__ALT_TEXT = 'alt_text';
 const FIELD__ERROR_MESSAGE = 'error_message';
 const FIELD__FOLLOWERS_COUNT = 'followers_count';
 const FIELD__HIDE_STATUS = 'hide_status';
@@ -46,6 +47,7 @@ const MEDIA_TYPE__TEXT = 'TEXT';
 const MEDIA_TYPE__VIDEO = 'VIDEO';
 
 const PARAMS__ACCESS_TOKEN = 'access_token';
+const PARAMS__ALT_TEXT = 'alt_text';
 const PARAMS__CLIENT_ID = 'client_id';
 const PARAMS__CONFIG = 'config';
 const PARAMS__FIELDS = 'fields';
@@ -298,7 +300,7 @@ app.get('/upload', loggedInUserChecker, (req, res) => {
 });
 
 app.post('/upload', upload.array(), async (req, res) => {
-    const { text, attachmentType, attachmentUrl, replyControl, replyToId } = req.body;
+    const { text, attachmentType, attachmentUrl, attachmentAltText, replyControl, replyToId } = req.body;
     const params = {
         [PARAMS__TEXT]: text,
         [PARAMS__REPLY_CONTROL]: replyControl,
@@ -311,7 +313,7 @@ app.post('/upload', upload.array(), async (req, res) => {
     }
     // Single attachment
     else if (attachmentType?.length === 1) {
-        addAttachmentFields(params, attachmentType[0], attachmentUrl[0]);
+        addAttachmentFields(params, attachmentType[0], attachmentUrl[0], attachmentAltText[0]);
     }
     // Multiple attachments
     else {
@@ -321,7 +323,7 @@ app.post('/upload', upload.array(), async (req, res) => {
             const child = {
                 is_carousel_item: true,
             };
-            addAttachmentFields(child, type, attachmentUrl[i]);
+            addAttachmentFields(child, type, attachmentUrl[i], attachmentAltText[i]);
             params.children.push(child);
         });
     }
@@ -430,7 +432,8 @@ app.get('/threads/:threadId', loggedInUserChecker, async (req, res) => {
             FIELD__TIMESTAMP,
             FIELD__IS_REPLY,
             FIELD__USERNAME,
-            FIELD__REPLY_AUDIENCE
+            FIELD__REPLY_AUDIENCE,
+            FIELD__ALT_TEXT,
         ].join(','),
     }, req.session.access_token);
 
@@ -458,6 +461,7 @@ app.get('/threads', loggedInUserChecker, async (req, res) => {
             FIELD__PERMALINK,
             FIELD__TIMESTAMP,
             FIELD__REPLY_AUDIENCE,
+            FIELD__ALT_TEXT,
         ].join(','),
         limit: limit ?? DEFAULT_THREADS_QUERY_LIMIT,
     };
@@ -657,13 +661,15 @@ function getInsightsTotalValue(metrics, index) {
  * @param {string} attachmentType
  * @param {string} url
  */
-function addAttachmentFields(target, attachmentType, url) {
+function addAttachmentFields(target, attachmentType, url, altText) {
     if (attachmentType === 'Image') {
         target.media_type = MEDIA_TYPE__IMAGE;
         target.image_url = url;
+        target.alt_text = altText;
     } else if (attachmentType === 'Video') {
         target.media_type = MEDIA_TYPE__VIDEO;
         target.video_url = url;
+        target.alt_text = altText;
     }
 }
 
@@ -714,6 +720,7 @@ async function showReplies(req, res, isTopLevel) {
             FIELD__TIMESTAMP,
             FIELD__USERNAME,
             FIELD__HIDE_STATUS,
+            FIELD__ALT_TEXT,
         ].join(','),
         limit: limit ?? DEFAULT_THREADS_QUERY_LIMIT,
     };
