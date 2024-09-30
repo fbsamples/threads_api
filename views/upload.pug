@@ -20,6 +20,14 @@ block content
             justify-content: center;
             margin-bottom: 12px;
         }
+        div.attachment-item-details {
+            display: flex;
+            flex-direction: column;
+        }
+        div.attachment-item-type-and-url {
+            display: flex;
+            flex-direction: row;
+        }
         textarea::placeholder {
             text-align: center;
             line-height: 15px;
@@ -61,14 +69,20 @@ block content
 
     script#attachment-template(type='text/template')
         div.attachment-item
-            label(for='attachmentType')
-            | Type &nbsp;&nbsp;
-            select(name='attachmentType[]')
-                option(value='Image') Image
-                option(value='Video') Video
-            label(for='attachmentUrl')
-            | URL &nbsp;&nbsp;
-            input(type='text' name='attachmentUrl[]' autocomplete='off')
+            div.attachment-item-details
+                div.attachment-item-type-and-url
+                    label(for='attachmentType')
+                    | Type &nbsp;&nbsp;
+                    select(name='attachmentType[]')
+                        option(value='Image') Image
+                        option(value='Video') Video
+                    label(for='attachmentUrl')
+                    | URL &nbsp;&nbsp;
+                    input(type='text' name='attachmentUrl[]' autocomplete='off')
+                div.attachment-item-alt-text
+                    label(for='attachmentAltText')
+                    |   Alt Text &nbsp;&nbsp;
+                    input(type='text' name='attachmentAltText[]' value='')
 
             // The parent of this node will be removed from the DOM
             span.delete ❌
