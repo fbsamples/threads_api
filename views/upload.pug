@@ -39,6 +39,12 @@ block content
         img {
             margin-bottom: 15px;
         }
+        #reply-control {
+            margin-bottom: 15px;
+        }
+        #link-attachment {
+            width: 200px;
+        }
 
     if (replyToId !== undefined)
         p(style='color: gray') Replying to #{replyToId}
@@ -60,6 +66,10 @@ block content
             option(value="everyone") Everyone
             option(value="accounts_you_follow") Accounts You Follow
             option(value="mentioned_only") Mentioned Only
+
+        label(for='linkAttachment')
+        |   Link Attachment
+        input#link-attachment(type='text' name='linkAttachment' value='')
 
         input(type='hidden' name='replyToId' value=replyToId)
         input.threads-button(type='submit' id='submit' value='Post')

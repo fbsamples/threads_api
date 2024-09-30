@@ -26,6 +26,7 @@ const FIELD__FOLLOWERS_COUNT = 'followers_count';
 const FIELD__HIDE_STATUS = 'hide_status';
 const FIELD__IS_REPLY = 'is_reply';
 const FIELD__LIKES = 'likes';
+const FIELD__LINK_ATTACHMENT_URL = 'link_attachment_url';
 const FIELD__MEDIA_TYPE = 'media_type';
 const FIELD__MEDIA_URL = 'media_url';
 const FIELD__PERMALINK = 'permalink';
@@ -52,6 +53,7 @@ const PARAMS__CLIENT_ID = 'client_id';
 const PARAMS__CONFIG = 'config';
 const PARAMS__FIELDS = 'fields';
 const PARAMS__HIDE = 'hide';
+const PARAMS__LINK_ATTACHMENT = 'link_attachment';
 const PARAMS__METRIC = 'metric';
 const PARAMS__QUOTA_USAGE = 'quota_usage';
 const PARAMS__REDIRECT_URI = 'redirect_uri';
@@ -300,11 +302,12 @@ app.get('/upload', loggedInUserChecker, (req, res) => {
 });
 
 app.post('/upload', upload.array(), async (req, res) => {
-    const { text, attachmentType, attachmentUrl, attachmentAltText, replyControl, replyToId } = req.body;
+    const { text, attachmentType, attachmentUrl, attachmentAltText, replyControl, replyToId, linkAttachment } = req.body;
     const params = {
         [PARAMS__TEXT]: text,
         [PARAMS__REPLY_CONTROL]: replyControl,
         [PARAMS__REPLY_TO_ID]: replyToId,
+        [PARAMS__LINK_ATTACHMENT]: linkAttachment
     };
 
     // No attachments
@@ -434,6 +437,7 @@ app.get('/threads/:threadId', loggedInUserChecker, async (req, res) => {
             FIELD__USERNAME,
             FIELD__REPLY_AUDIENCE,
             FIELD__ALT_TEXT,
+            FIELD__LINK_ATTACHMENT_URL,
         ].join(','),
     }, req.session.access_token);
 
