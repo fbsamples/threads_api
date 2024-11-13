@@ -1,5 +1,7 @@
 # Threads Publishing API Sample App
 
+> ⚠️ We will update the sample app over time. Please note that not all of the latest features will be demonstrated on the sample app. Please refer to the [developer documentation changelog](https://developers.facebook.com/docs/threads/changelog) for the most up-to-date features.
+
 You can use this Sample App to test the [Threads API](https://developers.facebook.com/docs/threads).
 
 1. Make sure that you are using the APP ID and Secret defined for the Threads API of your app. These ARE not the same as the regular app ID and app secret.
