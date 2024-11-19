@@ -44,6 +44,10 @@ block content
         }
         #link-attachment {
             width: 200px;
+            margin-bottom: 15px;
+        }
+        #quote-post-id {
+            width: 200px;
         }
 
     if (replyToId !== undefined)
@@ -70,6 +74,10 @@ block content
         label(for='linkAttachment')
         |   Link Attachment
         input#link-attachment(type='text' name='linkAttachment' value='')
+
+        if quotePostId
+            a(href=`/threads/${quotePostId}`) Quoting #{quotePostId}
+            input#quote-post-id(type='hidden' name='quotePostId' value=quotePostId)
 
         input(type='hidden' name='replyToId' value=replyToId)
         input.threads-button(type='submit' id='submit' value='Post')
