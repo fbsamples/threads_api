@@ -316,7 +316,7 @@ app.post('/repost', upload.array(), async (req, res) => {
         console.error(e.message);
         return res.json({
             error: true,
-            message: `Error during upload: ${e}`,
+            message: `Error during repost: ${e}`,
         });
     }
 });
