@@ -56,6 +56,7 @@ const PARAMS__HIDE = 'hide';
 const PARAMS__LINK_ATTACHMENT = 'link_attachment';
 const PARAMS__METRIC = 'metric';
 const PARAMS__QUOTA_USAGE = 'quota_usage';
+const PARAMS__QUOTE_POST_ID = 'quote_post_id';
 const PARAMS__REDIRECT_URI = 'redirect_uri';
 const PARAMS__REPLY_CONFIG = 'reply_config';
 const PARAMS__REPLY_CONTROL = 'reply_control';
@@ -293,22 +294,45 @@ app.get('/publishingLimit', loggedInUserChecker, async (req, res) => {
 });
 
 app.get('/upload', loggedInUserChecker, (req, res) => {
-    const { replyToId } = req.query;
+    const { replyToId, quotePostId } = req.query;
     const title = replyToId === undefined ? 'Upload' : 'Upload (Reply)';
     res.render('upload', {
         title,
-        replyToId
+        replyToId,
+        quotePostId,
     });
 });
 
+app.post('/repost', upload.array(), async (req, res) => {
+    const { repostId } = req.body;
+
+    const repostThreadsUrl = buildGraphAPIURL(`${repostId}/repost`, {}, req.session.access_token);
+    try {
+        const repostResponse = await axios.post(repostThreadsUrl, {});
+        const containerId = repostResponse.data.id;
+        return res.redirect(`threads/${containerId}`);
+    }
+    catch (e) {
+        console.error(e.message);
+        return res.json({
+            error: true,
+            message: `Error during repost: ${e}`,
+        });
+    }
+});
+
 app.post('/upload', upload.array(), async (req, res) => {
-    const { text, attachmentType, attachmentUrl, attachmentAltText, replyControl, replyToId, linkAttachment } = req.body;
+    const { text, attachmentType, attachmentUrl, attachmentAltText, replyControl, replyToId, linkAttachment, quotePostId } = req.body;
     const params = {
         [PARAMS__TEXT]: text,
         [PARAMS__REPLY_CONTROL]: replyControl,
         [PARAMS__REPLY_TO_ID]: replyToId,
-        [PARAMS__LINK_ATTACHMENT]: linkAttachment
+        [PARAMS__LINK_ATTACHMENT]: linkAttachment,
     };
+
+    if (quotePostId) {
+        params[PARAMS__QUOTE_POST_ID] = quotePostId;
+    }
 
     // No attachments
     if (!attachmentType?.length) {
