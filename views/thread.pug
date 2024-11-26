@@ -48,3 +48,9 @@ block content
                 td Quote
                 td
                     button(onclick=`location.href='/upload?quotePostId=${threadId}'`) Quote
+            tr
+                td Repost
+                td
+                    form(action='/repost' method='post')
+                        input(type='hidden' name='repostId' value=threadId)
+                        button(type='submit') Repost

@@ -303,6 +303,24 @@ app.get('/upload', loggedInUserChecker, (req, res) => {
     });
 });
 
+app.post('/repost', upload.array(), async (req, res) => {
+    const { repostId } = req.body;
+
+    const repostThreadsUrl = buildGraphAPIURL(`${repostId}/repost`, {}, req.session.access_token);
+    try {
+        const repostResponse = await axios.post(repostThreadsUrl, {});
+        const containerId = repostResponse.data.id;
+        return res.redirect(`threads/${containerId}`);
+    }
+    catch (e) {
+        console.error(e.message);
+        return res.json({
+            error: true,
+            message: `Error during upload: ${e}`,
+        });
+    }
+});
+
 app.post('/upload', upload.array(), async (req, res) => {
     const { text, attachmentType, attachmentUrl, attachmentAltText, replyControl, replyToId, linkAttachment, quotePostId } = req.body;
     const params = {
