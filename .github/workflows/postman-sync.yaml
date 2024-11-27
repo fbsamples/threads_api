@@ -1,0 +1,20 @@
+name: Sync Postman Collection
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Upload Postman Collection
+      run: |
+        curl -L -X PUT 'https://api.getpostman.com/collections/34203612-b2ec0e9b-19bb-4a28-b96f-ee426777509c' \
+        --header 'X-Api-Key: ${{ secrets.POSTMAN_API_KEY }}' \
+        -F 'collection=@postman/threads-api.postman_collection.json;type=application/json'

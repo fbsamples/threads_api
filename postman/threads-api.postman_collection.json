@@ -1,0 +1,2527 @@
+{
+	"info": {
+		"_postman_id": "b2ec0e9b-19bb-4a28-b96f-ee426777509c",
+		"name": "Threads API",
+		"description": "Welcome to the Threads API from Meta. This collection contains the [Graph API](https://developers.facebook.com/docs/graph-api/) requests to create, manage, and publish Threads content, programmatically. For the full Threads documentation, refer to the [developers documentation](https://developers.facebook.com/docs/threads).\n\n# Getting Started\n\n## Step 1 - Create a Meta App\n\nYou need to [create a&nbsp;Meta app with the&nbsp;Threads use case](https://developers.facebook.com/docs/threads/get-started#meta-app).\n\n## Step 2 - Enable App Users To Authorize Data Access To Your App\n\nApp users must authorize data access for the app you are developing. Ensure that proper authorization protocols are implemented to comply with data privacy and security requirements. For detailed instructions and guidelines, refer to the [authorization documentation](https://developers.facebook.com/docs/threads/get-started#authorization).\n\n## Step 3 - Request an Access Token\n\n### API Provisioned Token\n\nTo request an access token via the API, use the requests under the _**Authorization**_ folder within this collection. See the [Threads User Access Tokens](https://developers.facebook.com/docs/threads/get-started#threads-user-access-tokens) section in the Threads API documentation for details on authenticating your requests. Once you have an access token, you will need to manually add the **access_token** header to your requests with this value.\n\nNote: You can receive an access token for your requests either by using the requests under the _**Authorization**_ folder within this collection, or by using the _Authorization_ tab above in which the token will be provisioned by Postman.\n\n### Postman Provisioned Token\n\nIf using the _Authorization_ tab to receive an access token, make sure to include the following:\n\n- Grant Type must be **Authorization Code**\n    \n- You must supply the values for your Auth URL, Access Token URL, Client ID (your Threads app's ID), Client Secret (your Threads app's secret), and Scope.\n    \n\nAfter these values are entered, you may press **Get New Access Token** at the bottom of the page to receive an access token. This access token will automatically be attached to your requests.\n\n### Access token debugger\n\nYou can paste any token you generate into the [access token debugger](https://developers.facebook.com/tools/debug/accesstoken/) to see what type of token it is and what permission you have granted to your app.\n\n# Limitations\n\nPlease be aware that certain limitations may apply to the API usage. For the most accurate and up-to-date details, we strongly recommend referring to the online documentation. Visit the [developer documentation](https://developers.facebook.com/docs/threads/overview#rate-limiting) for more information.\n\n# Using Variables\n\nWhen using variables in requests (see the _Variables_ tab above), make sure to **save the updated values** after modifying them (e.g. with Ctrl-S / Cmd-S). The values must be saved in the _Variables_ tab each time they are modified.\n\n# Autosaving Variables\n\nVariable values may be auto-updated and saved after a request. For example, when a new Thread is published, the _thread_id_ field can be auto-updated with the new Thread ID to be used in retrieval requests.\n\nTo use this feature, make sure to **set the auto_save_variables variable value to true**. Otherwise, variables will not be auto-updated and you will need to update them manually.\n\n# Installation\n\nFork this collection into Postman to start using the Threads API.\n\nYou can generate the code for the API calls in your language by following the steps here: [https://learning.postman.com/docs/sending-requests/generate-code-snippets/#generating-code-snippets-in-postman](https://learning.postman.com/docs/sending-requests/generate-code-snippets/#generating-code-snippets-in-postmanEnvironmentChangelogUpdates)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "29882223",
+		"_collection_link": "https://www.postman.com/meta/threads/collection/dht3nzz/threads-api?action=share&source=collection_link&creator=29882223"
+	},
+	"item": [
+		{
+			"name": "Authorization",
+			"item": [
+				{
+					"name": "Exchange the Code For a Token",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": []
+						},
+						"url": {
+							"raw": "{{api_host}}/oauth/access_token?client_id={{app_id}}&client_secret={{app_secret}}&code={{code}}&grant_type=authorization_code&redirect_uri={{redirect_uri}}",
+							"host": [
+								"{{api_host}}"
+							],
+							"path": [
+								"oauth",
+								"access_token"
+							],
+							"query": [
+								{
+									"key": "client_id",
+									"value": "{{app_id}}",
+									"description": "Your Threads App ID displayed in App Dashboard > App settings > Basic > Threads App ID. Example: 990602627938098."
+								},
+								{
+									"key": "client_secret",
+									"value": "{{app_secret}}",
+									"description": "Your Threads App Secret displayed in App Dashboard > App settings > Basic > Threads App secret. Example: a1b2C3D4."
+								},
+								{
+									"key": "code",
+									"value": "{{code}}",
+									"description": "Authorization Code"
+								},
+								{
+									"key": "grant_type",
+									"value": "authorization_code",
+									"description": "This value is required"
+								},
+								{
+									"key": "redirect_uri",
+									"value": "{{redirect_uri}}",
+									"description": "The redirect URI you passed when you directed the user to the Authorization Window. This must be the same URI or the request will be rejected."
+								}
+							]
+						},
+						"description": "Once you receive a code, exchange it for a short-lived access token by sending a `POST` request to the /oauth/access_token [endpoint](https://developers.facebook.com/docs/threads/get-started/get-access-tokens-and-permissions#step-2--exchange-the-code-for-a-token)"
+					},
+					"response": [
+						{
+							"name": "Exchange the Code For a Token",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "urlencoded",
+									"urlencoded": []
+								},
+								"url": {
+									"raw": "{{api_host}}/oauth/access_token?client_id={{app_id}}&client_secret={{app_secret}}&code={{code}}&grant_type=authorization_code&redirect_uri={{redirect_uri}}",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"oauth",
+										"access_token"
+									],
+									"query": [
+										{
+											"key": "client_id",
+											"value": "{{app_id}}",
+											"description": "Your Threads App ID displayed in App Dashboard > App settings > Basic > Threads App ID. Example: 990602627938098."
+										},
+										{
+											"key": "client_secret",
+											"value": "{{app_secret}}",
+											"description": "Your Threads App Secret displayed in App Dashboard > App settings > Basic > Threads App secret. Example: a1b2C3D4."
+										},
+										{
+											"key": "code",
+											"value": "{{code}}",
+											"description": "Authorization Code"
+										},
+										{
+											"key": "grant_type",
+											"value": "authorization_code",
+											"description": "This value is required"
+										},
+										{
+											"key": "redirect_uri",
+											"value": "{{redirect_uri}}",
+											"description": "The redirect URI you passed when you directed the user to the Authorization Window. This must be the same URI or the request will be rejected."
+										}
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json",
+									"description": "",
+									"type": "text"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"access_token\": \"string\",\n    \"user_id\": \"string\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Long-Lived Access Token",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_host}}/access_token?grant_type=th_exchange_token&client_secret={{app_secret}}",
+							"host": [
+								"{{api_host}}"
+							],
+							"path": [
+								"access_token"
+							],
+							"query": [
+								{
+									"key": "grant_type",
+									"value": "th_exchange_token"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{app_secret}}"
+								}
+							]
+						},
+						"description": "Use the `GET` /access_token [endpoint](https://developers.facebook.com/docs/threads/get-started/long-lived-tokens#get-a-long-lived-token) to exchange a short-lived Threads user access token for a long-lived token."
+					},
+					"response": [
+						{
+							"name": "Get Long-Lived Access Token",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/access_token?grant_type=th_exchange_token&client_secret={{app_secret}}",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"access_token"
+									],
+									"query": [
+										{
+											"key": "grant_type",
+											"value": "th_exchange_token"
+										},
+										{
+											"key": "client_secret",
+											"value": "{{app_secret}}"
+										}
+									]
+								}
+							},
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json",
+									"description": "",
+									"type": "text"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"access_token\": \"string\",\n    \"token_type\": \"bearer\",\n    \"expires_in\": 5184000\n}"
+						}
+					]
+				}
+			],
+			"description": "Authorization is a required step to get the necessary user permissions to act on behalf of the user. Please take a look at the [walkthrough of the authentication process](https://developers.facebook.com/docs/threads/get-started/get-access-tokens-and-permissions). Once the access token is retrieved, use the [access token debugger](https://developers.facebook.com/tools/debug/accesstoken) to check if the access token has the correct permissions (including `threads_basic`, `threads_content_publish`, `threads_read_replies`, `threads_manage_replies`, `threads_manage_insights`) and verify that the access token hasn't expired.\n\nFollow the [documentation](https://developers.facebook.com/docs/threads/get-started/long-lived-tokens) to exchange a short-lived Threads User Access Token for a long-lived token and refresh unexpired long-lived Threads User Access tokens. **Note:** The `threads_basic` permission is sufficient for the exchange or refresh process."
+		},
+		{
+			"name": "Post to Threads",
+			"item": [
+				{
+					"name": "Single Threads Posts",
+					"item": [
+						{
+							"name": "1.1 Create Text Container",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.collectionVariables.get(\"auto_save_variables\") === \"true\") {",
+											"    var jsonData = pm.response.json();",
+											"    ",
+											"    if (jsonData.id)",
+											"        pm.collectionVariables.set(\"container_id\", jsonData.id);",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/me/threads?text=This is a test post&media_type=TEXT",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"me",
+										"threads"
+									],
+									"query": [
+										{
+											"key": "text",
+											"value": "This is a test post",
+											"description": "The text associated with the post. The first URL included in the text field will be used as the link preview for the post. For text-only posts, this parameter is required."
+										},
+										{
+											"key": "media_type",
+											"value": "TEXT",
+											"description": "Set to TEXT. Note: Type CAROUSEL is not available for single thread posts."
+										},
+										{
+											"key": "reply_control",
+											"value": "everyone",
+											"disabled": true
+										},
+										{
+											"key": "reply_to_id",
+											"value": "",
+											"disabled": true
+										},
+										{
+											"key": "link_attachment",
+											"value": "https://developers.facebook.com/",
+											"description": "Attach a link to your post (only available for text posts).",
+											"disabled": true
+										}
+									]
+								},
+								"description": "Use the `POST` /{threads-user-id}/threads [endpoint](https://developers.facebook.com/docs/threads/posts#step-1--create-a-threads-media-container) to create a text container."
+							},
+							"response": [
+								{
+									"name": "1.1 Create Text Container",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/me/threads?text=This is a test post&media_type=TEXT",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"me",
+												"threads"
+											],
+											"query": [
+												{
+													"key": "text",
+													"value": "This is a test post",
+													"description": "The text associated with the post. The first URL included in the text field will be used as the link preview for the post. For text-only posts, this parameter is required."
+												},
+												{
+													"key": "media_type",
+													"value": "TEXT",
+													"description": "Set to TEXT. Note: Type CAROUSEL is not available for single thread posts."
+												},
+												{
+													"key": "reply_control",
+													"value": "everyone",
+													"disabled": true
+												},
+												{
+													"key": "reply_to_id",
+													"value": null,
+													"disabled": true
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json",
+											"description": "",
+											"type": "text"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"id\": \"string\"\n}"
+								}
+							]
+						},
+						{
+							"name": "1.2 Create Image Container",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.collectionVariables.get(\"auto_save_variables\") === \"true\") {",
+											"    var jsonData = pm.response.json();",
+											"    ",
+											"    if (jsonData.id)",
+											"        pm.collectionVariables.set(\"container_id\", jsonData.id);",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/me/threads?text=This is an image&media_type=IMAGE&image_url={{image_url}}&alt_text=An example image",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"me",
+										"threads"
+									],
+									"query": [
+										{
+											"key": "text",
+											"value": "This is an image",
+											"description": "The text associated with the post. The first URL included in the text field will be used as the link preview for the post. For text-only posts, this parameter is required."
+										},
+										{
+											"key": "media_type",
+											"value": "IMAGE",
+											"description": "Set to IMAGE. Note: Type CAROUSEL is not available for single thread posts."
+										},
+										{
+											"key": "image_url",
+											"value": "{{image_url}}",
+											"description": "(For images only.) The path to the image. We will cURL your image using the URL provided so it must be on a public server."
+										},
+										{
+											"key": "alt_text",
+											"value": "An example image",
+											"description": "The accessibility label or alt text for the image."
+										}
+									]
+								},
+								"description": "Use the `POST` /{threads-user-id}/threads [endpoint](https://developers.facebook.com/docs/threads/posts#step-1--create-a-threads-media-container) to create an image container."
+							},
+							"response": [
+								{
+									"name": "1.2 Create Image Container",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/me/threads?text=This is an image&media_type=IMAGE&image_url={{image_url}}&alt_text=An example image",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"me",
+												"threads"
+											],
+											"query": [
+												{
+													"key": "text",
+													"value": "This is an image",
+													"description": "The text associated with the post. The first URL included in the text field will be used as the link preview for the post. For text-only posts, this parameter is required."
+												},
+												{
+													"key": "media_type",
+													"value": "IMAGE",
+													"description": "Set to IMAGE. Note: Type CAROUSEL is not available for single thread posts."
+												},
+												{
+													"key": "image_url",
+													"value": "{{image_url}}",
+													"description": "(For images only.) The path to the image. We will cURL your image using the URL provided so it must be on a public server."
+												},
+												{
+													"key": "alt_text",
+													"value": "An example image",
+													"description": "The accessibility label or alt text for the image."
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json",
+											"description": "",
+											"type": "text"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"id\": \"string\"\n}"
+								}
+							]
+						},
+						{
+							"name": "1.3 Create Video Container",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.collectionVariables.get(\"auto_save_variables\") === \"true\") {",
+											"    var jsonData = pm.response.json();",
+											"    ",
+											"    if (jsonData.id)",
+											"        pm.collectionVariables.set(\"container_id\", jsonData.id);",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/me/threads?text=This is a video&media_type=VIDEO&video_url={{video_url}}&alt_text=An example video",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"me",
+										"threads"
+									],
+									"query": [
+										{
+											"key": "text",
+											"value": "This is a video",
+											"description": "The text associated with the post. The first URL included in the text field will be used as the link preview for the post. For text-only posts, this parameter is required."
+										},
+										{
+											"key": "media_type",
+											"value": "VIDEO",
+											"description": "Set to VIDEO. Indicates the current media type. Note: Type CAROUSEL is not available for single thread posts."
+										},
+										{
+											"key": "video_url",
+											"value": "{{video_url}}"
+										},
+										{
+											"key": "alt_text",
+											"value": "An example video",
+											"description": "The accessibility label or alt text for the video."
+										}
+									]
+								},
+								"description": "Use the `POST` /{threads-user-id}/threads [endpoint](https://developers.facebook.com/docs/threads/posts#step-1--create-a-threads-media-container) to create a video container."
+							},
+							"response": [
+								{
+									"name": "1.3 Create Video Container",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/me/threads?text=This is a video&media_type=VIDEO&video_url={{video_url}}&alt_text=An example video",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"me",
+												"threads"
+											],
+											"query": [
+												{
+													"key": "text",
+													"value": "This is a video",
+													"description": "The text associated with the post. The first URL included in the text field will be used as the link preview for the post. For text-only posts, this parameter is required."
+												},
+												{
+													"key": "media_type",
+													"value": "VIDEO",
+													"description": "Set to VIDEO. Indicates the current media type. Note: Type CAROUSEL is not available for single thread posts."
+												},
+												{
+													"key": "video_url",
+													"value": "{{video_url}}"
+												},
+												{
+													"key": "alt_text",
+													"value": "An example video",
+													"description": "The accessibility label or alt text for the video."
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json",
+											"description": "",
+											"type": "text"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"id\": \"string\"\n}"
+								}
+							]
+						},
+						{
+							"name": "2. Publish Threads Post",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.collectionVariables.get(\"auto_save_variables\") === \"true\") {",
+											"    var jsonData = pm.response.json();",
+											"    ",
+											"    if (jsonData.id)",
+											"        pm.collectionVariables.set(\"thread_id\", jsonData.id);",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/me/threads_publish?creation_id={{container_id}}",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"me",
+										"threads_publish"
+									],
+									"query": [
+										{
+											"key": "creation_id",
+											"value": "{{container_id}}",
+											"description": "Identifier of the Threads media container created from the /threads endpoint."
+										}
+									]
+								},
+								"description": "Use the `POST` /{threads-user-id}/threads_publish [endpoint](https://developers.facebook.com/docs/threads/posts#step-2--publish-a-threads-media-container) to publish the container ID returned in the previous step."
+							},
+							"response": [
+								{
+									"name": "2. Publish Threads Post",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/me/threads_publish?creation_id={{container_id}}",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"me",
+												"threads_publish"
+											],
+											"query": [
+												{
+													"key": "creation_id",
+													"value": "{{container_id}}",
+													"description": "Identifier of the Threads media container created from the /threads endpoint."
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json",
+											"description": "",
+											"type": "text"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"id\": \"string\"\n}"
+								}
+							]
+						}
+					],
+					"description": "This folder will enable you to:\n\n1. Create a Media Container of text/image/video type. The API will return a Media Container ID which will be used in the second step.\n2. Publish a single Threads post."
+				},
+				{
+					"name": "Carousel Threads Posts",
+					"item": [
+						{
+							"name": "1.1 Create an Image Item Container",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.collectionVariables.get(\"auto_save_variables\")) {",
+											"    var jsonData = pm.response.json();",
+											"",
+											"    if (jsonData.id) {",
+											"        var ids = pm.collectionVariables.get(\"carousel_children_ids\");",
+											"        ",
+											"        let newIds = ids",
+											"            ? `${ids},${jsonData.id}`",
+											"            : jsonData.id;",
+											"        ",
+											"        pm.collectionVariables.set(\"carousel_children_ids\", newIds);",
+											"",
+											"        pm.collectionVariables.set(\"container_id\", jsonData.id);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/me/threads?text=This is an image&media_type=IMAGE&image_url={{image_url}}&is_carousel_item=true&alt_text=An example image",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"me",
+										"threads"
+									],
+									"query": [
+										{
+											"key": "text",
+											"value": "This is an image",
+											"description": "The text associated with the post. While the text field is optional for carousel posts, the first URL included in the text field will be used as the link preview for the post."
+										},
+										{
+											"key": "media_type",
+											"value": "IMAGE",
+											"description": "Set to IMAGE or VIDEO. Indicates media is an image or a video."
+										},
+										{
+											"key": "image_url",
+											"value": "{{image_url}}",
+											"description": "(For images only.) The path to the image. We will cURL your image using the passed in URL so it must be on a public server."
+										},
+										{
+											"key": "is_carousel_item",
+											"value": "true",
+											"description": "Set to true. Indicates the image or video will appear in a carousel."
+										},
+										{
+											"key": "alt_text",
+											"value": "An example image",
+											"description": "The accessibility label or alt text for the image."
+										}
+									]
+								},
+								"description": "Use the `POST` /{threads-user-id}/threads [endpoint](https://developers.facebook.com/docs/threads/posts#step-1--create-an-item-container) to create an image container for the image that will appear in a carousel."
+							},
+							"response": [
+								{
+									"name": "1.1 Create an Image Item Container",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/me/threads?text=This is an image&media_type=IMAGE&image_url={{image_url}}&is_carousel_item=true&alt_text=An example image",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"me",
+												"threads"
+											],
+											"query": [
+												{
+													"key": "text",
+													"value": "This is an image",
+													"description": "The text associated with the post. While the text field is optional for carousel posts, the first URL included in the text field will be used as the link preview for the post."
+												},
+												{
+													"key": "media_type",
+													"value": "IMAGE",
+													"description": "Set to IMAGE or VIDEO. Indicates media is an image or a video."
+												},
+												{
+													"key": "image_url",
+													"value": "{{image_url}}",
+													"description": "(For images only.) The path to the image. We will cURL your image using the passed in URL so it must be on a public server."
+												},
+												{
+													"key": "is_carousel_item",
+													"value": "true",
+													"description": "Set to true. Indicates the image or video will appear in a carousel."
+												},
+												{
+													"key": "alt_text",
+													"value": "An example image",
+													"description": "The accessibility label or alt text for the image."
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json",
+											"description": "",
+											"type": "text"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"id\": \"string\"\n}"
+								}
+							]
+						},
+						{
+							"name": "1.2 Create a Video Container",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.collectionVariables.get(\"auto_save_variables\")) {",
+											"    var jsonData = pm.response.json();",
+											"",
+											"    if (jsonData.id) {",
+											"        var ids = pm.collectionVariables.get(\"carousel_children_ids\");",
+											"        ",
+											"        let newIds = ids",
+											"            ? `${ids},${jsonData.id}`",
+											"            : jsonData.id;",
+											"        ",
+											"        pm.collectionVariables.set(\"carousel_children_ids\", newIds);",
+											"",
+											"        pm.collectionVariables.set(\"container_id\", jsonData.id);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/me/threads?text=This is a video&media_type=VIDEO&video_url={{video_url}}&is_carousel_item=true&alt_text=An example video",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"me",
+										"threads"
+									],
+									"query": [
+										{
+											"key": "text",
+											"value": "This is a video",
+											"description": "The text associated with the post. While the text field is optional for carousel posts, the first URL included in the text field will be used as the link preview for the post."
+										},
+										{
+											"key": "media_type",
+											"value": "VIDEO",
+											"description": "Set to IMAGE or VIDEO. Indicates media is an image or a video."
+										},
+										{
+											"key": "video_url",
+											"value": "{{video_url}}",
+											"description": "(For videos only.) Path to the video. We will cURL your video using the passed in URL so it must be on a public server."
+										},
+										{
+											"key": "is_carousel_item",
+											"value": "true",
+											"description": "Set to true. Indicates the image or video will appear in a carousel."
+										},
+										{
+											"key": "alt_text",
+											"value": "An example video",
+											"description": "The accessibility label or alt text for the video."
+										}
+									]
+								},
+								"description": "Use the `POST` /{threads-user-id}/threads [endpoint](https://developers.facebook.com/docs/threads/posts#step-1--create-an-item-container) to create a video container for the video that will appear in a carousel."
+							},
+							"response": [
+								{
+									"name": "1.2 Create a Video Container",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/me/threads?text=This is a video&media_type=VIDEO&video_url={{video_url}}&is_carousel_item=true&alt_text=An example video",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"me",
+												"threads"
+											],
+											"query": [
+												{
+													"key": "text",
+													"value": "This is a video",
+													"description": "The text associated with the post. While the text field is optional for carousel posts, the first URL included in the text field will be used as the link preview for the post."
+												},
+												{
+													"key": "media_type",
+													"value": "VIDEO",
+													"description": "Set to IMAGE or VIDEO. Indicates media is an image or a video."
+												},
+												{
+													"key": "video_url",
+													"value": "{{video_url}}",
+													"description": "(For videos only.) Path to the video. We will cURL your video using the passed in URL so it must be on a public server."
+												},
+												{
+													"key": "is_carousel_item",
+													"value": "true",
+													"description": "Set to true. Indicates the image or video will appear in a carousel."
+												},
+												{
+													"key": "alt_text",
+													"value": "An example video",
+													"description": "The accessibility label or alt text for the video."
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json",
+											"description": "",
+											"type": "text"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"id\": \"string\"\n}"
+								}
+							]
+						},
+						{
+							"name": "2. Create a Carousel Container",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.collectionVariables.get(\"auto_save_variables\")) {",
+											"    var jsonData = pm.response.json();",
+											"",
+											"    if (jsonData.id) {",
+											"        // Clear the value",
+											"        pm.collectionVariables.set(\"carousel_children_ids\", \"\");",
+											"",
+											"        pm.collectionVariables.set(\"container_id\", jsonData.id);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/me/threads?media_type=CAROUSEL&children={{carousel_children_ids}}&text=This is a carousel",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"me",
+										"threads"
+									],
+									"query": [
+										{
+											"key": "media_type",
+											"value": "CAROUSEL",
+											"description": "Set to CAROUSEL. This indicates that the container is for a carousel."
+										},
+										{
+											"key": "children",
+											"value": "{{carousel_children_ids}}",
+											"description": "A comma-separated list of up to 20 container IDs of each image and/or video that should appear in the published carousel. Carousels can have at least 2 and up to 20 total images or videos or a mix of the two."
+										},
+										{
+											"key": "text",
+											"value": "This is a carousel",
+											"description": "(Optional.) The text associated with the post."
+										}
+									]
+								},
+								"description": "Use the `POST` /{threads-user-id}/threads [endpoint](https://developers.facebook.com/docs/threads/posts#step-2--create-a-carousel-container) to create a carousel container."
+							},
+							"response": [
+								{
+									"name": "2. Create a Carousel Container",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/me/threads?media_type=CAROUSEL&children={{carousel_children_ids}}&text=This is a carousel",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"me",
+												"threads"
+											],
+											"query": [
+												{
+													"key": "media_type",
+													"value": "CAROUSEL",
+													"description": "Set to CAROUSEL. This indicates that the container is for a carousel."
+												},
+												{
+													"key": "children",
+													"value": "{{carousel_children_ids}}",
+													"description": "A comma-separated list of up to 10 container IDs of each image and/or video that should appear in the published carousel. Carousels can have at least 2 and up to 10 total images or videos or a mix of the two."
+												},
+												{
+													"key": "text",
+													"value": "This is a carousel",
+													"description": "(Optional.) The text associated with the post."
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json",
+											"description": "",
+											"type": "text"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"id\": \"string\"\n}"
+								}
+							]
+						},
+						{
+							"name": "3. Publish a Carousel Container",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.collectionVariables.get(\"auto_save_variables\")) {",
+											"    var jsonData = pm.response.json();",
+											"",
+											"    if (jsonData.id)",
+											"        pm.collectionVariables.set(\"thread_id\", jsonData.id);",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/me/threads_publish?creation_id={{container_id}}",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"me",
+										"threads_publish"
+									],
+									"query": [
+										{
+											"key": "creation_id",
+											"value": "{{container_id}}",
+											"description": "The carousel container ID."
+										}
+									]
+								},
+								"description": "Use the `POST` /{threads-user-id}/threads_publish [endpoint](https://developers.facebook.com/docs/threads/posts#step-3--publish-the-carousel-container) to publish a carousel post."
+							},
+							"response": [
+								{
+									"name": "3. Publish a Carousel Container",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/me/threads_publish?creation_id={{container_id}}",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"me",
+												"threads_publish"
+											],
+											"query": [
+												{
+													"key": "creation_id",
+													"value": "{{container_id}}",
+													"description": "The carousel container ID."
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json",
+											"description": "",
+											"type": "text"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"id\": \"string\"\n}"
+								}
+							]
+						}
+					],
+					"description": "This folder will enable you to:\n\n1. Create an Item Container for each image or video that will appear in a Carousel.\n    \n2. Create a Carousel Container.\n    \n3. Publish a Carousel post."
+				},
+				{
+					"name": "Quote Threads Posts",
+					"item": [
+						{
+							"name": "1 Create Media Container",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.collectionVariables.get(\"auto_save_variables\") === \"true\") {",
+											"    var jsonData = pm.response.json();",
+											"    ",
+											"    if (jsonData.id)",
+											"        pm.collectionVariables.set(\"container_id\", jsonData.id);",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/me/threads?text=This is a quoted post&media_type=TEXT&quote_post_id={{quote_post_id}}",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"me",
+										"threads"
+									],
+									"query": [
+										{
+											"key": "text",
+											"value": "This is a quoted post",
+											"description": "The text associated with the post. The first URL included in the text field will be used as the link preview for the post. For text-only posts, this parameter is required."
+										},
+										{
+											"key": "media_type",
+											"value": "TEXT",
+											"description": "Set to TEXT. Note: Type CAROUSEL is not available for single thread posts."
+										},
+										{
+											"key": "reply_control",
+											"value": "everyone",
+											"disabled": true
+										},
+										{
+											"key": "reply_to_id",
+											"value": "",
+											"disabled": true
+										},
+										{
+											"key": "quote_post_id",
+											"value": "{{quote_post_id}}",
+											"description": "The id of the Threads post which is being quoted."
+										}
+									]
+								},
+								"description": "Use the `POST` /{threads-user-id}/threads [endpoint](https://developers.facebook.com/docs/threads/posts#step-1--create-a-threads-media-container) to create a text container."
+							},
+							"response": [
+								{
+									"name": "1.1 Create Text Container",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/me/threads?text=This is a test post&media_type=TEXT",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"me",
+												"threads"
+											],
+											"query": [
+												{
+													"key": "text",
+													"value": "This is a test post",
+													"description": "The text associated with the post. The first URL included in the text field will be used as the link preview for the post. For text-only posts, this parameter is required."
+												},
+												{
+													"key": "media_type",
+													"value": "TEXT",
+													"description": "Set to TEXT. Note: Type CAROUSEL is not available for single thread posts."
+												},
+												{
+													"key": "reply_control",
+													"value": "everyone",
+													"disabled": true
+												},
+												{
+													"key": "reply_to_id",
+													"value": null,
+													"disabled": true
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json",
+											"description": ""
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"id\": \"string\"\n}"
+								}
+							]
+						},
+						{
+							"name": "2. Publish Threads Quote Post",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.collectionVariables.get(\"auto_save_variables\") === \"true\") {",
+											"    var jsonData = pm.response.json();",
+											"    ",
+											"    if (jsonData.id)",
+											"        pm.collectionVariables.set(\"thread_id\", jsonData.id);",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/me/threads_publish?creation_id={{container_id}}",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"me",
+										"threads_publish"
+									],
+									"query": [
+										{
+											"key": "creation_id",
+											"value": "{{container_id}}",
+											"description": "Identifier of the Threads media container created from the /threads endpoint."
+										}
+									]
+								},
+								"description": "Use the `POST` /{threads-user-id}/threads_publish [endpoint](https://developers.facebook.com/docs/threads/posts#step-2--publish-a-threads-media-container) to publish the container ID returned in the previous step."
+							},
+							"response": [
+								{
+									"name": "2. Publish Threads Post",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/me/threads_publish?creation_id={{container_id}}",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"me",
+												"threads_publish"
+											],
+											"query": [
+												{
+													"key": "creation_id",
+													"value": "{{container_id}}",
+													"description": "Identifier of the Threads media container created from the /threads endpoint."
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json",
+											"description": ""
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"id\": \"string\"\n}"
+								}
+							]
+						}
+					],
+					"description": "This folder will enable you to:\n\n1. Create a Media Container. The API will return a Media Container ID which will be used in the second step.\n    \n2. Publish a single Quote post."
+				},
+				{
+					"name": "Repost Threads Posts",
+					"item": [
+						{
+							"name": "Repost Threads Post",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.collectionVariables.get(\"auto_save_variables\") === \"true\") {",
+											"    var jsonData = pm.response.json();",
+											"    ",
+											"    if (jsonData.id)",
+											"        pm.collectionVariables.set(\"thread_id\", jsonData.id);",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/{{thread_id}}/repost",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"{{thread_id}}",
+										"repost"
+									]
+								},
+								"description": "Use the `POST` /{threads-user-id}/threads_publish [endpoint](https://developers.facebook.com/docs/threads/posts#step-2--publish-a-threads-media-container) to publish the container ID returned in the previous step."
+							},
+							"response": [
+								{
+									"name": "2. Publish Threads Post",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/me/threads_publish?creation_id={{container_id}}",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"me",
+												"threads_publish"
+											],
+											"query": [
+												{
+													"key": "creation_id",
+													"value": "{{container_id}}",
+													"description": "Identifier of the Threads media container created from the /threads endpoint."
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json",
+											"description": ""
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"id\": \"string\"\n}"
+								}
+							]
+						}
+					],
+					"description": "This folder will enable you to repost an original Threads post."
+				}
+			],
+			"description": "This folder will enable you to use the Threads API to publish single image, video, text or carousel posts."
+		},
+		{
+			"name": "Read And Manage Threads",
+			"item": [
+				{
+					"name": "Retrieve Threads Profiles",
+					"item": [
+						{
+							"name": "Get Threads User's Profile Information",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"",
+											"if (pm.collectionVariables.get(\"auto_save_variables\") === \"true\") {",
+											"    var jsonData = pm.response.json();",
+											"    ",
+											"    if (jsonData.id)",
+											"        pm.collectionVariables.set(\"user_id\", jsonData.id);",
+											"}"
+										],
+										"type": "text/javascript",
+										"packages": {}
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/me?fields={{fields_profile}}",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"me"
+									],
+									"query": [
+										{
+											"key": "fields",
+											"value": "{{fields_profile}}",
+											"description": "id: Threads user ID. This is returned by default.\n\nusername: Handle or unique username on Threads. This is the same as the username on Instagram.\n\nthreads_profile_picture_url: URL of the user's profile picture on Threads.\n\nthreads_biography: Biography text on Threads profile."
+										}
+									]
+								},
+								"description": "Use the `GET` /{threads-user-id}?fields=id,username,... [endpoint](https://developers.facebook.com/docs/threads/threads-profiles#retrieve-a-threads-user-s-profile-information) to return profile information about a Threads user."
+							},
+							"response": [
+								{
+									"name": "Get Threads User's Profile Information",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/me?fields={{fields_profile}}",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"me"
+											],
+											"query": [
+												{
+													"key": "fields",
+													"value": "{{fields_profile}}",
+													"description": "id: Threads user ID. This is returned by default.\n\nusername: Handle or unique username on Threads. This is the same as the username on Instagram.\n\nthreads_profile_picture_url: URL of the user's profile picture on Threads.\n\nthreads_biography: Biography text on Threads profile."
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json",
+											"description": "",
+											"type": "text"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"id\": \"string\",\n    \"username\": \"string\",\n    \"name\": \"string\",\n    \"threads_profile_picture_url\": \"string\",\n    \"threads_biography\": \"string\"\n}"
+								}
+							]
+						}
+					],
+					"description": "This folder will enable you to get profile information about a Threads user."
+				},
+				{
+					"name": "Retrieve Threads Media Objects",
+					"item": [
+						{
+							"name": "Get Threads Post Details",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/{{thread_id}}?fields={{fields_threads}}",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"{{thread_id}}"
+									],
+									"query": [
+										{
+											"key": "fields",
+											"value": "{{fields_threads}}",
+											"description": "id (default): The media's ID.\n\nmedia_product_type: Surface where the media is published. In the case of Threads, the value is THREADS.\n\nmedia_type: The media type for a Threads post will be one of these values: TEXT_POST, IMAGE, VIDEO, CAROUSEL_ALBUM, AUDIO, or REPOST_FACADE.\n\nmedia_url: The post’s media URL.\n\npermalink: Permanent link to the post. Will be omitted if the media contains copyrighted material or has been flagged for a copyright violation.\n\nowner: Instagram user ID who created the post.\n\nusername: Instagram username who created the post.\n\ntext: Represents text for a Threads post.\n\ntimestamp: Post time. The publish date in ISO 8601 format.\n\nshortcode: Shortcode of the media.\n\nthumbnail_url: URL of thumbnail. This only shows up for Threads media with video.\n\nchildren: List of child posts. This only shows up for carousel posts.\n\nis_quote_post: Indicates if the media is a quoted post made by another user."
+										}
+									]
+								},
+								"description": "Use the `GET` /{threads-media-id} [endpoint](https://developers.facebook.com/docs/threads/threads-media#retrieve-a-single-threads-media-object) to return an individual Threads media object."
+							},
+							"response": [
+								{
+									"name": "Get Threads Post Details",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/{{thread_id}}?fields={{fields_threads}}",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"{{thread_id}}"
+											],
+											"query": [
+												{
+													"key": "fields",
+													"value": "{{fields_threads}}",
+													"description": "id (default): The media's ID.\n\nmedia_product_type: Surface where the media is published. In the case of Threads, the value is THREADS.\n\nmedia_type: The media type for a Threads post will be one of these values: TEXT_POST, IMAGE, VIDEO, CAROUSEL_ALBUM, AUDIO, or REPOST_FACADE.\n\nmedia_url: The post’s media URL.\n\npermalink: Permanent link to the post. Will be omitted if the media contains copyrighted material or has been flagged for a copyright violation.\n\nowner: Instagram user ID who created the post.\n\nusername: Instagram username who created the post.\n\ntext: Represents text for a Threads post.\n\ntimestamp: Post time. The publish date in ISO 8601 format.\n\nshortcode: Shortcode of the media.\n\nthumbnail_url: URL of thumbnail. This only shows up for Threads media with video.\n\nchildren: List of child posts. This only shows up for carousel posts.\n\nis_quote_post: Indicates if the media is a quoted post made by another user."
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json",
+											"description": "",
+											"type": "text"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"id\": \"string\",\n    \"media_product_type\": \"THREADS\",\n    \"media_type\": \"TEXT_POST\",\n    \"permalink\": \"string\",\n    \"owner\": {\n        \"id\": \"string\"\n    },\n    \"username\": \"string\",\n    \"text\": \"This is a test post\",\n    \"timestamp\": \"2024-09-12T23:17:39+0000\",\n    \"shortcode\": \"string\",\n    \"is_quote_post\": false,\n    \"has_replies\": false\n}"
+								}
+							]
+						},
+						{
+							"name": "Get a List of All a User's Threads",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/me/threads?fields={{fields_threads}}&limit=50",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"me",
+										"threads"
+									],
+									"query": [
+										{
+											"key": "fields",
+											"value": "{{fields_threads}}",
+											"description": "id (default): The media's ID.\n\nmedia_product_type: Surface where the media is published. In the case of Threads, the value is THREADS.\n\nmedia_type: The media type for a Threads post will be one of these values: TEXT_POST, IMAGE, VIDEO, CAROUSEL_ALBUM, AUDIO, or REPOST_FACADE.\n\nmedia_url: The post’s media URL.\n\npermalink: Permanent link to the post. Will be omitted if the media contains copyrighted material or has been flagged for a copyright violation.\n\nowner: Instagram user ID who created the post.\n\nusername: Instagram username who created the post.\n\ntext: Represents text for a Threads post.\n\ntimestamp: Post time. The publish date in ISO 8601 format.\n\nshortcode: Shortcode of the media.\n\nthumbnail_url: URL of thumbnail. This only shows up for Threads media with video.\n\nchildren: List of child posts. This only shows up for carousel posts.\n\nis_quote_post: Indicates if the media is a quoted post made by another user."
+										},
+										{
+											"key": "since",
+											"value": "",
+											"description": "Query string parameter representing the start date for retrieval",
+											"disabled": true
+										},
+										{
+											"key": "until",
+											"value": "",
+											"description": "Query string parameter representing the end date for retrieval",
+											"disabled": true
+										},
+										{
+											"key": "limit",
+											"value": "50",
+											"description": "Query string parameter representing the maximum number of media objects or records to return"
+										},
+										{
+											"key": "before",
+											"value": "",
+											"description": "Query string parameter representing a cursor that can be used for pagination. Both \"before\" and \"after\" cannot be sent in the same request.",
+											"disabled": true
+										},
+										{
+											"key": "after",
+											"value": "",
+											"description": "Query string parameter representing a cursor that can be used for pagination. Both \"before\" and \"after\" cannot be sent in the same request.",
+											"disabled": true
+										}
+									]
+								},
+								"description": "Use the `GET` /{threads-user-id}/threads [endpoint](https://developers.facebook.com/docs/threads/threads-media#retrieve-a-list-of-all-a-user-s-threads) to return a paginated list of all threads created by a user."
+							},
+							"response": [
+								{
+									"name": "Get a List of All a User's Threads",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/me/threads?fields={{fields_threads}}&limit=50",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"me",
+												"threads"
+											],
+											"query": [
+												{
+													"key": "fields",
+													"value": "{{fields_threads}}",
+													"description": "id (default): The media's ID.\n\nmedia_product_type: Surface where the media is published. In the case of Threads, the value is THREADS.\n\nmedia_type: The media type for a Threads post will be one of these values: TEXT_POST, IMAGE, VIDEO, CAROUSEL_ALBUM, AUDIO, or REPOST_FACADE.\n\nmedia_url: The post’s media URL.\n\npermalink: Permanent link to the post. Will be omitted if the media contains copyrighted material or has been flagged for a copyright violation.\n\nowner: Instagram user ID who created the post.\n\nusername: Instagram username who created the post.\n\ntext: Represents text for a Threads post.\n\ntimestamp: Post time. The publish date in ISO 8601 format.\n\nshortcode: Shortcode of the media.\n\nthumbnail_url: URL of thumbnail. This only shows up for Threads media with video.\n\nchildren: List of child posts. This only shows up for carousel posts.\n\nis_quote_post: Indicates if the media is a quoted post made by another user."
+												},
+												{
+													"key": "since",
+													"value": null,
+													"description": "Query string parameter representing the start date for retrieval",
+													"disabled": true
+												},
+												{
+													"key": "until",
+													"value": null,
+													"description": "Query string parameter representing the end date for retrieval",
+													"disabled": true
+												},
+												{
+													"key": "limit",
+													"value": "50",
+													"description": "Query string parameter representing the maximum number of media objects or records to return"
+												},
+												{
+													"key": "before",
+													"value": null,
+													"description": "Query string parameter representing a cursor that can be used for pagination. Both \"before\" and \"after\" cannot be sent in the same request.",
+													"disabled": true
+												},
+												{
+													"key": "after",
+													"value": null,
+													"description": "Query string parameter representing a cursor that can be used for pagination. Both \"before\" and \"after\" cannot be sent in the same request.",
+													"disabled": true
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json",
+											"description": "",
+											"type": "text"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"data\": [\n        {\n            \"id\": \"string\",\n            \"media_product_type\": \"THREADS\",\n            \"media_type\": \"TEXT_POST\",\n            \"permalink\": \"string\",\n            \"owner\": {\n                \"id\": \"string\"\n            },\n            \"username\": \"string\",\n            \"text\": \"This is a test post\",\n            \"timestamp\": \"2024-09-12T23:17:39+0000\",\n            \"shortcode\": \"string\",\n            \"is_quote_post\": false,\n            \"has_replies\": false\n        }\n    ],\n    \"paging\": {\n        \"cursors\": {\n            \"before\": \"string\",\n            \"after\": \"string\"\n        }\n    }\n}"
+								}
+							]
+						}
+					],
+					"description": "This folder will enable you to use the Threads API to retrieve details about posts."
+				},
+				{
+					"name": "Read Threads Insights",
+					"item": [
+						{
+							"name": "Get Post Insights",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/{{thread_id}}/insights?metric={{metrics_post}}",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"{{thread_id}}",
+										"insights"
+									],
+									"query": [
+										{
+											"key": "metric",
+											"value": "{{metrics_post}}",
+											"description": "views: The number of times the post was viewed.\nNote: This metric is in development.\n\nlikes: The number of likes on the post.\n\nreplies: The number of replies on the post.\nNote: This number includes only top-level replies.\n\nreposts: The number of times the post was reposted.\n\nquotes: The number of times the post was quoted."
+										}
+									]
+								},
+								"description": "Use the `GET` /{threads-media-id}/insights [endpoint](https://developers.facebook.com/docs/threads/insights#media-insights) to return the insights of a given Threads post."
+							},
+							"response": [
+								{
+									"name": "Get Post Insights",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/{{thread_id}}/insights?metric={{metrics_post}}",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"{{thread_id}}",
+												"insights"
+											],
+											"query": [
+												{
+													"key": "metric",
+													"value": "{{metrics_post}}",
+													"description": "views: The number of times the post was viewed.\nNote: This metric is in development.\n\nlikes: The number of likes on the post.\n\nreplies: The number of replies on the post.\nNote: This number includes only top-level replies.\n\nreposts: The number of times the post was reposted.\n\nquotes: The number of times the post was quoted."
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n    \"data\": [\n        {\n            \"name\": \"views\",\n            \"period\": \"lifetime\",\n            \"values\": [\n                {\n                    \"value\": 0\n                }\n            ],\n            \"title\": \"Views\",\n            \"description\": \"The number of times your post was viewed. This metric is in development (https://www.facebook.com/business/help/metrics-labeling)\",\n            \"id\": \"{thread_id}/insights/views/lifetime\"\n        },\n        {\n            \"name\": \"likes\",\n            \"period\": \"lifetime\",\n            \"values\": [\n                {\n                    \"value\": 0\n                }\n            ],\n            \"title\": \"Likes\",\n            \"description\": \"The number of likes on your post.\",\n            \"id\": \"{thread_id}/insights/likes/lifetime\"\n        },\n        {\n            \"name\": \"replies\",\n            \"period\": \"lifetime\",\n            \"values\": [\n                {\n                    \"value\": 0\n                }\n            ],\n            \"title\": \"Replies\",\n            \"description\": \"The number of replies on your post.\",\n            \"id\": \"{thread_id}/insights/thread_replies/lifetime\"\n        },\n        {\n            \"name\": \"reposts\",\n            \"period\": \"lifetime\",\n            \"values\": [\n                {\n                    \"value\": 0\n                }\n            ],\n            \"title\": \"Reposts\",\n            \"description\": \"The number of times your post was reposted.\",\n            \"id\": \"{thread_id}/insights/reposts/lifetime\"\n        },\n        {\n            \"name\": \"quotes\",\n            \"period\": \"lifetime\",\n            \"values\": [\n                {\n                    \"value\": 0\n                }\n            ],\n            \"title\": \"Quotes\",\n            \"description\": \"The number of times your post was quoted.\",\n            \"id\": \"{thread_id}/insights/quotes/lifetime\"\n        }\n    ]\n}"
+								}
+							]
+						},
+						{
+							"name": "Get Account Insights",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/me/threads_insights?metric={{metrics_account}}",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"me",
+										"threads_insights"
+									],
+									"query": [
+										{
+											"key": "metric",
+											"value": "{{metrics_account}}",
+											"description": "views: The number of times the post was viewed.\nNote: This metric is in development.\n\nlikes: The number of likes on the post.\n\nreplies: The number of replies on the post.\nNote: This number includes only top-level replies.\n\nreposts: The number of times the post was reposted.\n\nquotes: The number of times the post was quoted.\n\nreposts: The number of times your posts were quoted.\n\nfollowers_count: Your total number of followers on Threads.\n\nfollower_demographics: The demographic characteristics of followers, including countries, cities and gender distribution.\nNote: Does not support the since and until parameters."
+										},
+										{
+											"key": "breakdown",
+											"value": "{{follower_demographics_breakdown}}",
+											"disabled": true
+										}
+									]
+								},
+								"description": "Use the `GET` /{threads-user-id}/threads_insights [endpoint](https://developers.facebook.com/docs/threads/insights#user-insights) to return the insights of a given Threads user."
+							},
+							"response": [
+								{
+									"name": "Get Account Insights",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/me/threads_insights?metric={{metrics_account}}",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"me",
+												"threads_insights"
+											],
+											"query": [
+												{
+													"key": "metric",
+													"value": "{{metrics_account}}",
+													"description": "views: The number of times the post was viewed.\nNote: This metric is in development.\n\nlikes: The number of likes on the post.\n\nreplies: The number of replies on the post.\nNote: This number includes only top-level replies.\n\nreposts: The number of times the post was reposted.\n\nquotes: The number of times the post was quoted.\n\nreposts: The number of times your posts were quoted.\n\nfollowers_count: Your total number of followers on Threads.\n\nfollower_demographics: The demographic characteristics of followers, including countries, cities and gender distribution.\nNote: Does not support the since and until parameters."
+												},
+												{
+													"key": "breakdown",
+													"value": "{{follower_demographics_breakdown}}",
+													"disabled": true
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n    \"data\": [\n        {\n            \"name\": \"views\",\n            \"period\": \"day\",\n            \"values\": [\n                {\n                    \"value\": 0,\n                    \"end_time\": \"2024-09-16T07:00:00+0000\"\n                },\n                {\n                    \"value\": 0,\n                    \"end_time\": \"2024-09-17T07:00:00+0000\"\n                }\n            ],\n            \"title\": \"views\",\n            \"description\": \"The number of times your profile was viewed.\",\n            \"id\": \"{user_id}/insights/views/day\"\n        },\n        {\n            \"name\": \"likes\",\n            \"period\": \"day\",\n            \"title\": \"likes\",\n            \"description\": \"The number of likes on your posts.\",\n            \"total_value\": {\n                \"value\": 0\n            },\n            \"id\": \"{user_id}/insights/likes/day\"\n        },\n        {\n            \"name\": \"replies\",\n            \"period\": \"day\",\n            \"title\": \"replies\",\n            \"description\": \"The number of replies on your posts.\",\n            \"total_value\": {\n                \"value\": 0\n            },\n            \"id\": \"{user_id}/insights/replies/day\"\n        },\n        {\n            \"name\": \"reposts\",\n            \"period\": \"day\",\n            \"title\": \"reposts\",\n            \"description\": \"The number of times your posts were reposted.\",\n            \"total_value\": {\n                \"value\": 0\n            },\n            \"id\": \"{user_id}/insights/reposts/day\"\n        },\n        {\n            \"name\": \"quotes\",\n            \"period\": \"day\",\n            \"title\": \"quotes\",\n            \"description\": \"The number of times your posts were quoted.\",\n            \"total_value\": {\n                \"value\": 0\n            },\n            \"id\": \"{user_id}/insights/quotes/day\"\n        },\n        {\n            \"name\": \"followers_count\",\n            \"period\": \"day\",\n            \"title\": \"followers_count\",\n            \"description\": \"This is your total number of followers on Threads.\",\n            \"total_value\": {\n                \"value\": 0\n            },\n            \"id\": \"{user_id}/insights/followers_count/day\"\n        }\n    ],\n    \"paging\": {\n        \"previous\": \"string\",\n        \"next\": \"string\"\n    }\n}"
+								}
+							]
+						}
+					],
+					"description": "This folder will enable you to use the Threads API to retrieve details about posts and accounts."
+				},
+				{
+					"name": "Read and Manage Threads Replies",
+					"item": [
+						{
+							"name": "Get Threads Replies",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/{{thread_id}}/replies?fields=text&reverse=false",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"{{thread_id}}",
+										"replies"
+									],
+									"query": [
+										{
+											"key": "fields",
+											"value": "text",
+											"description": "id (default): The media's ID.\n\ntext: Represents text for a Threads reply. This is optional on image, video, and carousel replies.\n\nusername: Instagram username who created the post.\nNote: This only works for public users, your own user, and users that you follow.\n\npermalink: Permanent link to the post. Will be omitted if the media contains copyrighted material or has been flagged for a copyright violation.\nNote: This only works for public users, your own user, and users that you follow.\n\ntimestamp: The publish date and time of the post in ISO 8601 format.\n\nmedia_product_type: Surface where the media is published. In the case of Threads, the value is THREADS.\n\nmedia_type: The media type for a Threads reply.\nValues: TEXT_POST, IMAGE, VIDEO, CAROUSEL_ALBUM\n\nmedia_url: The post’s media URL. This only shows for image, video, and carousel replies.\n\nshortcode: Shortcode of the media.\n\nthumbnail_url: URL of thumbnail. This only shows for Threads replies with video.\n\nchildren: List of child posts. This only shows for carousel replies.\n\nhas_replies: true if the Threads post or reply has replies that you can see.\n\nroot_post: Media ID of the top-level post or original thread in the reply tree.\nNote: This only appears on replies.\n\nreplied_to: Media ID of the immediate parent of the reply.\nNote: This only appears on replies.\n\nis_reply: true if the Threads media is a reply. false if the Threads media is a top-level post.\n\nhide_status: Whether or not the reply is hidden.\nValues: NOT_HUSHED, UNHUSHED, HIDDEN"
+										},
+										{
+											"key": "reverse",
+											"value": "false"
+										}
+									]
+								},
+								"description": "Use `GET` /replies [endpoint](https://developers.facebook.com/docs/threads/reply-management#replies) to fetch a paginated list of all top-level replies."
+							},
+							"response": [
+								{
+									"name": "Get Threads Replies",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/{{thread_id}}/replies?fields=text&reverse=false",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"{{thread_id}}",
+												"replies"
+											],
+											"query": [
+												{
+													"key": "fields",
+													"value": "text",
+													"description": "id (default): The media's ID.\n\ntext: Represents text for a Threads reply. This is optional on image, video, and carousel replies.\n\nusername: Instagram username who created the post.\nNote: This only works for public users, your own user, and users that you follow.\n\npermalink: Permanent link to the post. Will be omitted if the media contains copyrighted material or has been flagged for a copyright violation.\nNote: This only works for public users, your own user, and users that you follow.\n\ntimestamp: The publish date and time of the post in ISO 8601 format.\n\nmedia_product_type: Surface where the media is published. In the case of Threads, the value is THREADS.\n\nmedia_type: The media type for a Threads reply.\nValues: TEXT_POST, IMAGE, VIDEO, CAROUSEL_ALBUM\n\nmedia_url: The post’s media URL. This only shows for image, video, and carousel replies.\n\nshortcode: Shortcode of the media.\n\nthumbnail_url: URL of thumbnail. This only shows for Threads replies with video.\n\nchildren: List of child posts. This only shows for carousel replies.\n\nhas_replies: true if the Threads post or reply has replies that you can see.\n\nroot_post: Media ID of the top-level post or original thread in the reply tree.\nNote: This only appears on replies.\n\nreplied_to: Media ID of the immediate parent of the reply.\nNote: This only appears on replies.\n\nis_reply: true if the Threads media is a reply. false if the Threads media is a top-level post.\n\nhide_status: Whether or not the reply is hidden.\nValues: NOT_HUSHED, UNHUSHED, HIDDEN"
+												},
+												{
+													"key": "reverse",
+													"value": "false"
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json",
+											"description": "",
+											"type": "text"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"data\": [\n        {\n            \"id\": \"string\",\n            \"text\": \"reply\",\n            \"timestamp\": \"2024-09-17T20:54:47+0000\",\n            \"media_product_type\": \"THREADS\",\n            \"media_type\": \"TEXT_POST\",\n            \"permalink\": \"string\",\n            \"shortcode\": \"string\",\n            \"username\": \"string\",\n            \"is_quote_post\": false,\n            \"has_replies\": false,\n            \"is_reply\": true,\n            \"is_reply_owned_by_me\": false,\n            \"root_post\": {\n                \"id\": \"string\"\n            },\n            \"replied_to\": {\n                \"id\": \"string\"\n            }\n        }\n    ],\n    \"paging\": {\n        \"cursors\": {\n            \"before\": \"string\",\n            \"after\": \"string\"\n        }\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "Get Threads Conversations",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/{{thread_id}}/conversation?fields={{fields_replies}}&reverse=false",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"{{thread_id}}",
+										"conversation"
+									],
+									"query": [
+										{
+											"key": "fields",
+											"value": "{{fields_replies}}",
+											"description": "id (default): The media's ID.\n\ntext: Represents text for a Threads reply. This is optional on image, video, and carousel replies.\n\nusername: Instagram username who created the post.\nNote: This only works for public users, your own user, and users that you follow.\n\npermalink: Permanent link to the post. Will be omitted if the media contains copyrighted material or has been flagged for a copyright violation.\nNote: This only works for public users, your own user, and users that you follow.\n\ntimestamp: The publish date and time of the post in ISO 8601 format.\n\nmedia_product_type: Surface where the media is published. In the case of Threads, the value is THREADS.\n\nmedia_type: The media type for a Threads reply.Values: TEXT_POST, IMAGE, VIDEO, CAROUSEL_ALBUM\n\nmedia_url: The post’s media URL. This only shows for image, video, and carousel replies.\n\nshortcode: Shortcode of the media.\n\nthumbnail_url: URL of thumbnail. This only shows for Threads replies with video.\n\nchildren: List of child posts. This only shows for carousel replies.\n\nhas_replies: true if the Threads post or reply has replies that you can see.\n\nroot_post: Media ID of the top-level post or original thread in the reply tree.\nNote: This only appears on replies.\n\nreplied_to: Media ID of the immediate parent of the reply.\nNote: This only appears on replies.\n\nis_reply: true if the Threads media is a reply. false if the Threads media is a top-level post.\n\nhide_status: Whether or not the reply is hidden.\nValues: NOT_HUSHED, UNHUSHED, HIDDEN"
+										},
+										{
+											"key": "reverse",
+											"value": "false"
+										}
+									]
+								},
+								"description": "Use `GET` /conversation [endpoint](https://developers.facebook.com/docs/threads/reply-management#conversations) to fetch a paginated and flattened list of all top-level and nested replies."
+							},
+							"response": [
+								{
+									"name": "Get Threads Conversations",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/{{thread_id}}/conversation?fields={{fields_replies}}&reverse=false",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"{{thread_id}}",
+												"conversation"
+											],
+											"query": [
+												{
+													"key": "fields",
+													"value": "{{fields_replies}}",
+													"description": "id (default): The media's ID.\n\ntext: Represents text for a Threads reply. This is optional on image, video, and carousel replies.\n\nusername: Instagram username who created the post.\nNote: This only works for public users, your own user, and users that you follow.\n\npermalink: Permanent link to the post. Will be omitted if the media contains copyrighted material or has been flagged for a copyright violation.\nNote: This only works for public users, your own user, and users that you follow.\n\ntimestamp: The publish date and time of the post in ISO 8601 format.\n\nmedia_product_type: Surface where the media is published. In the case of Threads, the value is THREADS.\n\nmedia_type: The media type for a Threads reply.Values: TEXT_POST, IMAGE, VIDEO, CAROUSEL_ALBUM\n\nmedia_url: The post’s media URL. This only shows for image, video, and carousel replies.\n\nshortcode: Shortcode of the media.\n\nthumbnail_url: URL of thumbnail. This only shows for Threads replies with video.\n\nchildren: List of child posts. This only shows for carousel replies.\n\nhas_replies: true if the Threads post or reply has replies that you can see.\n\nroot_post: Media ID of the top-level post or original thread in the reply tree.\nNote: This only appears on replies.\n\nreplied_to: Media ID of the immediate parent of the reply.\nNote: This only appears on replies.\n\nis_reply: true if the Threads media is a reply. false if the Threads media is a top-level post.\n\nhide_status: Whether or not the reply is hidden.\nValues: NOT_HUSHED, UNHUSHED, HIDDEN"
+												},
+												{
+													"key": "reverse",
+													"value": "false"
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json",
+											"description": "",
+											"type": "text"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"data\": [\n        {\n            \"id\": \"string\",\n            \"text\": \"reply\",\n            \"timestamp\": \"2024-09-17T20:54:47+0000\",\n            \"media_product_type\": \"THREADS\",\n            \"media_type\": \"TEXT_POST\",\n            \"permalink\": \"string\",\n            \"shortcode\": \"string\",\n            \"username\": \"string\",\n            \"is_quote_post\": false,\n            \"has_replies\": false,\n            \"is_reply\": true,\n            \"is_reply_owned_by_me\": false,\n            \"root_post\": {\n                \"id\": \"string\"\n            },\n            \"replied_to\": {\n                \"id\": \"string\"\n            }\n        }\n    ],\n    \"paging\": {\n        \"cursors\": {\n            \"before\": \"string\",\n            \"after\": \"string\"\n        }\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "Hide Replies",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/{{reply_thread_id}}/manage_reply?hide=true",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"{{reply_thread_id}}",
+										"manage_reply"
+									],
+									"query": [
+										{
+											"key": "hide",
+											"value": "true"
+										}
+									]
+								},
+								"description": "Use `POST` /manage_reply [endpoint](https://developers.facebook.com/docs/threads/reply-management#hide-replies) to hide/unhide any top-level replies."
+							},
+							"response": [
+								{
+									"name": "Hide Replies",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/{{reply_thread_id}}/manage_reply?hide=true",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"{{reply_thread_id}}",
+												"manage_reply"
+											],
+											"query": [
+												{
+													"key": "hide",
+													"value": "true"
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json",
+											"description": "",
+											"type": "text"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"success\": true\n}"
+								}
+							]
+						},
+						{
+							"name": "Respond to Replies",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/me/threads?media_type={{media_type}}&text=Text&reply_to_id={{reply_thread_id}}",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"me",
+										"threads"
+									],
+									"query": [
+										{
+											"key": "media_type",
+											"value": "{{media_type}}",
+											"description": "The media type for a Threads reply.\nValues: TEXT_POST, IMAGE, VIDEO, CAROUSEL_ALBUM"
+										},
+										{
+											"key": "text",
+											"value": "Text",
+											"description": "Response to reply"
+										},
+										{
+											"key": "reply_to_id",
+											"value": "{{reply_thread_id}}",
+											"description": "ID of the reply to respond to"
+										}
+									]
+								},
+								"description": "Use the [reply_to_id ](https://developers.facebook.com/docs/threads/reply-management#respond-to-replies) parameter to reply to a specific reply under the root post."
+							},
+							"response": [
+								{
+									"name": "Respond to Replies",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/me/threads?media_type={{media_type}}&text=Text&reply_to_id={{reply_thread_id}}",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"me",
+												"threads"
+											],
+											"query": [
+												{
+													"key": "media_type",
+													"value": "{{media_type}}",
+													"description": "The media type for a Threads reply.\nValues: TEXT_POST, IMAGE, VIDEO, CAROUSEL_ALBUM"
+												},
+												{
+													"key": "text",
+													"value": "Text",
+													"description": "Response to reply"
+												},
+												{
+													"key": "reply_to_id",
+													"value": "{{reply_thread_id}}",
+													"description": "ID of the reply to respond to"
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json",
+											"description": "",
+											"type": "text"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"id\": \"string\"\n}"
+								}
+							]
+						},
+						{
+							"name": "Control Who Can Reply",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/me/threads?media_type={{media_type}}&text=Text&reply_control={{reply_control}}",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"me",
+										"threads"
+									],
+									"query": [
+										{
+											"key": "media_type",
+											"value": "{{media_type}}"
+										},
+										{
+											"key": "text",
+											"value": "Text"
+										},
+										{
+											"key": "reply_control",
+											"value": "{{reply_control}}"
+										}
+									]
+								},
+								"description": "Use the [reply_control](https://developers.facebook.com/docs/threads/reply-management#control-who-can-reply) parameter to specify who can reply to a post being created for publishing."
+							},
+							"response": [
+								{
+									"name": "Control Who Can Reply",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/me/threads?media_type={{media_type}}&text=Text&reply_control={{reply_control}}",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"me",
+												"threads"
+											],
+											"query": [
+												{
+													"key": "media_type",
+													"value": "{{media_type}}"
+												},
+												{
+													"key": "text",
+													"value": "Text"
+												},
+												{
+													"key": "reply_control",
+													"value": "{{reply_control}}"
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "Text",
+									"header": [],
+									"cookie": [],
+									"body": "{\n    \"id\": \"string\"\n}"
+								}
+							]
+						}
+					],
+					"description": "The Threads Reply Moderation API allows you to read and manage replies to users' own Threads."
+				},
+				{
+					"name": "Read Replies Media Objects",
+					"item": [
+						{
+							"name": "Get a List of All a User's Replies",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/me/replies?fields={{fields_replies}}&limit=50",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"me",
+										"replies"
+									],
+									"query": [
+										{
+											"key": "fields",
+											"value": "{{fields_replies}}",
+											"description": "id (default): The media's ID.\n\nmedia_product_type: Surface where the media is published. In the case of Threads, the value is THREADS.\n\nmedia_type: The media type for a Threads post will be one of these values: TEXT_POST, IMAGE, VIDEO, CAROUSEL_ALBUM, AUDIO, or REPOST_FACADE.\n\nmedia_url: The post’s media URL.\n\npermalink: Permanent link to the post. Will be omitted if the media contains copyrighted material or has been flagged for a copyright violation.\n\nowner: Instagram user ID who created the post.\n\nusername: Instagram username who created the post.\n\ntext: Represents text for a Threads post.\n\ntimestamp: Post time. The publish date in ISO 8601 format.\n\nshortcode: Shortcode of the media.\n\nthumbnail_url: URL of thumbnail. This only shows up for Threads media with video.\n\nchildren: List of child posts. This only shows up for carousel posts.\n\nis_quote_post: Indicates if the media is a quoted post made by another user."
+										},
+										{
+											"key": "since",
+											"value": "",
+											"description": "Query string parameter representing the start date for retrieval",
+											"disabled": true
+										},
+										{
+											"key": "until",
+											"value": "",
+											"description": "Query string parameter representing the end date for retrieval",
+											"disabled": true
+										},
+										{
+											"key": "limit",
+											"value": "50",
+											"description": "Query string parameter representing the maximum number of media objects or records to return"
+										},
+										{
+											"key": "before",
+											"value": "",
+											"description": "Query string parameter representing a cursor that can be used for pagination. Both \"before\" and \"after\" cannot be sent in the same request.",
+											"disabled": true
+										},
+										{
+											"key": "after",
+											"value": "",
+											"description": "Query string parameter representing a cursor that can be used for pagination. Both \"before\" and \"after\" cannot be sent in the same request.",
+											"disabled": true
+										}
+									]
+								},
+								"description": "Use the `GET` /{threads-user-id}/threads [endpoint](https://developers.facebook.com/docs/threads/threads-media#retrieve-a-list-of-all-a-user-s-threads) to return a paginated list of all threads created by a user."
+							},
+							"response": [
+								{
+									"name": "Get a List of All a User's Replies",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/me/replies?fields={{fields_threads}}&limit=50",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"me",
+												"replies"
+											],
+											"query": [
+												{
+													"key": "fields",
+													"value": "{{fields_threads}}",
+													"description": "id (default): The media's ID.\n\nmedia_product_type: Surface where the media is published. In the case of Threads, the value is THREADS.\n\nmedia_type: The media type for a Threads post will be one of these values: TEXT_POST, IMAGE, VIDEO, CAROUSEL_ALBUM, AUDIO, or REPOST_FACADE.\n\nmedia_url: The post’s media URL.\n\npermalink: Permanent link to the post. Will be omitted if the media contains copyrighted material or has been flagged for a copyright violation.\n\nowner: Instagram user ID who created the post.\n\nusername: Instagram username who created the post.\n\ntext: Represents text for a Threads post.\n\ntimestamp: Post time. The publish date in ISO 8601 format.\n\nshortcode: Shortcode of the media.\n\nthumbnail_url: URL of thumbnail. This only shows up for Threads media with video.\n\nchildren: List of child posts. This only shows up for carousel posts.\n\nis_quote_post: Indicates if the media is a quoted post made by another user."
+												},
+												{
+													"key": "since",
+													"value": null,
+													"description": "Query string parameter representing the start date for retrieval",
+													"disabled": true
+												},
+												{
+													"key": "until",
+													"value": null,
+													"description": "Query string parameter representing the end date for retrieval",
+													"disabled": true
+												},
+												{
+													"key": "limit",
+													"value": "50",
+													"description": "Query string parameter representing the maximum number of media objects or records to return"
+												},
+												{
+													"key": "before",
+													"value": null,
+													"description": "Query string parameter representing a cursor that can be used for pagination. Both \"before\" and \"after\" cannot be sent in the same request.",
+													"disabled": true
+												},
+												{
+													"key": "after",
+													"value": null,
+													"description": "Query string parameter representing a cursor that can be used for pagination. Both \"before\" and \"after\" cannot be sent in the same request.",
+													"disabled": true
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json",
+											"description": "",
+											"type": "text"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"data\": [\n        {\n            \"id\": \"string\",\n            \"media_product_type\": \"THREADS\",\n            \"media_type\": \"TEXT_POST\",\n            \"permalink\": \"string\",\n            \"username\": \"string\",\n            \"text\": \"REPLY\",\n            \"timestamp\": \"2024-09-12T23:11:55+0000\",\n            \"shortcode\": \"string\",\n            \"is_quote_post\": false,\n            \"has_replies\": false\n        }\n    ],\n    \"paging\": {\n        \"cursors\": {\n            \"before\": \"string\",\n            \"after\": \"string\"\n        }\n    }\n}"
+								}
+							]
+						}
+					],
+					"description": "This folder will enable you to use the Threads API to retrieve details about a user's own replies."
+				}
+			],
+			"description": "This folder will enable you to use the Threads API to retrieve details about profiles and media objects, reads insights and handle reply moderation."
+		},
+		{
+			"name": "Troubleshooting",
+			"item": [
+				{
+					"name": "Check Container's Publishing Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_host}}/{{container_id}}/?fields={{fields_container}}",
+							"host": [
+								"{{api_host}}"
+							],
+							"path": [
+								"{{container_id}}",
+								""
+							],
+							"query": [
+								{
+									"key": "fields",
+									"value": "{{fields_container}}",
+									"description": "EXPIRED — The container was not published within 24 hours and has expired.\nERROR — The container failed to complete the publishing process.\nFINISHED — The container and its media object are ready to be published.\nIN_PROGRESS — The container is still in the publishing process.\nPUBLISHED — The container's media object has been published.\n"
+								}
+							]
+						},
+						"description": "Use `POST` /{threads-user-id}/threads_publish [endpoint](https://developers.facebook.com/docs/threads/troubleshooting#publishing-does-not-return-a-media-id) to check a container's publishing status."
+					},
+					"response": [
+						{
+							"name": "Check Container's Publishing Status",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/{{container_id}}/?fields={{fields_container}}",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"{{container_id}}",
+										""
+									],
+									"query": [
+										{
+											"key": "fields",
+											"value": "{{fields_container}}",
+											"description": "EXPIRED — The container was not published within 24 hours and has expired.\nERROR — The container failed to complete the publishing process.\nFINISHED — The container and its media object are ready to be published.\nIN_PROGRESS — The container is still in the publishing process.\nPUBLISHED — The container's media object has been published.\n"
+										}
+									]
+								}
+							},
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"id\": \"string\",\n    \"status\": \"FINISHED\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Retrieve Publishing Quota Limit",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_host}}/me/threads_publishing_limit?fields={{fields_quota}}",
+							"host": [
+								"{{api_host}}"
+							],
+							"path": [
+								"me",
+								"threads_publishing_limit"
+							],
+							"query": [
+								{
+									"key": "fields",
+									"value": "{{fields_quota}}",
+									"description": "user's current Threads API usage total."
+								}
+							]
+						},
+						"description": "Use `GET` /threads_publishing_limit [endpoint](https://developers.facebook.com/docs/threads/troubleshooting#retrieve-publishing-quota-limit) to check a user's publishing API quota limit."
+					},
+					"response": [
+						{
+							"name": "Retrieve Publishing Quota Limit",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/me/threads_publishing_limit?fields={{fields_quota}}",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"me",
+										"threads_publishing_limit"
+									],
+									"query": [
+										{
+											"key": "fields",
+											"value": "{{fields_quota}}",
+											"description": "user's current Threads API usage total."
+										}
+									]
+								}
+							},
+							"_postman_previewlanguage": "Text",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"data\": [\n        {\n            \"quota_usage\": 1,\n            \"config\": {\n                \"quota_total\": 250,\n                \"quota_duration\": 86400\n            },\n            \"reply_quota_usage\": 0,\n            \"reply_config\": {\n                \"quota_total\": 1000,\n                \"quota_duration\": 86400\n            }\n        }\n    ]\n}"
+						}
+					]
+				}
+			],
+			"description": "This folder will enbale you to perform basic toubleshooting."
+		}
+	],
+	"auth": {
+		"type": "oauth2",
+		"oauth2": [
+			{
+				"key": "useBrowser",
+				"value": true,
+				"type": "boolean"
+			},
+			{
+				"key": "authUrl",
+				"value": "{{authorization_host}}/oauth/authorize?response_type=code",
+				"type": "string"
+			},
+			{
+				"key": "accessTokenUrl",
+				"value": "{{api_host}}/oauth/access_token",
+				"type": "string"
+			},
+			{
+				"key": "client_authentication",
+				"value": "body",
+				"type": "string"
+			},
+			{
+				"key": "tokenName",
+				"value": "MyToken",
+				"type": "string"
+			},
+			{
+				"key": "scope",
+				"value": "{{scope}}",
+				"type": "string"
+			},
+			{
+				"key": "redirect_uri",
+				"value": "",
+				"type": "string"
+			},
+			{
+				"key": "grant_type",
+				"value": "authorization_code",
+				"type": "string"
+			},
+			{
+				"key": "addTokenTo",
+				"value": "queryParams",
+				"type": "string"
+			},
+			{
+				"key": "clientSecret",
+				"value": "{{app_secret}}",
+				"type": "string"
+			},
+			{
+				"key": "clientId",
+				"value": "{{app_id}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"pm.request.headers.add({",
+					"    key: 'User-Agent',",
+					"    value: 'Postman/ThreadsCollection'",
+					"})"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "authorization_host",
+			"value": "https://www.threads.net"
+		},
+		{
+			"key": "api_host",
+			"value": "https://graph.threads.net"
+		},
+		{
+			"key": "app_id",
+			"value": ""
+		},
+		{
+			"key": "app_secret",
+			"value": ""
+		},
+		{
+			"key": "user_id",
+			"value": ""
+		},
+		{
+			"key": "container_id",
+			"value": ""
+		},
+		{
+			"key": "thread_id",
+			"value": ""
+		},
+		{
+			"key": "reply_thread_id",
+			"value": ""
+		},
+		{
+			"key": "quote_post_id",
+			"value": ""
+		},
+		{
+			"key": "redirect_uri",
+			"value": "https://www.domain.com/login"
+		},
+		{
+			"key": "code",
+			"value": "code"
+		},
+		{
+			"key": "scope",
+			"value": "threads_basic,threads_content_publish,threads_manage_insights,threads_manage_replies,threads_read_replies"
+		},
+		{
+			"key": "media_type",
+			"value": "TEXT_POST, IMAGE, VIDEO, CAROUSEL"
+		},
+		{
+			"key": "reply_control",
+			"value": "everyone,accounts_you_follow,mentioned_only"
+		},
+		{
+			"key": "metrics_post",
+			"value": "views,likes,replies,reposts,quotes,reposts"
+		},
+		{
+			"key": "metrics_account",
+			"value": "views,likes,replies,reposts,quotes,reposts, followers_count, follower_demographics"
+		},
+		{
+			"key": "follower_demographics_breakdown",
+			"value": "country,city,age,gender"
+		},
+		{
+			"key": "fields_threads",
+			"value": "id,media_product_type,media_type,media_url,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,children,is_quote_post,has_replies,alt_text,link_attachment_url"
+		},
+		{
+			"key": "fields_replies",
+			"value": "id,text,timestamp,media_product_type,media_type,media_url,permalink,shortcode,thumbnail_url,username,children,is_quote_post,has_replies,is_reply,is_reply_owned_by_me,root_post,replied_to,hide_status,reply_audience"
+		},
+		{
+			"key": "fields_profile",
+			"value": "id,username,name,threads_profile_picture_url,threads_biography"
+		},
+		{
+			"key": "video_url",
+			"value": "video_url"
+		},
+		{
+			"key": "image_url",
+			"value": "image_url"
+		},
+		{
+			"key": "fields_quota",
+			"value": "quota_usage,config,reply_quota_usage,reply_config"
+		},
+		{
+			"key": "fields_container",
+			"value": "id,status,error_message"
+		},
+		{
+			"key": "auto_save_variables",
+			"value": "false"
+		},
+		{
+			"key": "carousel_children_ids",
+			"value": ""
+		}
+	]
+}
