@@ -3,7 +3,7 @@ name: Sync Postman Collection
 on:
   push:
     branches:
-      - postman
+      - main
 
 jobs:
   sync:
