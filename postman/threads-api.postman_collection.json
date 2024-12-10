@@ -1,11 +1,11 @@
 {
 	"info": {
-		"_postman_id": "b2ec0e9b-19bb-4a28-b96f-ee426777509c",
+		"_postman_id": "a93be385-2264-4766-826f-b53cb6f50d7e",
 		"name": "Threads API",
-		"description": "Welcome to the Threads API from Meta. This collection contains the [Graph API](https://developers.facebook.com/docs/graph-api/) requests to create, manage, and publish Threads content, programmatically. For the full Threads documentation, refer to the [developers documentation](https://developers.facebook.com/docs/threads).\n\n# Getting Started\n\n## Step 1 - Create a Meta App\n\nYou need to [create a&nbsp;Meta app with the&nbsp;Threads use case](https://developers.facebook.com/docs/threads/get-started#meta-app).\n\n## Step 2 - Enable App Users To Authorize Data Access To Your App\n\nApp users must authorize data access for the app you are developing. Ensure that proper authorization protocols are implemented to comply with data privacy and security requirements. For detailed instructions and guidelines, refer to the [authorization documentation](https://developers.facebook.com/docs/threads/get-started#authorization).\n\n## Step 3 - Request an Access Token\n\n### API Provisioned Token\n\nTo request an access token via the API, use the requests under the _**Authorization**_ folder within this collection. See the [Threads User Access Tokens](https://developers.facebook.com/docs/threads/get-started#threads-user-access-tokens) section in the Threads API documentation for details on authenticating your requests. Once you have an access token, you will need to manually add the **access_token** header to your requests with this value.\n\nNote: You can receive an access token for your requests either by using the requests under the _**Authorization**_ folder within this collection, or by using the _Authorization_ tab above in which the token will be provisioned by Postman.\n\n### Postman Provisioned Token\n\nIf using the _Authorization_ tab to receive an access token, make sure to include the following:\n\n- Grant Type must be **Authorization Code**\n    \n- You must supply the values for your Auth URL, Access Token URL, Client ID (your Threads app's ID), Client Secret (your Threads app's secret), and Scope.\n    \n\nAfter these values are entered, you may press **Get New Access Token** at the bottom of the page to receive an access token. This access token will automatically be attached to your requests.\n\n### Access token debugger\n\nYou can paste any token you generate into the [access token debugger](https://developers.facebook.com/tools/debug/accesstoken/) to see what type of token it is and what permission you have granted to your app.\n\n# Limitations\n\nPlease be aware that certain limitations may apply to the API usage. For the most accurate and up-to-date details, we strongly recommend referring to the online documentation. Visit the [developer documentation](https://developers.facebook.com/docs/threads/overview#rate-limiting) for more information.\n\n# Using Variables\n\nWhen using variables in requests (see the _Variables_ tab above), make sure to **save the updated values** after modifying them (e.g. with Ctrl-S / Cmd-S). The values must be saved in the _Variables_ tab each time they are modified.\n\n# Autosaving Variables\n\nVariable values may be auto-updated and saved after a request. For example, when a new Thread is published, the _thread_id_ field can be auto-updated with the new Thread ID to be used in retrieval requests.\n\nTo use this feature, make sure to **set the auto_save_variables variable value to true**. Otherwise, variables will not be auto-updated and you will need to update them manually.\n\n# Installation\n\nFork this collection into Postman to start using the Threads API.\n\nYou can generate the code for the API calls in your language by following the steps here: [https://learning.postman.com/docs/sending-requests/generate-code-snippets/#generating-code-snippets-in-postman](https://learning.postman.com/docs/sending-requests/generate-code-snippets/#generating-code-snippets-in-postmanEnvironmentChangelogUpdates)",
+		"description": "> ⚠️ We will update the Postman collection over time. Please note that all of the latest features may not be showcased in the Postman collection. Please refer to the developer documentation changelog for the most up-to-date features: [https://developers.facebook.com/docs/threads/changelog](https://developers.facebook.com/docs/threads/changelog) \n  \n\nWelcome to the Threads API from Meta. This collection contains the [Graph API](https://developers.facebook.com/docs/graph-api/) requests to create, manage, and publish Threads content, programmatically. For the full Threads documentation, refer to the [developer documentation](https://developers.facebook.com/docs/threads).\n\n# Getting Started\n\n## Step 1 - Create a Meta App\n\nYou need to [create a&nbsp;Meta app with the&nbsp;Threads use case](https://developers.facebook.com/docs/threads/get-started#meta-app).\n\n## Step 2 - Enable App Users To Authorize Data Access To Your App\n\nApp users must authorize data access for the app you are developing. Ensure that proper authorization protocols are implemented to comply with data privacy and security requirements. For detailed instructions and guidelines, refer to the [authorization documentation](https://developers.facebook.com/docs/threads/get-started#authorization).\n\n## Step 3 - Request an Access Token\n\n### API Provisioned Token\n\nTo request an access token via the API, use the requests under the _**Authorization**_ folder within this collection. See the [Threads User Access Tokens](https://developers.facebook.com/docs/threads/get-started#threads-user-access-tokens) section in the Threads API documentation for details on authenticating your requests. Once you have an access token, you will need to manually add the **access_token** header to your requests with this value.\n\nNote: You can receive an access token for your requests either by using the requests under the _**Authorization**_ folder within this collection, or by using the _Authorization_ tab above in which the token will be provisioned by Postman.\n\n### Postman Provisioned Token\n\nIf using the _Authorization_ tab to receive an access token, make sure to include the following:\n\n- The Grant type must be set to **Authorization Code**.\n    \n- You must supply the values for your Auth URL, Access Token URL, Client ID (your Threads app's ID), Client Secret (your Threads app's secret), and Scope.\n    \n\nAfter these values are entered, you may press **Get New Access Token** at the bottom of the page to receive an access token. This access token will automatically be attached to your requests.\n\n### Access Token Debugger\n\nYou can paste any token you generate into the [access token debugger](https://developers.facebook.com/tools/debug/accesstoken/) to see what type of token it is and what permissions you have granted to your app.\n\n# Limitations\n\nPlease be aware that certain limitations may apply to the API usage. For the most accurate and up-to-date details, we strongly recommend referring to the online documentation. Visit the [developer documentation](https://developers.facebook.com/docs/threads/overview#rate-limiting) for more information.\n\n# Using Variables\n\nWhen using variables in requests (see the _Variables_ tab above), make sure to **save the updated values** after modifying them (e.g. with Ctrl-S / Cmd-S). The values must be saved in the _Variables_ tab each time they are modified.\n\n# Autosaving Variables\n\nVariable values may be auto-updated and saved after a request. For example, when a new thread is published, the _thread_id_ field can be auto-updated with the new thread ID to be used in retrieval requests.\n\nTo use this feature, make sure to **set the auto_save_variables variable value to true**. Otherwise, variables will not be auto-updated and you will need to update them manually.\n\n# Installation\n\nFork this collection into Postman to start using the Threads API.\n\nYou can generate the code for the API calls in your language by following the steps here: [https://learning.postman.com/docs/sending-requests/generate-code-snippets/#generating-code-snippets-in-postman](https://learning.postman.com/docs/sending-requests/generate-code-snippets/#generating-code-snippets-in-postmanEnvironmentChangelogUpdates)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "29882223",
-		"_collection_link": "https://www.postman.com/meta/threads/collection/dht3nzz/threads-api?action=share&source=collection_link&creator=29882223"
+		"_exporter_id": "34767301",
+		"_collection_link": "https://threadsapi.postman.co/workspace/Threads~5610276e-a2dd-4bd2-bd79-301d93b9c96a/collection/34473965-a93be385-2264-4766-826f-b53cb6f50d7e?action=share&source=collection_link&creator=34767301"
 	},
 	"item": [
 		{
@@ -36,22 +36,22 @@
 								{
 									"key": "client_id",
 									"value": "{{app_id}}",
-									"description": "Your Threads App ID displayed in App Dashboard > App settings > Basic > Threads App ID. Example: 990602627938098."
+									"description": "Your Threads App ID displayed in App Dashboard > App settings > Basic > Threads App ID."
 								},
 								{
 									"key": "client_secret",
 									"value": "{{app_secret}}",
-									"description": "Your Threads App Secret displayed in App Dashboard > App settings > Basic > Threads App secret. Example: a1b2C3D4."
+									"description": "Your Threads App Secret displayed in App Dashboard > App settings > Basic > Threads App secret."
 								},
 								{
 									"key": "code",
 									"value": "{{code}}",
-									"description": "Authorization Code"
+									"description": "The authorization code we passed you in the code parameter when redirecting the user to your redirect_uri."
 								},
 								{
 									"key": "grant_type",
 									"value": "authorization_code",
-									"description": "This value is required"
+									"description": "This value is required. Set this value to authorization_code."
 								},
 								{
 									"key": "redirect_uri",
@@ -85,22 +85,22 @@
 										{
 											"key": "client_id",
 											"value": "{{app_id}}",
-											"description": "Your Threads App ID displayed in App Dashboard > App settings > Basic > Threads App ID. Example: 990602627938098."
+											"description": "Your Threads App ID displayed in App Dashboard > App settings > Basic > Threads App ID."
 										},
 										{
 											"key": "client_secret",
 											"value": "{{app_secret}}",
-											"description": "Your Threads App Secret displayed in App Dashboard > App settings > Basic > Threads App secret. Example: a1b2C3D4."
+											"description": "Your Threads App Secret displayed in App Dashboard > App settings > Basic > Threads App secret."
 										},
 										{
 											"key": "code",
 											"value": "{{code}}",
-											"description": "Authorization Code"
+											"description": "The authorization code we passed you in the code parameter when redirecting the user to your redirect_uri."
 										},
 										{
 											"key": "grant_type",
 											"value": "authorization_code",
-											"description": "This value is required"
+											"description": "This value is required. Set this value to authorization_code."
 										},
 										{
 											"key": "redirect_uri",
@@ -140,11 +140,13 @@
 							"query": [
 								{
 									"key": "grant_type",
-									"value": "th_exchange_token"
+									"value": "th_exchange_token",
+									"description": "This value is required. Set this to th_exchange_token."
 								},
 								{
 									"key": "client_secret",
-									"value": "{{app_secret}}"
+									"value": "{{app_secret}}",
+									"description": "Your Threads App Secret displayed in App Dashboard > App settings > Basic > Threads App secret."
 								}
 							]
 						},
@@ -167,11 +169,13 @@
 									"query": [
 										{
 											"key": "grant_type",
-											"value": "th_exchange_token"
+											"value": "th_exchange_token",
+											"description": "This value is required. Set this to th_exchange_token."
 										},
 										{
 											"key": "client_secret",
-											"value": "{{app_secret}}"
+											"value": "{{app_secret}}",
+											"description": "Your Threads App Secret displayed in App Dashboard > App settings > Basic > Threads App secret."
 										}
 									]
 								}
@@ -187,6 +191,97 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"access_token\": \"string\",\n    \"token_type\": \"bearer\",\n    \"expires_in\": 5184000\n}"
+						}
+					]
+				},
+				{
+					"name": "Get App Access Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.collectionVariables.get(\"auto_save_variables\") === \"true\") {",
+									"    var jsonData = pm.response.json();",
+									"    ",
+									"    if (jsonData.access_token)",
+									"        pm.collectionVariables.set(\"app_access_token\", jsonData.access_token);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_host}}/oauth/access_token?grant_type=client_credentials&client_id={{app_id}}&client_secret={{app_secret}}",
+							"host": [
+								"{{api_host}}"
+							],
+							"path": [
+								"oauth",
+								"access_token"
+							],
+							"query": [
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"description": "This value is required. Set this value to client_credentials."
+								},
+								{
+									"key": "client_id",
+									"value": "{{app_id}}",
+									"description": "Your Threads App ID displayed in App Dashboard > App settings > Basic > Threads App ID."
+								},
+								{
+									"key": "client_secret",
+									"value": "{{app_secret}}",
+									"description": "Your Threads App Secret displayed in App Dashboard > App settings > Basic > Threads App secret."
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Get App Access Token",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/oauth/access_token?grant_type=client_credentials&client_id={{app_id}}&client_secret={{app_secret}}",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"oauth",
+										"access_token"
+									],
+									"query": [
+										{
+											"key": "grant_type",
+											"value": "client_credentials"
+										},
+										{
+											"key": "client_id",
+											"value": "{{app_id}}"
+										},
+										{
+											"key": "client_secret",
+											"value": "{{app_secret}}"
+										}
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": "{\n    \"access_token\": \"TH|1234567890|abcd1234\",\n    \"token_type\": \"bearer\"\n}"
 						}
 					]
 				}
@@ -222,7 +317,7 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?text=This is a test post&media_type=TEXT",
+									"raw": "{{api_host}}/me/threads?text=This is a test post.&media_type=TEXT",
 									"host": [
 										"{{api_host}}"
 									],
@@ -233,22 +328,24 @@
 									"query": [
 										{
 											"key": "text",
-											"value": "This is a test post",
-											"description": "The text associated with the post. The first URL included in the text field will be used as the link preview for the post. For text-only posts, this parameter is required."
+											"value": "This is a test post.",
+											"description": "The text associated with the post. For text-only posts, this parameter is required if no link attachment parameter is provided. When no link attachment parameter is provided, the first URL included in the text field will be used as the link preview for the post."
 										},
 										{
 											"key": "media_type",
 											"value": "TEXT",
-											"description": "Set to TEXT. Note: Type CAROUSEL is not available for single thread posts."
+											"description": "Indicates the current media type. Set to TEXT. Note: Type CAROUSEL is not available for single thread posts."
 										},
 										{
 											"key": "reply_control",
 											"value": "everyone",
+											"description": "Can be used to specify who can reply to a post.",
 											"disabled": true
 										},
 										{
 											"key": "reply_to_id",
 											"value": "",
+											"description": "Required if replying to a specific post.",
 											"disabled": true
 										},
 										{
@@ -268,7 +365,7 @@
 										"method": "POST",
 										"header": [],
 										"url": {
-											"raw": "{{api_host}}/me/threads?text=This is a test post&media_type=TEXT",
+											"raw": "{{api_host}}/me/threads?text=This is a test post.&media_type=TEXT",
 											"host": [
 												"{{api_host}}"
 											],
@@ -279,22 +376,30 @@
 											"query": [
 												{
 													"key": "text",
-													"value": "This is a test post",
-													"description": "The text associated with the post. The first URL included in the text field will be used as the link preview for the post. For text-only posts, this parameter is required."
+													"value": "This is a test post.",
+													"description": "The text associated with the post. For text-only posts, this parameter is required if no link attachment parameter is provided. When no link attachment parameter is provided, the first URL included in the text field will be used as the link preview for the post."
 												},
 												{
 													"key": "media_type",
 													"value": "TEXT",
-													"description": "Set to TEXT. Note: Type CAROUSEL is not available for single thread posts."
+													"description": "Indicates the current media type. Set to TEXT. Note: Type CAROUSEL is not available for single thread posts."
 												},
 												{
 													"key": "reply_control",
 													"value": "everyone",
+													"description": "Can be used to specify who can reply to a post.",
 													"disabled": true
 												},
 												{
 													"key": "reply_to_id",
 													"value": null,
+													"description": "Required if replying to a specific post.",
+													"disabled": true
+												},
+												{
+													"key": "link_attachment",
+													"value": "https://developers.facebook.com/",
+													"description": "Attach a link to your post (only available for text posts).",
 													"disabled": true
 												}
 											]
@@ -337,7 +442,7 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?text=This is an image&media_type=IMAGE&image_url={{image_url}}&alt_text=An example image",
+									"raw": "{{api_host}}/me/threads?text=This is an image.&media_type=IMAGE&image_url={{image_url}}&alt_text=An example image.",
 									"host": [
 										"{{api_host}}"
 									],
@@ -348,13 +453,13 @@
 									"query": [
 										{
 											"key": "text",
-											"value": "This is an image",
-											"description": "The text associated with the post. The first URL included in the text field will be used as the link preview for the post. For text-only posts, this parameter is required."
+											"value": "This is an image.",
+											"description": "The text associated with the post. This is optional on image posts."
 										},
 										{
 											"key": "media_type",
 											"value": "IMAGE",
-											"description": "Set to IMAGE. Note: Type CAROUSEL is not available for single thread posts."
+											"description": "Indicates the current media type. Set to IMAGE. Note: Type CAROUSEL is not available for single thread posts."
 										},
 										{
 											"key": "image_url",
@@ -363,8 +468,20 @@
 										},
 										{
 											"key": "alt_text",
-											"value": "An example image",
+											"value": "An example image.",
 											"description": "The accessibility label or alt text for the image."
+										},
+										{
+											"key": "reply_control",
+											"value": "everyone",
+											"description": "Can be used to specify who can reply to a post.",
+											"disabled": true
+										},
+										{
+											"key": "reply_to_id",
+											"value": "",
+											"description": "Required if replying to a specific post.",
+											"disabled": true
 										}
 									]
 								},
@@ -377,7 +494,7 @@
 										"method": "POST",
 										"header": [],
 										"url": {
-											"raw": "{{api_host}}/me/threads?text=This is an image&media_type=IMAGE&image_url={{image_url}}&alt_text=An example image",
+											"raw": "{{api_host}}/me/threads?text=This is an image.&media_type=IMAGE&image_url={{image_url}}&alt_text=An example image.",
 											"host": [
 												"{{api_host}}"
 											],
@@ -388,13 +505,13 @@
 											"query": [
 												{
 													"key": "text",
-													"value": "This is an image",
-													"description": "The text associated with the post. The first URL included in the text field will be used as the link preview for the post. For text-only posts, this parameter is required."
+													"value": "This is an image.",
+													"description": "The text associated with the post. This is optional on image posts."
 												},
 												{
 													"key": "media_type",
 													"value": "IMAGE",
-													"description": "Set to IMAGE. Note: Type CAROUSEL is not available for single thread posts."
+													"description": "Indicates the current media type. Set to IMAGE. Note: Type CAROUSEL is not available for single thread posts."
 												},
 												{
 													"key": "image_url",
@@ -403,8 +520,20 @@
 												},
 												{
 													"key": "alt_text",
-													"value": "An example image",
+													"value": "An example image.",
 													"description": "The accessibility label or alt text for the image."
+												},
+												{
+													"key": "reply_control",
+													"value": "everyone",
+													"description": "Can be used to specify who can reply to a post.",
+													"disabled": true
+												},
+												{
+													"key": "reply_to_id",
+													"value": null,
+													"description": "Required if replying to a specific post.",
+													"disabled": true
 												}
 											]
 										}
@@ -446,7 +575,7 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?text=This is a video&media_type=VIDEO&video_url={{video_url}}&alt_text=An example video",
+									"raw": "{{api_host}}/me/threads?text=This is a video.&media_type=VIDEO&video_url={{video_url}}&alt_text=An example video.",
 									"host": [
 										"{{api_host}}"
 									],
@@ -457,22 +586,35 @@
 									"query": [
 										{
 											"key": "text",
-											"value": "This is a video",
-											"description": "The text associated with the post. The first URL included in the text field will be used as the link preview for the post. For text-only posts, this parameter is required."
+											"value": "This is a video.",
+											"description": "The text associated with the post. This is optional on video posts."
 										},
 										{
 											"key": "media_type",
 											"value": "VIDEO",
-											"description": "Set to VIDEO. Indicates the current media type. Note: Type CAROUSEL is not available for single thread posts."
+											"description": "Indicates the current media type. Set to VIDEO. Note: Type CAROUSEL is not available for single thread posts."
 										},
 										{
 											"key": "video_url",
-											"value": "{{video_url}}"
+											"value": "{{video_url}}",
+											"description": "(For videos only.) Path to the video. We will cURL your video using the URL provided so it must be on a public server."
 										},
 										{
 											"key": "alt_text",
-											"value": "An example video",
+											"value": "An example video.",
 											"description": "The accessibility label or alt text for the video."
+										},
+										{
+											"key": "reply_control",
+											"value": "everyone",
+											"description": "Can be used to specify who can reply to a post.",
+											"disabled": true
+										},
+										{
+											"key": "reply_to_id",
+											"value": "",
+											"description": "Required if replying to a specific post.",
+											"disabled": true
 										}
 									]
 								},
@@ -485,7 +627,7 @@
 										"method": "POST",
 										"header": [],
 										"url": {
-											"raw": "{{api_host}}/me/threads?text=This is a video&media_type=VIDEO&video_url={{video_url}}&alt_text=An example video",
+											"raw": "{{api_host}}/me/threads?text=This is a video.&media_type=VIDEO&video_url={{video_url}}&alt_text=An example video.",
 											"host": [
 												"{{api_host}}"
 											],
@@ -496,22 +638,35 @@
 											"query": [
 												{
 													"key": "text",
-													"value": "This is a video",
-													"description": "The text associated with the post. The first URL included in the text field will be used as the link preview for the post. For text-only posts, this parameter is required."
+													"value": "This is a video.",
+													"description": "The text associated with the post. This is optional on video posts."
 												},
 												{
 													"key": "media_type",
 													"value": "VIDEO",
-													"description": "Set to VIDEO. Indicates the current media type. Note: Type CAROUSEL is not available for single thread posts."
+													"description": "Indicates the current media type. Set to VIDEO. Note: Type CAROUSEL is not available for single thread posts."
 												},
 												{
 													"key": "video_url",
-													"value": "{{video_url}}"
+													"value": "{{video_url}}",
+													"description": "(For videos only.) Path to the video. We will cURL your video using the URL provided so it must be on a public server."
 												},
 												{
 													"key": "alt_text",
-													"value": "An example video",
+													"value": "An example video.",
 													"description": "The accessibility label or alt text for the video."
+												},
+												{
+													"key": "reply_control",
+													"value": "everyone",
+													"description": "Can be used to specify who can reply to a post.",
+													"disabled": true
+												},
+												{
+													"key": "reply_to_id",
+													"value": null,
+													"description": "Required if replying to a specific post.",
+													"disabled": true
 												}
 											]
 										}
@@ -647,7 +802,7 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?text=This is an image&media_type=IMAGE&image_url={{image_url}}&is_carousel_item=true&alt_text=An example image",
+									"raw": "{{api_host}}/me/threads?media_type=IMAGE&image_url={{image_url}}&is_carousel_item=true&alt_text=An example image.",
 									"host": [
 										"{{api_host}}"
 									],
@@ -656,11 +811,6 @@
 										"threads"
 									],
 									"query": [
-										{
-											"key": "text",
-											"value": "This is an image",
-											"description": "The text associated with the post. While the text field is optional for carousel posts, the first URL included in the text field will be used as the link preview for the post."
-										},
 										{
 											"key": "media_type",
 											"value": "IMAGE",
@@ -678,7 +828,7 @@
 										},
 										{
 											"key": "alt_text",
-											"value": "An example image",
+											"value": "An example image.",
 											"description": "The accessibility label or alt text for the image."
 										}
 									]
@@ -692,7 +842,7 @@
 										"method": "POST",
 										"header": [],
 										"url": {
-											"raw": "{{api_host}}/me/threads?text=This is an image&media_type=IMAGE&image_url={{image_url}}&is_carousel_item=true&alt_text=An example image",
+											"raw": "{{api_host}}/me/threads?media_type=IMAGE&image_url={{image_url}}&is_carousel_item=true&alt_text=An example image.",
 											"host": [
 												"{{api_host}}"
 											],
@@ -701,11 +851,6 @@
 												"threads"
 											],
 											"query": [
-												{
-													"key": "text",
-													"value": "This is an image",
-													"description": "The text associated with the post. While the text field is optional for carousel posts, the first URL included in the text field will be used as the link preview for the post."
-												},
 												{
 													"key": "media_type",
 													"value": "IMAGE",
@@ -723,7 +868,7 @@
 												},
 												{
 													"key": "alt_text",
-													"value": "An example image",
+													"value": "An example image.",
 													"description": "The accessibility label or alt text for the image."
 												}
 											]
@@ -744,7 +889,7 @@
 							]
 						},
 						{
-							"name": "1.2 Create a Video Container",
+							"name": "1.2 Create a Video Item Container",
 							"event": [
 								{
 									"listen": "test",
@@ -775,7 +920,7 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?text=This is a video&media_type=VIDEO&video_url={{video_url}}&is_carousel_item=true&alt_text=An example video",
+									"raw": "{{api_host}}/me/threads?media_type=VIDEO&video_url={{video_url}}&is_carousel_item=true&alt_text=An example video.",
 									"host": [
 										"{{api_host}}"
 									],
@@ -784,11 +929,6 @@
 										"threads"
 									],
 									"query": [
-										{
-											"key": "text",
-											"value": "This is a video",
-											"description": "The text associated with the post. While the text field is optional for carousel posts, the first URL included in the text field will be used as the link preview for the post."
-										},
 										{
 											"key": "media_type",
 											"value": "VIDEO",
@@ -806,7 +946,7 @@
 										},
 										{
 											"key": "alt_text",
-											"value": "An example video",
+											"value": "An example video.",
 											"description": "The accessibility label or alt text for the video."
 										}
 									]
@@ -815,12 +955,12 @@
 							},
 							"response": [
 								{
-									"name": "1.2 Create a Video Container",
+									"name": "1.2 Create a Video Item Container",
 									"originalRequest": {
 										"method": "POST",
 										"header": [],
 										"url": {
-											"raw": "{{api_host}}/me/threads?text=This is a video&media_type=VIDEO&video_url={{video_url}}&is_carousel_item=true&alt_text=An example video",
+											"raw": "{{api_host}}/me/threads?media_type=VIDEO&video_url={{video_url}}&is_carousel_item=true&alt_text=An example video.",
 											"host": [
 												"{{api_host}}"
 											],
@@ -829,11 +969,6 @@
 												"threads"
 											],
 											"query": [
-												{
-													"key": "text",
-													"value": "This is a video",
-													"description": "The text associated with the post. While the text field is optional for carousel posts, the first URL included in the text field will be used as the link preview for the post."
-												},
 												{
 													"key": "media_type",
 													"value": "VIDEO",
@@ -851,7 +986,7 @@
 												},
 												{
 													"key": "alt_text",
-													"value": "An example video",
+													"value": "An example video.",
 													"description": "The accessibility label or alt text for the video."
 												}
 											]
@@ -910,7 +1045,7 @@
 										{
 											"key": "media_type",
 											"value": "CAROUSEL",
-											"description": "Set to CAROUSEL. This indicates that the container is for a carousel."
+											"description": "The text associated with the post. This is optional on carousel posts."
 										},
 										{
 											"key": "children",
@@ -920,7 +1055,7 @@
 										{
 											"key": "text",
 											"value": "This is a carousel",
-											"description": "(Optional.) The text associated with the post."
+											"description": "The text associated with the post. This is optional on carousel posts."
 										}
 									]
 								},
@@ -945,7 +1080,7 @@
 												{
 													"key": "media_type",
 													"value": "CAROUSEL",
-													"description": "Set to CAROUSEL. This indicates that the container is for a carousel."
+													"description": "The text associated with the post. This is optional on carousel posts."
 												},
 												{
 													"key": "children",
@@ -1060,7 +1195,7 @@
 					"name": "Quote Threads Posts",
 					"item": [
 						{
-							"name": "1 Create Media Container",
+							"name": "1. Create Media Container",
 							"event": [
 								{
 									"listen": "test",
@@ -1082,7 +1217,7 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?text=This is a quoted post&media_type=TEXT&quote_post_id={{quote_post_id}}",
+									"raw": "{{api_host}}/me/threads?text=This is a quoted post.&media_type=TEXT&quote_post_id={{quote_post_id}}",
 									"host": [
 										"{{api_host}}"
 									],
@@ -1093,28 +1228,36 @@
 									"query": [
 										{
 											"key": "text",
-											"value": "This is a quoted post",
-											"description": "The text associated with the post. The first URL included in the text field will be used as the link preview for the post. For text-only posts, this parameter is required."
+											"value": "This is a quoted post.",
+											"description": "The text associated with the post."
 										},
 										{
 											"key": "media_type",
 											"value": "TEXT",
-											"description": "Set to TEXT. Note: Type CAROUSEL is not available for single thread posts."
+											"description": "Indicates the current media type."
+										},
+										{
+											"key": "quote_post_id",
+											"value": "{{quote_post_id}}",
+											"description": "The ID of the Threads post that is being quoted."
 										},
 										{
 											"key": "reply_control",
 											"value": "everyone",
+											"description": "Can be used to specify who can reply to a post.",
 											"disabled": true
 										},
 										{
 											"key": "reply_to_id",
 											"value": "",
+											"description": "Required if replying to a specific post.",
 											"disabled": true
 										},
 										{
-											"key": "quote_post_id",
-											"value": "{{quote_post_id}}",
-											"description": "The id of the Threads post which is being quoted."
+											"key": "alt_text",
+											"value": "This is alt text.",
+											"description": "The accessibility text label or description for an image or video in a Threads post.",
+											"disabled": true
 										}
 									]
 								},
@@ -1122,14 +1265,17 @@
 							},
 							"response": [
 								{
-									"name": "1.1 Create Text Container",
+									"name": "1. Create Media Container",
 									"originalRequest": {
 										"method": "POST",
 										"header": [],
 										"url": {
-											"raw": "{{api_host}}/me/threads?text=This is a test post&media_type=TEXT",
+											"raw": "https://graph.threads.net/me/threads?text=This is a quoted post.&media_type=TEXT&quote_post_id={{quote_post_id}}",
+											"protocol": "https",
 											"host": [
-												"{{api_host}}"
+												"graph",
+												"threads",
+												"net"
 											],
 											"path": [
 												"me",
@@ -1138,22 +1284,35 @@
 											"query": [
 												{
 													"key": "text",
-													"value": "This is a test post",
-													"description": "The text associated with the post. The first URL included in the text field will be used as the link preview for the post. For text-only posts, this parameter is required."
+													"value": "This is a quoted post.",
+													"description": "The text associated with the post."
 												},
 												{
 													"key": "media_type",
 													"value": "TEXT",
-													"description": "Set to TEXT. Note: Type CAROUSEL is not available for single thread posts."
+													"description": "Indicates the current media type."
+												},
+												{
+													"key": "quote_post_id",
+													"value": "{{quote_post_id}}",
+													"description": "The ID of the Threads post that is being quoted."
 												},
 												{
 													"key": "reply_control",
 													"value": "everyone",
+													"description": "Can be used to specify who can reply to a post.",
 													"disabled": true
 												},
 												{
 													"key": "reply_to_id",
 													"value": null,
+													"description": "Required if replying to a specific post.",
+													"disabled": true
+												},
+												{
+													"key": "alt_text",
+													"value": "This is alt text.",
+													"description": "The accessibility text label or description for an image or video in a Threads post.",
 													"disabled": true
 												}
 											]
@@ -1164,7 +1323,8 @@
 										{
 											"key": "Content-Type",
 											"value": "application/json",
-											"description": ""
+											"description": "",
+											"type": "text"
 										}
 									],
 									"cookie": [],
@@ -1242,7 +1402,8 @@
 										{
 											"key": "Content-Type",
 											"value": "application/json",
-											"description": ""
+											"description": "",
+											"type": "text"
 										}
 									],
 									"cookie": [],
@@ -1292,25 +1453,18 @@
 							},
 							"response": [
 								{
-									"name": "2. Publish Threads Post",
+									"name": "Repost Threads Post",
 									"originalRequest": {
 										"method": "POST",
 										"header": [],
 										"url": {
-											"raw": "{{api_host}}/me/threads_publish?creation_id={{container_id}}",
+											"raw": "{{api_host}}/{{thread_id}}/repost",
 											"host": [
 												"{{api_host}}"
 											],
 											"path": [
-												"me",
-												"threads_publish"
-											],
-											"query": [
-												{
-													"key": "creation_id",
-													"value": "{{container_id}}",
-													"description": "Identifier of the Threads media container created from the /threads endpoint."
-												}
+												"{{thread_id}}",
+												"repost"
 											]
 										}
 									},
@@ -1319,7 +1473,8 @@
 										{
 											"key": "Content-Type",
 											"value": "application/json",
-											"description": ""
+											"description": "",
+											"type": "text"
 										}
 									],
 									"cookie": [],
@@ -1374,7 +1529,7 @@
 										{
 											"key": "fields",
 											"value": "{{fields_profile}}",
-											"description": "id: Threads user ID. This is returned by default.\n\nusername: Handle or unique username on Threads. This is the same as the username on Instagram.\n\nthreads_profile_picture_url: URL of the user's profile picture on Threads.\n\nthreads_biography: Biography text on Threads profile."
+											"description": "A comma-separated list of fields for a user on Threads."
 										}
 									]
 								},
@@ -1387,9 +1542,12 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{api_host}}/me?fields={{fields_profile}}",
+											"raw": "https://graph.threads.net/me?fields=id,username,name,threads_profile_picture_url,threads_biography",
+											"protocol": "https",
 											"host": [
-												"{{api_host}}"
+												"graph",
+												"threads",
+												"net"
 											],
 											"path": [
 												"me"
@@ -1397,8 +1555,8 @@
 											"query": [
 												{
 													"key": "fields",
-													"value": "{{fields_profile}}",
-													"description": "id: Threads user ID. This is returned by default.\n\nusername: Handle or unique username on Threads. This is the same as the username on Instagram.\n\nthreads_profile_picture_url: URL of the user's profile picture on Threads.\n\nthreads_biography: Biography text on Threads profile."
+													"value": "id,username,name,threads_profile_picture_url,threads_biography",
+													"description": "A comma-separated list of fields for a user on Threads."
 												}
 											]
 										}
@@ -1440,7 +1598,7 @@
 										{
 											"key": "fields",
 											"value": "{{fields_threads}}",
-											"description": "id (default): The media's ID.\n\nmedia_product_type: Surface where the media is published. In the case of Threads, the value is THREADS.\n\nmedia_type: The media type for a Threads post will be one of these values: TEXT_POST, IMAGE, VIDEO, CAROUSEL_ALBUM, AUDIO, or REPOST_FACADE.\n\nmedia_url: The post’s media URL.\n\npermalink: Permanent link to the post. Will be omitted if the media contains copyrighted material or has been flagged for a copyright violation.\n\nowner: Instagram user ID who created the post.\n\nusername: Instagram username who created the post.\n\ntext: Represents text for a Threads post.\n\ntimestamp: Post time. The publish date in ISO 8601 format.\n\nshortcode: Shortcode of the media.\n\nthumbnail_url: URL of thumbnail. This only shows up for Threads media with video.\n\nchildren: List of child posts. This only shows up for carousel posts.\n\nis_quote_post: Indicates if the media is a quoted post made by another user."
+											"description": "A comma-separated list of fields for a media object on Threads."
 										}
 									]
 								},
@@ -1453,18 +1611,21 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{api_host}}/{{thread_id}}?fields={{fields_threads}}",
+											"raw": "https://graph.threads.net/?fields=id,media_product_type,media_type,media_url,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,children,is_quote_post,has_replies,alt_text,link_attachment_url",
+											"protocol": "https",
 											"host": [
-												"{{api_host}}"
+												"graph",
+												"threads",
+												"net"
 											],
 											"path": [
-												"{{thread_id}}"
+												""
 											],
 											"query": [
 												{
 													"key": "fields",
-													"value": "{{fields_threads}}",
-													"description": "id (default): The media's ID.\n\nmedia_product_type: Surface where the media is published. In the case of Threads, the value is THREADS.\n\nmedia_type: The media type for a Threads post will be one of these values: TEXT_POST, IMAGE, VIDEO, CAROUSEL_ALBUM, AUDIO, or REPOST_FACADE.\n\nmedia_url: The post’s media URL.\n\npermalink: Permanent link to the post. Will be omitted if the media contains copyrighted material or has been flagged for a copyright violation.\n\nowner: Instagram user ID who created the post.\n\nusername: Instagram username who created the post.\n\ntext: Represents text for a Threads post.\n\ntimestamp: Post time. The publish date in ISO 8601 format.\n\nshortcode: Shortcode of the media.\n\nthumbnail_url: URL of thumbnail. This only shows up for Threads media with video.\n\nchildren: List of child posts. This only shows up for carousel posts.\n\nis_quote_post: Indicates if the media is a quoted post made by another user."
+													"value": "id,media_product_type,media_type,media_url,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,children,is_quote_post,has_replies,alt_text,link_attachment_url",
+													"description": "A comma-separated list of fields for a media object on Threads."
 												}
 											]
 										}
@@ -1501,24 +1662,24 @@
 										{
 											"key": "fields",
 											"value": "{{fields_threads}}",
-											"description": "id (default): The media's ID.\n\nmedia_product_type: Surface where the media is published. In the case of Threads, the value is THREADS.\n\nmedia_type: The media type for a Threads post will be one of these values: TEXT_POST, IMAGE, VIDEO, CAROUSEL_ALBUM, AUDIO, or REPOST_FACADE.\n\nmedia_url: The post’s media URL.\n\npermalink: Permanent link to the post. Will be omitted if the media contains copyrighted material or has been flagged for a copyright violation.\n\nowner: Instagram user ID who created the post.\n\nusername: Instagram username who created the post.\n\ntext: Represents text for a Threads post.\n\ntimestamp: Post time. The publish date in ISO 8601 format.\n\nshortcode: Shortcode of the media.\n\nthumbnail_url: URL of thumbnail. This only shows up for Threads media with video.\n\nchildren: List of child posts. This only shows up for carousel posts.\n\nis_quote_post: Indicates if the media is a quoted post made by another user."
+											"description": "A comma-separated list of fields for media objects on Threads."
 										},
 										{
 											"key": "since",
 											"value": "",
-											"description": "Query string parameter representing the start date for retrieval",
+											"description": "Query string parameter representing the start date for retrieval.",
 											"disabled": true
 										},
 										{
 											"key": "until",
 											"value": "",
-											"description": "Query string parameter representing the end date for retrieval",
+											"description": "Query string parameter representing the end date for retrieval.",
 											"disabled": true
 										},
 										{
 											"key": "limit",
 											"value": "50",
-											"description": "Query string parameter representing the maximum number of media objects or records to return"
+											"description": "Query string parameter representing the maximum number of media objects or records to return."
 										},
 										{
 											"key": "before",
@@ -1543,9 +1704,12 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{api_host}}/me/threads?fields={{fields_threads}}&limit=50",
+											"raw": "https://graph.threads.net/me/threads?fields=id,media_product_type,media_type,media_url,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,children,is_quote_post,has_replies,alt_text,link_attachment_url&limit=50",
+											"protocol": "https",
 											"host": [
-												"{{api_host}}"
+												"graph",
+												"threads",
+												"net"
 											],
 											"path": [
 												"me",
@@ -1554,25 +1718,148 @@
 											"query": [
 												{
 													"key": "fields",
-													"value": "{{fields_threads}}",
-													"description": "id (default): The media's ID.\n\nmedia_product_type: Surface where the media is published. In the case of Threads, the value is THREADS.\n\nmedia_type: The media type for a Threads post will be one of these values: TEXT_POST, IMAGE, VIDEO, CAROUSEL_ALBUM, AUDIO, or REPOST_FACADE.\n\nmedia_url: The post’s media URL.\n\npermalink: Permanent link to the post. Will be omitted if the media contains copyrighted material or has been flagged for a copyright violation.\n\nowner: Instagram user ID who created the post.\n\nusername: Instagram username who created the post.\n\ntext: Represents text for a Threads post.\n\ntimestamp: Post time. The publish date in ISO 8601 format.\n\nshortcode: Shortcode of the media.\n\nthumbnail_url: URL of thumbnail. This only shows up for Threads media with video.\n\nchildren: List of child posts. This only shows up for carousel posts.\n\nis_quote_post: Indicates if the media is a quoted post made by another user."
+													"value": "id,media_product_type,media_type,media_url,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,children,is_quote_post,has_replies,alt_text,link_attachment_url",
+													"description": "A comma-separated list of fields for media objects on Threads."
 												},
 												{
 													"key": "since",
 													"value": null,
-													"description": "Query string parameter representing the start date for retrieval",
+													"description": "Query string parameter representing the start date for retrieval.",
 													"disabled": true
 												},
 												{
 													"key": "until",
 													"value": null,
-													"description": "Query string parameter representing the end date for retrieval",
+													"description": "Query string parameter representing the end date for retrieval.",
 													"disabled": true
 												},
 												{
 													"key": "limit",
 													"value": "50",
-													"description": "Query string parameter representing the maximum number of media objects or records to return"
+													"description": "Query string parameter representing the maximum number of media objects or records to return."
+												},
+												{
+													"key": "before",
+													"value": null,
+													"description": "Query string parameter representing a cursor that can be used for pagination. Both \"before\" and \"after\" cannot be sent in the same request.",
+													"disabled": true
+												},
+												{
+													"key": "after",
+													"value": null,
+													"description": "Query string parameter representing a cursor that can be used for pagination. Both \"before\" and \"after\" cannot be sent in the same request.",
+													"disabled": true
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json",
+											"description": "",
+											"type": "text"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"data\": [\n        {\n            \"id\": \"string\",\n            \"media_product_type\": \"THREADS\",\n            \"media_type\": \"TEXT_POST\",\n            \"permalink\": \"string\",\n            \"owner\": {\n                \"id\": \"string\"\n            },\n            \"username\": \"string\",\n            \"text\": \"This is a test post\",\n            \"timestamp\": \"2024-09-12T23:17:39+0000\",\n            \"shortcode\": \"string\",\n            \"is_quote_post\": false,\n            \"has_replies\": false\n        }\n    ],\n    \"paging\": {\n        \"cursors\": {\n            \"before\": \"string\",\n            \"after\": \"string\"\n        }\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "Get a List of All a User's Mentions",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/me/threads?fields={{fields_threads}}&limit=50",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"me",
+										"threads"
+									],
+									"query": [
+										{
+											"key": "fields",
+											"value": "{{fields_threads}}",
+											"description": "A comma-separated list of fields for media objects on Threads."
+										},
+										{
+											"key": "since",
+											"value": "",
+											"description": "Query string parameter representing the start date for retrieval.",
+											"disabled": true
+										},
+										{
+											"key": "until",
+											"value": "",
+											"description": "Query string parameter representing the end date for retrieval.",
+											"disabled": true
+										},
+										{
+											"key": "limit",
+											"value": "50",
+											"description": "Query string parameter representing the maximum number of media objects or records to return."
+										},
+										{
+											"key": "before",
+											"value": "",
+											"description": "Query string parameter representing a cursor that can be used for pagination. Both \"before\" and \"after\" cannot be sent in the same request.",
+											"disabled": true
+										},
+										{
+											"key": "after",
+											"value": "",
+											"description": "Query string parameter representing a cursor that can be used for pagination. Both \"before\" and \"after\" cannot be sent in the same request.",
+											"disabled": true
+										}
+									]
+								},
+								"description": "Use the `GET` /{threads-user-id}/threads [endpoint](https://developers.facebook.com/docs/threads/threads-media#retrieve-a-list-of-all-a-user-s-threads) to return a paginated list of all threads created by a user."
+							},
+							"response": [
+								{
+									"name": "Get a List of All a User's Threads",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "https://graph.threads.net/me/threads?fields=id,media_product_type,media_type,media_url,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,children,is_quote_post,has_replies,alt_text,link_attachment_url&limit=50",
+											"protocol": "https",
+											"host": [
+												"graph",
+												"threads",
+												"net"
+											],
+											"path": [
+												"me",
+												"threads"
+											],
+											"query": [
+												{
+													"key": "fields",
+													"value": "id,media_product_type,media_type,media_url,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,children,is_quote_post,has_replies,alt_text,link_attachment_url",
+													"description": "A comma-separated list of fields for media objects on Threads."
+												},
+												{
+													"key": "since",
+													"value": null,
+													"description": "Query string parameter representing the start date for retrieval.",
+													"disabled": true
+												},
+												{
+													"key": "until",
+													"value": null,
+													"description": "Query string parameter representing the end date for retrieval.",
+													"disabled": true
+												},
+												{
+													"key": "limit",
+													"value": "50",
+													"description": "Query string parameter representing the maximum number of media objects or records to return."
 												},
 												{
 													"key": "before",
@@ -1627,7 +1914,7 @@
 										{
 											"key": "metric",
 											"value": "{{metrics_post}}",
-											"description": "views: The number of times the post was viewed.\nNote: This metric is in development.\n\nlikes: The number of likes on the post.\n\nreplies: The number of replies on the post.\nNote: This number includes only top-level replies.\n\nreposts: The number of times the post was reposted.\n\nquotes: The number of times the post was quoted."
+											"description": "A comma-separated list of metrics for a post on Threads."
 										}
 									]
 								},
@@ -1652,13 +1939,13 @@
 												{
 													"key": "metric",
 													"value": "{{metrics_post}}",
-													"description": "views: The number of times the post was viewed.\nNote: This metric is in development.\n\nlikes: The number of likes on the post.\n\nreplies: The number of replies on the post.\nNote: This number includes only top-level replies.\n\nreposts: The number of times the post was reposted.\n\nquotes: The number of times the post was quoted."
+													"description": "A comma-separated list of metrics for a post on Threads."
 												}
 											]
 										}
 									},
-									"_postman_previewlanguage": "Text",
-									"header": [],
+									"_postman_previewlanguage": null,
+									"header": null,
 									"cookie": [],
 									"body": "{\n    \"data\": [\n        {\n            \"name\": \"views\",\n            \"period\": \"lifetime\",\n            \"values\": [\n                {\n                    \"value\": 0\n                }\n            ],\n            \"title\": \"Views\",\n            \"description\": \"The number of times your post was viewed. This metric is in development (https://www.facebook.com/business/help/metrics-labeling)\",\n            \"id\": \"{thread_id}/insights/views/lifetime\"\n        },\n        {\n            \"name\": \"likes\",\n            \"period\": \"lifetime\",\n            \"values\": [\n                {\n                    \"value\": 0\n                }\n            ],\n            \"title\": \"Likes\",\n            \"description\": \"The number of likes on your post.\",\n            \"id\": \"{thread_id}/insights/likes/lifetime\"\n        },\n        {\n            \"name\": \"replies\",\n            \"period\": \"lifetime\",\n            \"values\": [\n                {\n                    \"value\": 0\n                }\n            ],\n            \"title\": \"Replies\",\n            \"description\": \"The number of replies on your post.\",\n            \"id\": \"{thread_id}/insights/thread_replies/lifetime\"\n        },\n        {\n            \"name\": \"reposts\",\n            \"period\": \"lifetime\",\n            \"values\": [\n                {\n                    \"value\": 0\n                }\n            ],\n            \"title\": \"Reposts\",\n            \"description\": \"The number of times your post was reposted.\",\n            \"id\": \"{thread_id}/insights/reposts/lifetime\"\n        },\n        {\n            \"name\": \"quotes\",\n            \"period\": \"lifetime\",\n            \"values\": [\n                {\n                    \"value\": 0\n                }\n            ],\n            \"title\": \"Quotes\",\n            \"description\": \"The number of times your post was quoted.\",\n            \"id\": \"{thread_id}/insights/quotes/lifetime\"\n        }\n    ]\n}"
 								}
@@ -1682,11 +1969,12 @@
 										{
 											"key": "metric",
 											"value": "{{metrics_account}}",
-											"description": "views: The number of times the post was viewed.\nNote: This metric is in development.\n\nlikes: The number of likes on the post.\n\nreplies: The number of replies on the post.\nNote: This number includes only top-level replies.\n\nreposts: The number of times the post was reposted.\n\nquotes: The number of times the post was quoted.\n\nreposts: The number of times your posts were quoted.\n\nfollowers_count: Your total number of followers on Threads.\n\nfollower_demographics: The demographic characteristics of followers, including countries, cities and gender distribution.\nNote: Does not support the since and until parameters."
+											"description": "A comma-separated list of metrics for an account on Threads."
 										},
 										{
 											"key": "breakdown",
 											"value": "{{follower_demographics_breakdown}}",
+											"description": "Used for categorizing follower demographics. Must be one of the following values: country, city, age, or gender.",
 											"disabled": true
 										}
 									]
@@ -1712,25 +2000,26 @@
 												{
 													"key": "metric",
 													"value": "{{metrics_account}}",
-													"description": "views: The number of times the post was viewed.\nNote: This metric is in development.\n\nlikes: The number of likes on the post.\n\nreplies: The number of replies on the post.\nNote: This number includes only top-level replies.\n\nreposts: The number of times the post was reposted.\n\nquotes: The number of times the post was quoted.\n\nreposts: The number of times your posts were quoted.\n\nfollowers_count: Your total number of followers on Threads.\n\nfollower_demographics: The demographic characteristics of followers, including countries, cities and gender distribution.\nNote: Does not support the since and until parameters."
+													"description": "A comma-separated list of metrics for an account on Threads."
 												},
 												{
 													"key": "breakdown",
 													"value": "{{follower_demographics_breakdown}}",
+													"description": "Used for categorizing follower demographics. Must be one of the following values: country, city, age, or gender.",
 													"disabled": true
 												}
 											]
 										}
 									},
-									"_postman_previewlanguage": "Text",
-									"header": [],
+									"_postman_previewlanguage": null,
+									"header": null,
 									"cookie": [],
 									"body": "{\n    \"data\": [\n        {\n            \"name\": \"views\",\n            \"period\": \"day\",\n            \"values\": [\n                {\n                    \"value\": 0,\n                    \"end_time\": \"2024-09-16T07:00:00+0000\"\n                },\n                {\n                    \"value\": 0,\n                    \"end_time\": \"2024-09-17T07:00:00+0000\"\n                }\n            ],\n            \"title\": \"views\",\n            \"description\": \"The number of times your profile was viewed.\",\n            \"id\": \"{user_id}/insights/views/day\"\n        },\n        {\n            \"name\": \"likes\",\n            \"period\": \"day\",\n            \"title\": \"likes\",\n            \"description\": \"The number of likes on your posts.\",\n            \"total_value\": {\n                \"value\": 0\n            },\n            \"id\": \"{user_id}/insights/likes/day\"\n        },\n        {\n            \"name\": \"replies\",\n            \"period\": \"day\",\n            \"title\": \"replies\",\n            \"description\": \"The number of replies on your posts.\",\n            \"total_value\": {\n                \"value\": 0\n            },\n            \"id\": \"{user_id}/insights/replies/day\"\n        },\n        {\n            \"name\": \"reposts\",\n            \"period\": \"day\",\n            \"title\": \"reposts\",\n            \"description\": \"The number of times your posts were reposted.\",\n            \"total_value\": {\n                \"value\": 0\n            },\n            \"id\": \"{user_id}/insights/reposts/day\"\n        },\n        {\n            \"name\": \"quotes\",\n            \"period\": \"day\",\n            \"title\": \"quotes\",\n            \"description\": \"The number of times your posts were quoted.\",\n            \"total_value\": {\n                \"value\": 0\n            },\n            \"id\": \"{user_id}/insights/quotes/day\"\n        },\n        {\n            \"name\": \"followers_count\",\n            \"period\": \"day\",\n            \"title\": \"followers_count\",\n            \"description\": \"This is your total number of followers on Threads.\",\n            \"total_value\": {\n                \"value\": 0\n            },\n            \"id\": \"{user_id}/insights/followers_count/day\"\n        }\n    ],\n    \"paging\": {\n        \"previous\": \"string\",\n        \"next\": \"string\"\n    }\n}"
 								}
 							]
 						}
 					],
-					"description": "This folder will enable you to use the Threads API to retrieve details about posts and accounts."
+					"description": "This folder will enable you to use the Threads API to retrieve insights about posts and accounts."
 				},
 				{
 					"name": "Read and Manage Threads Replies",
@@ -1741,7 +2030,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/{{thread_id}}/replies?fields=text&reverse=false",
+									"raw": "{{api_host}}/{{thread_id}}/replies?fields={{fields_replies}}&reverse=false",
 									"host": [
 										"{{api_host}}"
 									],
@@ -1752,12 +2041,13 @@
 									"query": [
 										{
 											"key": "fields",
-											"value": "text",
-											"description": "id (default): The media's ID.\n\ntext: Represents text for a Threads reply. This is optional on image, video, and carousel replies.\n\nusername: Instagram username who created the post.\nNote: This only works for public users, your own user, and users that you follow.\n\npermalink: Permanent link to the post. Will be omitted if the media contains copyrighted material or has been flagged for a copyright violation.\nNote: This only works for public users, your own user, and users that you follow.\n\ntimestamp: The publish date and time of the post in ISO 8601 format.\n\nmedia_product_type: Surface where the media is published. In the case of Threads, the value is THREADS.\n\nmedia_type: The media type for a Threads reply.\nValues: TEXT_POST, IMAGE, VIDEO, CAROUSEL_ALBUM\n\nmedia_url: The post’s media URL. This only shows for image, video, and carousel replies.\n\nshortcode: Shortcode of the media.\n\nthumbnail_url: URL of thumbnail. This only shows for Threads replies with video.\n\nchildren: List of child posts. This only shows for carousel replies.\n\nhas_replies: true if the Threads post or reply has replies that you can see.\n\nroot_post: Media ID of the top-level post or original thread in the reply tree.\nNote: This only appears on replies.\n\nreplied_to: Media ID of the immediate parent of the reply.\nNote: This only appears on replies.\n\nis_reply: true if the Threads media is a reply. false if the Threads media is a top-level post.\n\nhide_status: Whether or not the reply is hidden.\nValues: NOT_HUSHED, UNHUSHED, HIDDEN"
+											"value": "{{fields_replies}}",
+											"description": "A comma-separated list of fields for replies on Threads."
 										},
 										{
 											"key": "reverse",
-											"value": "false"
+											"value": "false",
+											"description": "Whether or not replies should be sorted in reverse chronological order. The default is true if not specified."
 										}
 									]
 								},
@@ -1770,7 +2060,7 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{api_host}}/{{thread_id}}/replies?fields=text&reverse=false",
+											"raw": "{{api_host}}/{{thread_id}}/replies?fields={{fields_replies}}&reverse=false",
 											"host": [
 												"{{api_host}}"
 											],
@@ -1781,12 +2071,13 @@
 											"query": [
 												{
 													"key": "fields",
-													"value": "text",
-													"description": "id (default): The media's ID.\n\ntext: Represents text for a Threads reply. This is optional on image, video, and carousel replies.\n\nusername: Instagram username who created the post.\nNote: This only works for public users, your own user, and users that you follow.\n\npermalink: Permanent link to the post. Will be omitted if the media contains copyrighted material or has been flagged for a copyright violation.\nNote: This only works for public users, your own user, and users that you follow.\n\ntimestamp: The publish date and time of the post in ISO 8601 format.\n\nmedia_product_type: Surface where the media is published. In the case of Threads, the value is THREADS.\n\nmedia_type: The media type for a Threads reply.\nValues: TEXT_POST, IMAGE, VIDEO, CAROUSEL_ALBUM\n\nmedia_url: The post’s media URL. This only shows for image, video, and carousel replies.\n\nshortcode: Shortcode of the media.\n\nthumbnail_url: URL of thumbnail. This only shows for Threads replies with video.\n\nchildren: List of child posts. This only shows for carousel replies.\n\nhas_replies: true if the Threads post or reply has replies that you can see.\n\nroot_post: Media ID of the top-level post or original thread in the reply tree.\nNote: This only appears on replies.\n\nreplied_to: Media ID of the immediate parent of the reply.\nNote: This only appears on replies.\n\nis_reply: true if the Threads media is a reply. false if the Threads media is a top-level post.\n\nhide_status: Whether or not the reply is hidden.\nValues: NOT_HUSHED, UNHUSHED, HIDDEN"
+													"value": "{{fields_replies}}",
+													"description": "A comma-separated list of fields for replies on Threads."
 												},
 												{
 													"key": "reverse",
-													"value": "false"
+													"value": "false",
+													"description": "Whether or not replies should be sorted in reverse chronological order. The default is true if not specified."
 												}
 											]
 										}
@@ -1823,11 +2114,12 @@
 										{
 											"key": "fields",
 											"value": "{{fields_replies}}",
-											"description": "id (default): The media's ID.\n\ntext: Represents text for a Threads reply. This is optional on image, video, and carousel replies.\n\nusername: Instagram username who created the post.\nNote: This only works for public users, your own user, and users that you follow.\n\npermalink: Permanent link to the post. Will be omitted if the media contains copyrighted material or has been flagged for a copyright violation.\nNote: This only works for public users, your own user, and users that you follow.\n\ntimestamp: The publish date and time of the post in ISO 8601 format.\n\nmedia_product_type: Surface where the media is published. In the case of Threads, the value is THREADS.\n\nmedia_type: The media type for a Threads reply.Values: TEXT_POST, IMAGE, VIDEO, CAROUSEL_ALBUM\n\nmedia_url: The post’s media URL. This only shows for image, video, and carousel replies.\n\nshortcode: Shortcode of the media.\n\nthumbnail_url: URL of thumbnail. This only shows for Threads replies with video.\n\nchildren: List of child posts. This only shows for carousel replies.\n\nhas_replies: true if the Threads post or reply has replies that you can see.\n\nroot_post: Media ID of the top-level post or original thread in the reply tree.\nNote: This only appears on replies.\n\nreplied_to: Media ID of the immediate parent of the reply.\nNote: This only appears on replies.\n\nis_reply: true if the Threads media is a reply. false if the Threads media is a top-level post.\n\nhide_status: Whether or not the reply is hidden.\nValues: NOT_HUSHED, UNHUSHED, HIDDEN"
+											"description": "A comma-separated list of fields for replies on Threads."
 										},
 										{
 											"key": "reverse",
-											"value": "false"
+											"value": "false",
+											"description": "Whether or not replies should be sorted in reverse chronological order. The default is true if not specified."
 										}
 									]
 								},
@@ -1852,11 +2144,12 @@
 												{
 													"key": "fields",
 													"value": "{{fields_replies}}",
-													"description": "id (default): The media's ID.\n\ntext: Represents text for a Threads reply. This is optional on image, video, and carousel replies.\n\nusername: Instagram username who created the post.\nNote: This only works for public users, your own user, and users that you follow.\n\npermalink: Permanent link to the post. Will be omitted if the media contains copyrighted material or has been flagged for a copyright violation.\nNote: This only works for public users, your own user, and users that you follow.\n\ntimestamp: The publish date and time of the post in ISO 8601 format.\n\nmedia_product_type: Surface where the media is published. In the case of Threads, the value is THREADS.\n\nmedia_type: The media type for a Threads reply.Values: TEXT_POST, IMAGE, VIDEO, CAROUSEL_ALBUM\n\nmedia_url: The post’s media URL. This only shows for image, video, and carousel replies.\n\nshortcode: Shortcode of the media.\n\nthumbnail_url: URL of thumbnail. This only shows for Threads replies with video.\n\nchildren: List of child posts. This only shows for carousel replies.\n\nhas_replies: true if the Threads post or reply has replies that you can see.\n\nroot_post: Media ID of the top-level post or original thread in the reply tree.\nNote: This only appears on replies.\n\nreplied_to: Media ID of the immediate parent of the reply.\nNote: This only appears on replies.\n\nis_reply: true if the Threads media is a reply. false if the Threads media is a top-level post.\n\nhide_status: Whether or not the reply is hidden.\nValues: NOT_HUSHED, UNHUSHED, HIDDEN"
+													"description": "A comma-separated list of fields for replies on Threads."
 												},
 												{
 													"key": "reverse",
-													"value": "false"
+													"value": "false",
+													"description": "Whether or not replies should be sorted in reverse chronological order. The default is true if not specified."
 												}
 											]
 										}
@@ -1892,7 +2185,8 @@
 									"query": [
 										{
 											"key": "hide",
-											"value": "true"
+											"value": "true",
+											"description": "Set to true to hide a reply and set to false to unhide a reply."
 										}
 									]
 								},
@@ -1916,7 +2210,8 @@
 											"query": [
 												{
 													"key": "hide",
-													"value": "true"
+													"value": "true",
+													"description": "Set to true to hide a reply and set to false to unhide a reply."
 												}
 											]
 										}
@@ -1941,7 +2236,7 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?media_type={{media_type}}&text=Text&reply_to_id={{reply_thread_id}}",
+									"raw": "{{api_host}}/me/threads?media_type=TEXT&text=Text&reply_to_id={{reply_thread_id}}",
 									"host": [
 										"{{api_host}}"
 									],
@@ -1952,18 +2247,18 @@
 									"query": [
 										{
 											"key": "media_type",
-											"value": "{{media_type}}",
-											"description": "The media type for a Threads reply.\nValues: TEXT_POST, IMAGE, VIDEO, CAROUSEL_ALBUM"
+											"value": "TEXT",
+											"description": "Indicates the current media type."
 										},
 										{
 											"key": "text",
 											"value": "Text",
-											"description": "Response to reply"
+											"description": "The text associated with the post."
 										},
 										{
 											"key": "reply_to_id",
 											"value": "{{reply_thread_id}}",
-											"description": "ID of the reply to respond to"
+											"description": "Required if replying to a specific post."
 										}
 									]
 								},
@@ -1976,7 +2271,7 @@
 										"method": "POST",
 										"header": [],
 										"url": {
-											"raw": "{{api_host}}/me/threads?media_type={{media_type}}&text=Text&reply_to_id={{reply_thread_id}}",
+											"raw": "{{api_host}}/me/threads?media_type=TEXT&text=Text&reply_to_id={{reply_thread_id}}",
 											"host": [
 												"{{api_host}}"
 											],
@@ -1987,18 +2282,18 @@
 											"query": [
 												{
 													"key": "media_type",
-													"value": "{{media_type}}",
-													"description": "The media type for a Threads reply.\nValues: TEXT_POST, IMAGE, VIDEO, CAROUSEL_ALBUM"
+													"value": "TEXT",
+													"description": "Indicates the current media type."
 												},
 												{
 													"key": "text",
 													"value": "Text",
-													"description": "Response to reply"
+													"description": "The text associated with the post."
 												},
 												{
 													"key": "reply_to_id",
 													"value": "{{reply_thread_id}}",
-													"description": "ID of the reply to respond to"
+													"description": "Required if replying to a specific post."
 												}
 											]
 										}
@@ -2023,7 +2318,7 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?media_type={{media_type}}&text=Text&reply_control={{reply_control}}",
+									"raw": "{{api_host}}/me/threads?media_type=TEXT&text=Text&reply_control={{reply_control}}",
 									"host": [
 										"{{api_host}}"
 									],
@@ -2034,15 +2329,18 @@
 									"query": [
 										{
 											"key": "media_type",
-											"value": "{{media_type}}"
+											"value": "TEXT",
+											"description": "Indicates the current media type."
 										},
 										{
 											"key": "text",
-											"value": "Text"
+											"value": "Text",
+											"description": "The text associated with the post."
 										},
 										{
 											"key": "reply_control",
-											"value": "{{reply_control}}"
+											"value": "{{reply_control}}",
+											"description": "Can be used to specify who can reply to a post."
 										}
 									]
 								},
@@ -2055,7 +2353,7 @@
 										"method": "POST",
 										"header": [],
 										"url": {
-											"raw": "{{api_host}}/me/threads?media_type={{media_type}}&text=Text&reply_control={{reply_control}}",
+											"raw": "{{api_host}}/me/threads?media_type=TEXT&text=Text&reply_control={{reply_control}}",
 											"host": [
 												"{{api_host}}"
 											],
@@ -2066,21 +2364,24 @@
 											"query": [
 												{
 													"key": "media_type",
-													"value": "{{media_type}}"
+													"value": "TEXT",
+													"description": "Indicates the current media type."
 												},
 												{
 													"key": "text",
-													"value": "Text"
+													"value": "Text",
+													"description": "The text associated with the post."
 												},
 												{
 													"key": "reply_control",
-													"value": "{{reply_control}}"
+													"value": "{{reply_control}}",
+													"description": "Can be used to specify who can reply to a post."
 												}
 											]
 										}
 									},
-									"_postman_previewlanguage": "Text",
-									"header": [],
+									"_postman_previewlanguage": null,
+									"header": null,
 									"cookie": [],
 									"body": "{\n    \"id\": \"string\"\n}"
 								}
@@ -2110,24 +2411,24 @@
 										{
 											"key": "fields",
 											"value": "{{fields_replies}}",
-											"description": "id (default): The media's ID.\n\nmedia_product_type: Surface where the media is published. In the case of Threads, the value is THREADS.\n\nmedia_type: The media type for a Threads post will be one of these values: TEXT_POST, IMAGE, VIDEO, CAROUSEL_ALBUM, AUDIO, or REPOST_FACADE.\n\nmedia_url: The post’s media URL.\n\npermalink: Permanent link to the post. Will be omitted if the media contains copyrighted material or has been flagged for a copyright violation.\n\nowner: Instagram user ID who created the post.\n\nusername: Instagram username who created the post.\n\ntext: Represents text for a Threads post.\n\ntimestamp: Post time. The publish date in ISO 8601 format.\n\nshortcode: Shortcode of the media.\n\nthumbnail_url: URL of thumbnail. This only shows up for Threads media with video.\n\nchildren: List of child posts. This only shows up for carousel posts.\n\nis_quote_post: Indicates if the media is a quoted post made by another user."
+											"description": "A comma-separated list of fields for replies on Threads."
 										},
 										{
 											"key": "since",
 											"value": "",
-											"description": "Query string parameter representing the start date for retrieval",
+											"description": "Query string parameter representing the start date for retrieval.",
 											"disabled": true
 										},
 										{
 											"key": "until",
 											"value": "",
-											"description": "Query string parameter representing the end date for retrieval",
+											"description": "Query string parameter representing the end date for retrieval.",
 											"disabled": true
 										},
 										{
 											"key": "limit",
 											"value": "50",
-											"description": "Query string parameter representing the maximum number of media objects or records to return"
+											"description": "Query string parameter representing the maximum number of media objects or records to return."
 										},
 										{
 											"key": "before",
@@ -2164,24 +2465,24 @@
 												{
 													"key": "fields",
 													"value": "{{fields_threads}}",
-													"description": "id (default): The media's ID.\n\nmedia_product_type: Surface where the media is published. In the case of Threads, the value is THREADS.\n\nmedia_type: The media type for a Threads post will be one of these values: TEXT_POST, IMAGE, VIDEO, CAROUSEL_ALBUM, AUDIO, or REPOST_FACADE.\n\nmedia_url: The post’s media URL.\n\npermalink: Permanent link to the post. Will be omitted if the media contains copyrighted material or has been flagged for a copyright violation.\n\nowner: Instagram user ID who created the post.\n\nusername: Instagram username who created the post.\n\ntext: Represents text for a Threads post.\n\ntimestamp: Post time. The publish date in ISO 8601 format.\n\nshortcode: Shortcode of the media.\n\nthumbnail_url: URL of thumbnail. This only shows up for Threads media with video.\n\nchildren: List of child posts. This only shows up for carousel posts.\n\nis_quote_post: Indicates if the media is a quoted post made by another user."
+													"description": "A comma-separated list of fields for replies on Threads."
 												},
 												{
 													"key": "since",
 													"value": null,
-													"description": "Query string parameter representing the start date for retrieval",
+													"description": "Query string parameter representing the start date for retrieval.",
 													"disabled": true
 												},
 												{
 													"key": "until",
 													"value": null,
-													"description": "Query string parameter representing the end date for retrieval",
+													"description": "Query string parameter representing the end date for retrieval.",
 													"disabled": true
 												},
 												{
 													"key": "limit",
 													"value": "50",
-													"description": "Query string parameter representing the maximum number of media objects or records to return"
+													"description": "Query string parameter representing the maximum number of media objects or records to return."
 												},
 												{
 													"key": "before",
@@ -2217,6 +2518,269 @@
 				}
 			],
 			"description": "This folder will enable you to use the Threads API to retrieve details about profiles and media objects, reads insights and handle reply moderation."
+		},
+		{
+			"name": "Discover Threads",
+			"item": [
+				{
+					"name": "Search for Threads Posts",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_host}}/keyword_search?q=ThreadsAPI&search_type=TOP&fields={{fields_threads}}",
+							"host": [
+								"{{api_host}}"
+							],
+							"path": [
+								"keyword_search"
+							],
+							"query": [
+								{
+									"key": "q",
+									"value": "ThreadsAPI",
+									"description": "This is the query to be searched for."
+								},
+								{
+									"key": "search_type",
+									"value": "TOP",
+									"description": "This is the type of search to be performed. This can be either TOP or RECENT."
+								},
+								{
+									"key": "limit",
+									"value": "",
+									"description": "Query string parameter representing the maximum number of media objects or records to return.",
+									"disabled": true
+								},
+								{
+									"key": "fields",
+									"value": "{{fields_threads}}",
+									"description": "A comma-separated list of fields for media objects on Threads."
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Search for Threads Posts",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/keyword_search?q=ThreadsAPI&search_type=TOP&fields={{fields_threads}}",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"keyword_search"
+									],
+									"query": [
+										{
+											"key": "q",
+											"value": "ThreadsAPI",
+											"description": "This is the query to be searched for."
+										},
+										{
+											"key": "search_type",
+											"value": "TOP",
+											"description": "This is the type of search to be performed. This can be either TOP or RECENT."
+										},
+										{
+											"key": "limit",
+											"value": "",
+											"description": "Query string parameter representing the maximum number of media objects or records to return.",
+											"disabled": true
+										},
+										{
+											"key": "fields",
+											"value": "{{fields_threads}}",
+											"description": "A comma-separated list of fields for media objects on Threads."
+										}
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": "{\n    \"data\": [\n        {\n            \"id\": <string>,\n            \"media_product_type\": \"THREADS\",\n            \"media_type\": \"TEXT_POST\",\n            \"permalink\": <string>,\n            \"username\": <string>,\n            \"text\": <string>,\n            \"timestamp\": \"2025-01-01T00:00:00+0000\",\n            \"shortcode\": <string>,\n            \"is_quote_post\": false,\n            \"has_replies\": false\n        },\n        ...\n    ],\n    \"paging\": {\n        \"cursors\": {\n            \"before\": <string>,\n            \"after\": <string>\n        }\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Mentioned Threads Posts",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_host}}/me/mentions?fields={{fields_threads}}",
+							"host": [
+								"{{api_host}}"
+							],
+							"path": [
+								"me",
+								"mentions"
+							],
+							"query": [
+								{
+									"key": "since",
+									"value": "",
+									"description": "Query string parameter representing the start date for retrieval.",
+									"disabled": true
+								},
+								{
+									"key": "until",
+									"value": "",
+									"description": "Query string parameter representing the end date for retrieval.",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "",
+									"description": "Query string parameter representing the maximum number of media objects or records to return.",
+									"disabled": true
+								},
+								{
+									"key": "fields",
+									"value": "{{fields_threads}}",
+									"description": "A comma-separated list of fields for media objects on Threads."
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Get Mentioned Threads Posts",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/me/mentions?fields={{fields_threads}}",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"me",
+										"mentions"
+									],
+									"query": [
+										{
+											"key": "since",
+											"value": "",
+											"description": "Query string parameter representing the start date for retrieval.",
+											"disabled": true
+										},
+										{
+											"key": "until",
+											"value": "",
+											"description": "Query string parameter representing the end date for retrieval.",
+											"disabled": true
+										},
+										{
+											"key": "limit",
+											"value": "",
+											"description": "Query string parameter representing the maximum number of media objects or records to return.",
+											"disabled": true
+										},
+										{
+											"key": "fields",
+											"value": "{{fields_threads}}",
+											"description": "A comma-separated list of fields for media objects on Threads."
+										}
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": "{\n    \"data\": [\n        {\n            \"id\": <string>,\n            \"media_product_type\": \"THREADS\",\n            \"media_type\": \"TEXT_POST\",\n            \"permalink\": <string>,\n            \"username\": <string>,\n            \"text\": <string>,\n            \"timestamp\": \"2025-01-01T00:00:00+0000\",\n            \"shortcode\": <string>,\n            \"is_quote_post\": false,\n            \"has_replies\": false\n        },\n        ...\n    ],\n    \"paging\": {\n        \"cursors\": {\n            \"before\": <string>,\n            \"after\": <string>\n        }\n    }\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Display Threads",
+			"item": [
+				{
+					"name": "Embed a Threads Post",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_host}}/oembed?url=https://www.threads.net/@threads/post/DCkkKl_OGb1",
+							"host": [
+								"{{api_host}}"
+							],
+							"path": [
+								"oembed"
+							],
+							"query": [
+								{
+									"key": "url",
+									"value": "https://www.threads.net/@threads/post/DCkkKl_OGb1",
+									"description": "This is the URL of the Threads post to be embedded. With standard access, you may embed posts from the @meta, @threads, @instagram, and @facebook accounts."
+								},
+								{
+									"key": "access_token",
+									"value": "TH|{{app_id}}|{{app_secret}}",
+									"description": "This is your app access token. This consists of your app's ID and secret.",
+									"disabled": true
+								},
+								{
+									"key": "access_token",
+									"value": "{{app_access_token}}",
+									"description": "This is your app access token received via the GET /oauth/access_token endpoint. See the Authorization folder for details.",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Embed a Threads Post",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/oembed?url=https://www.threads.net/@threads/post/DCkkKl_OGb1",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"oembed"
+									],
+									"query": [
+										{
+											"key": "url",
+											"value": "https://www.threads.net/@threads/post/DCkkKl_OGb1",
+											"description": "This is the URL of the Threads post to be embedded. With standard access, you may embed posts from the @meta, @threads, @instagram, and @facebook accounts."
+										},
+										{
+											"key": "access_token",
+											"value": "TH|{{app_id}}|{{app_secret}}",
+											"description": "This is your app access token. This consists of your app's ID and secret.",
+											"disabled": true
+										},
+										{
+											"key": "access_token",
+											"value": "{{app_access_token}}",
+											"description": "This is your app access token received via the GET /oauth/access_token endpoint. See the Authorization folder for details.",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": "{\n    \"type\": \"rich\",\n    \"version\": \"1.0\",\n    \"html\": \"<blockquote class=\\\"text-post-media\\\" data-text-post-permalink=\\\"https://www.threads.net/@threads/post/DCkkKl_OGb1\\\" data-text-post-version=\\\"0\\\" id=\\\"ig-tp-DCkkKl_OGb1\\\" style=\\\" background:#FFF; border-width: 1px; border-style: solid; border-color: #00000026; border-radius: 16px; max-width:658px; margin: 1px; min-width:270px; padding:0; width:99.375%; width:-webkit-calc(100% - 2px); width:calc(100% - 2px);\\\"> <a href=\\\"https://www.threads.net/@threads/post/DCkkKl_OGb1\\\" style=\\\" background:#FFFFFF; line-height:0; padding:0 0; text-align:center; text-decoration:none; width:100%; font-family: -apple-system, BlinkMacSystemFont, sans-serif;\\\" target=\\\"_blank\\\"> <div style=\\\" padding: 40px; display: flex; flex-direction: column; align-items: center;\\\"><div style=\\\" display:block; height:32px; width:32px; padding-bottom:20px;\\\"> <svg aria-label=\\\"Threads\\\" height=\\\"32px\\\" role=\\\"img\\\" viewBox=\\\"0 0 192 192\\\" width=\\\"32px\\\" xmlns=\\\"http://www.w3.org/2000/svg\\\"> <path d=\\\"M141.537 88.9883C140.71 88.5919 139.87 88.2104 139.019 87.8451C137.537 60.5382 122.616 44.905 97.5619 44.745C97.4484 44.7443 97.3355 44.7443 97.222 44.7443C82.2364 44.7443 69.7731 51.1409 62.102 62.7807L75.881 72.2328C81.6116 63.5383 90.6052 61.6848 97.2286 61.6848C97.3051 61.6848 97.3819 61.6848 97.4576 61.6855C105.707 61.7381 111.932 64.1366 115.961 68.814C118.893 72.2193 120.854 76.925 121.825 82.8638C114.511 81.6207 106.601 81.2385 98.145 81.7233C74.3247 83.0954 59.0111 96.9879 60.0396 116.292C60.5615 126.084 65.4397 134.508 73.775 140.011C80.8224 144.663 89.899 146.938 99.3323 146.423C111.79 145.74 121.563 140.987 128.381 132.296C133.559 125.696 136.834 117.143 138.28 106.366C144.217 109.949 148.617 114.664 151.047 120.332C155.179 129.967 155.42 145.8 142.501 158.708C131.182 170.016 117.576 174.908 97.0135 175.059C74.2042 174.89 56.9538 167.575 45.7381 153.317C35.2355 139.966 29.8077 120.682 29.6052 96C29.8077 71.3178 35.2355 52.0336 45.7381 38.6827C56.9538 24.4249 74.2039 17.11 97.0132 16.9405C119.988 17.1113 137.539 24.4614 149.184 38.788C154.894 45.8136 159.199 54.6488 162.037 64.9503L178.184 60.6422C174.744 47.9622 169.331 37.0357 161.965 27.974C147.036 9.60668 125.202 0.195148 97.0695 0H96.9569C68.8816 0.19447 47.2921 9.6418 32.7883 28.0793C19.8819 44.4864 13.2244 67.3157 13.0007 95.9325L13 96L13.0007 96.0675C13.2244 124.684 19.8819 147.514 32.7883 163.921C47.2921 182.358 68.8816 191.806 96.9569 192H97.0695C122.03 191.827 139.624 185.292 154.118 170.811C173.081 151.866 172.51 128.119 166.26 113.541C161.776 103.087 153.227 94.5962 141.537 88.9883ZM98.4405 129.507C88.0005 130.095 77.1544 125.409 76.6196 115.372C76.2232 107.93 81.9158 99.626 99.0812 98.6368C101.047 98.5234 102.976 98.468 104.871 98.468C111.106 98.468 116.939 99.0737 122.242 100.233C120.264 124.935 108.662 128.946 98.4405 129.507Z\\\" /></svg></div><div style=\\\" font-size: 15px; line-height: 21px; color: #000000; font-weight: 600; \\\"> View on Threads</div></div></a></blockquote>\\n<script async src=\\\"https://www.threads.net/embed.js\\\"></script>\",\n    \"provider_name\": \"Threads\",\n    \"provider_url\": \"https://www.threads.net/\",\n    \"width\": 658\n}"
+						}
+					]
+				}
+			]
 		},
 		{
 			"name": "Troubleshooting",
@@ -2269,8 +2833,8 @@
 									]
 								}
 							},
-							"_postman_previewlanguage": "Text",
-							"header": [],
+							"_postman_previewlanguage": null,
+							"header": null,
 							"cookie": [],
 							"body": "{\n    \"id\": \"string\",\n    \"status\": \"FINISHED\"\n}"
 						}
@@ -2294,7 +2858,7 @@
 								{
 									"key": "fields",
 									"value": "{{fields_quota}}",
-									"description": "user's current Threads API usage total."
+									"description": "The user's current Threads API publishing usage total."
 								}
 							]
 						},
@@ -2319,13 +2883,13 @@
 										{
 											"key": "fields",
 											"value": "{{fields_quota}}",
-											"description": "user's current Threads API usage total."
+											"description": "The user's current Threads API publishing usage total."
 										}
 									]
 								}
 							},
-							"_postman_previewlanguage": "Text",
-							"header": [],
+							"_postman_previewlanguage": null,
+							"header": null,
 							"cookie": [],
 							"body": "{\n    \"data\": [\n        {\n            \"quota_usage\": 1,\n            \"config\": {\n                \"quota_total\": 250,\n                \"quota_duration\": 86400\n            },\n            \"reply_quota_usage\": 0,\n            \"reply_config\": {\n                \"quota_total\": 1000,\n                \"quota_duration\": 86400\n            }\n        }\n    ]\n}"
 						}
@@ -2401,10 +2965,7 @@
 			"script": {
 				"type": "text/javascript",
 				"exec": [
-					"pm.request.headers.add({",
-					"    key: 'User-Agent',",
-					"    value: 'Postman/ThreadsCollection'",
-					"})"
+					""
 				]
 			}
 		},
@@ -2421,39 +2982,53 @@
 	"variable": [
 		{
 			"key": "authorization_host",
-			"value": "https://www.threads.net"
+			"value": "https://www.threads.net",
+			"type": "string"
 		},
 		{
 			"key": "api_host",
-			"value": "https://graph.threads.net"
+			"value": "https://graph.threads.net",
+			"type": "string"
 		},
 		{
 			"key": "app_id",
-			"value": ""
+			"value": "",
+			"type": "string"
 		},
 		{
 			"key": "app_secret",
-			"value": ""
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "app_access_token",
+			"value": "",
+			"type": "string"
 		},
 		{
 			"key": "user_id",
-			"value": ""
+			"value": "",
+			"type": "string"
 		},
 		{
 			"key": "container_id",
-			"value": ""
+			"value": "",
+			"type": "string"
 		},
 		{
 			"key": "thread_id",
-			"value": ""
+			"value": "",
+			"type": "string"
 		},
 		{
 			"key": "reply_thread_id",
-			"value": ""
+			"value": "",
+			"type": "string"
 		},
 		{
 			"key": "quote_post_id",
-			"value": ""
+			"value": "",
+			"type": "string"
 		},
 		{
 			"key": "redirect_uri",
@@ -2465,11 +3040,11 @@
 		},
 		{
 			"key": "scope",
-			"value": "threads_basic,threads_content_publish,threads_manage_insights,threads_manage_replies,threads_read_replies"
+			"value": "threads_basic,threads_content_publish,threads_manage_insights,threads_manage_replies,threads_read_replies,threads_keyword_search,threads_manage_mentions"
 		},
 		{
 			"key": "media_type",
-			"value": "TEXT_POST, IMAGE, VIDEO, CAROUSEL"
+			"value": "TEXT, IMAGE, VIDEO, CAROUSEL"
 		},
 		{
 			"key": "reply_control",
@@ -2477,15 +3052,18 @@
 		},
 		{
 			"key": "metrics_post",
-			"value": "views,likes,replies,reposts,quotes,reposts"
+			"value": "views,likes,replies,reposts,quotes,shares",
+			"type": "string"
 		},
 		{
 			"key": "metrics_account",
-			"value": "views,likes,replies,reposts,quotes,reposts, followers_count, follower_demographics"
+			"value": "views,likes,replies,reposts,quotes,followers_count,follower_demographics",
+			"type": "string"
 		},
 		{
 			"key": "follower_demographics_breakdown",
-			"value": "country,city,age,gender"
+			"value": "country,city,age,gender",
+			"type": "string"
 		},
 		{
 			"key": "fields_threads",
@@ -2493,7 +3071,7 @@
 		},
 		{
 			"key": "fields_replies",
-			"value": "id,text,timestamp,media_product_type,media_type,media_url,permalink,shortcode,thumbnail_url,username,children,is_quote_post,has_replies,is_reply,is_reply_owned_by_me,root_post,replied_to,hide_status,reply_audience"
+			"value": "id,text,timestamp,media_product_type,media_type,media_url,permalink,shortcode,thumbnail_url,username,children,is_quote_post,alt_text,link_attachment_url,has_replies,is_reply,is_reply_owned_by_me,root_post,replied_to,hide_status,reply_audience"
 		},
 		{
 			"key": "fields_profile",
@@ -2501,7 +3079,7 @@
 		},
 		{
 			"key": "video_url",
-			"value": "video_url"
+			"value": "https://dl.dropbox.com/s/gwp4sqgg7xrjnom/Square.MP4\\?dl\\=0"
 		},
 		{
 			"key": "image_url",
@@ -2513,15 +3091,18 @@
 		},
 		{
 			"key": "fields_container",
-			"value": "id,status,error_message"
+			"value": "id,status,error_message",
+			"type": "string"
 		},
 		{
 			"key": "auto_save_variables",
-			"value": "false"
+			"value": "false",
+			"type": "string"
 		},
 		{
 			"key": "carousel_children_ids",
-			"value": ""
+			"value": "",
+			"type": "string"
 		}
 	]
 }
