@@ -1,11 +1,11 @@
 {
 	"info": {
-		"_postman_id": "a93be385-2264-4766-826f-b53cb6f50d7e",
+		"_postman_id": "b2ec0e9b-19bb-4a28-b96f-ee426777509c",
 		"name": "Threads API",
 		"description": "> ⚠️ We will update the Postman collection over time. Please note that all of the latest features may not be showcased in the Postman collection. Please refer to the developer documentation changelog for the most up-to-date features: [https://developers.facebook.com/docs/threads/changelog](https://developers.facebook.com/docs/threads/changelog) \n  \n\nWelcome to the Threads API from Meta. This collection contains the [Graph API](https://developers.facebook.com/docs/graph-api/) requests to create, manage, and publish Threads content, programmatically. For the full Threads documentation, refer to the [developer documentation](https://developers.facebook.com/docs/threads).\n\n# Getting Started\n\n## Step 1 - Create a Meta App\n\nYou need to [create a&nbsp;Meta app with the&nbsp;Threads use case](https://developers.facebook.com/docs/threads/get-started#meta-app).\n\n## Step 2 - Enable App Users To Authorize Data Access To Your App\n\nApp users must authorize data access for the app you are developing. Ensure that proper authorization protocols are implemented to comply with data privacy and security requirements. For detailed instructions and guidelines, refer to the [authorization documentation](https://developers.facebook.com/docs/threads/get-started#authorization).\n\n## Step 3 - Request an Access Token\n\n### API Provisioned Token\n\nTo request an access token via the API, use the requests under the _**Authorization**_ folder within this collection. See the [Threads User Access Tokens](https://developers.facebook.com/docs/threads/get-started#threads-user-access-tokens) section in the Threads API documentation for details on authenticating your requests. Once you have an access token, you will need to manually add the **access_token** header to your requests with this value.\n\nNote: You can receive an access token for your requests either by using the requests under the _**Authorization**_ folder within this collection, or by using the _Authorization_ tab above in which the token will be provisioned by Postman.\n\n### Postman Provisioned Token\n\nIf using the _Authorization_ tab to receive an access token, make sure to include the following:\n\n- The Grant type must be set to **Authorization Code**.\n    \n- You must supply the values for your Auth URL, Access Token URL, Client ID (your Threads app's ID), Client Secret (your Threads app's secret), and Scope.\n    \n\nAfter these values are entered, you may press **Get New Access Token** at the bottom of the page to receive an access token. This access token will automatically be attached to your requests.\n\n### Access Token Debugger\n\nYou can paste any token you generate into the [access token debugger](https://developers.facebook.com/tools/debug/accesstoken/) to see what type of token it is and what permissions you have granted to your app.\n\n# Limitations\n\nPlease be aware that certain limitations may apply to the API usage. For the most accurate and up-to-date details, we strongly recommend referring to the online documentation. Visit the [developer documentation](https://developers.facebook.com/docs/threads/overview#rate-limiting) for more information.\n\n# Using Variables\n\nWhen using variables in requests (see the _Variables_ tab above), make sure to **save the updated values** after modifying them (e.g. with Ctrl-S / Cmd-S). The values must be saved in the _Variables_ tab each time they are modified.\n\n# Autosaving Variables\n\nVariable values may be auto-updated and saved after a request. For example, when a new thread is published, the _thread_id_ field can be auto-updated with the new thread ID to be used in retrieval requests.\n\nTo use this feature, make sure to **set the auto_save_variables variable value to true**. Otherwise, variables will not be auto-updated and you will need to update them manually.\n\n# Installation\n\nFork this collection into Postman to start using the Threads API.\n\nYou can generate the code for the API calls in your language by following the steps here: [https://learning.postman.com/docs/sending-requests/generate-code-snippets/#generating-code-snippets-in-postman](https://learning.postman.com/docs/sending-requests/generate-code-snippets/#generating-code-snippets-in-postmanEnvironmentChangelogUpdates)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "34767301",
-		"_collection_link": "https://threadsapi.postman.co/workspace/Threads~5610276e-a2dd-4bd2-bd79-301d93b9c96a/collection/34473965-a93be385-2264-4766-826f-b53cb6f50d7e?action=share&source=collection_link&creator=34767301"
+		"_exporter_id": "29882223",
+		"_collection_link": "https://www.postman.com/meta/threads/collection/dht3nzz/threads-api?action=share&source=collection_link&creator=29882223"
 	},
 	"item": [
 		{
@@ -1486,7 +1486,7 @@
 					"description": "This folder will enable you to repost an original Threads post."
 				}
 			],
-			"description": "This folder will enable you to use the Threads API to publish single image, video, text or carousel posts."
+			"description": "This folder enables you to use the Threads API to publish single image, video, text or carousel posts."
 		},
 		{
 			"name": "Read And Manage Threads",
@@ -1646,129 +1646,6 @@
 						},
 						{
 							"name": "Get a List of All a User's Threads",
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{api_host}}/me/threads?fields={{fields_threads}}&limit=50",
-									"host": [
-										"{{api_host}}"
-									],
-									"path": [
-										"me",
-										"threads"
-									],
-									"query": [
-										{
-											"key": "fields",
-											"value": "{{fields_threads}}",
-											"description": "A comma-separated list of fields for media objects on Threads."
-										},
-										{
-											"key": "since",
-											"value": "",
-											"description": "Query string parameter representing the start date for retrieval.",
-											"disabled": true
-										},
-										{
-											"key": "until",
-											"value": "",
-											"description": "Query string parameter representing the end date for retrieval.",
-											"disabled": true
-										},
-										{
-											"key": "limit",
-											"value": "50",
-											"description": "Query string parameter representing the maximum number of media objects or records to return."
-										},
-										{
-											"key": "before",
-											"value": "",
-											"description": "Query string parameter representing a cursor that can be used for pagination. Both \"before\" and \"after\" cannot be sent in the same request.",
-											"disabled": true
-										},
-										{
-											"key": "after",
-											"value": "",
-											"description": "Query string parameter representing a cursor that can be used for pagination. Both \"before\" and \"after\" cannot be sent in the same request.",
-											"disabled": true
-										}
-									]
-								},
-								"description": "Use the `GET` /{threads-user-id}/threads [endpoint](https://developers.facebook.com/docs/threads/threads-media#retrieve-a-list-of-all-a-user-s-threads) to return a paginated list of all threads created by a user."
-							},
-							"response": [
-								{
-									"name": "Get a List of All a User's Threads",
-									"originalRequest": {
-										"method": "GET",
-										"header": [],
-										"url": {
-											"raw": "https://graph.threads.net/me/threads?fields=id,media_product_type,media_type,media_url,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,children,is_quote_post,has_replies,alt_text,link_attachment_url&limit=50",
-											"protocol": "https",
-											"host": [
-												"graph",
-												"threads",
-												"net"
-											],
-											"path": [
-												"me",
-												"threads"
-											],
-											"query": [
-												{
-													"key": "fields",
-													"value": "id,media_product_type,media_type,media_url,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,children,is_quote_post,has_replies,alt_text,link_attachment_url",
-													"description": "A comma-separated list of fields for media objects on Threads."
-												},
-												{
-													"key": "since",
-													"value": null,
-													"description": "Query string parameter representing the start date for retrieval.",
-													"disabled": true
-												},
-												{
-													"key": "until",
-													"value": null,
-													"description": "Query string parameter representing the end date for retrieval.",
-													"disabled": true
-												},
-												{
-													"key": "limit",
-													"value": "50",
-													"description": "Query string parameter representing the maximum number of media objects or records to return."
-												},
-												{
-													"key": "before",
-													"value": null,
-													"description": "Query string parameter representing a cursor that can be used for pagination. Both \"before\" and \"after\" cannot be sent in the same request.",
-													"disabled": true
-												},
-												{
-													"key": "after",
-													"value": null,
-													"description": "Query string parameter representing a cursor that can be used for pagination. Both \"before\" and \"after\" cannot be sent in the same request.",
-													"disabled": true
-												}
-											]
-										}
-									},
-									"_postman_previewlanguage": "json",
-									"header": [
-										{
-											"key": "Content-Type",
-											"value": "application/json",
-											"description": "",
-											"type": "text"
-										}
-									],
-									"cookie": [],
-									"body": "{\n    \"data\": [\n        {\n            \"id\": \"string\",\n            \"media_product_type\": \"THREADS\",\n            \"media_type\": \"TEXT_POST\",\n            \"permalink\": \"string\",\n            \"owner\": {\n                \"id\": \"string\"\n            },\n            \"username\": \"string\",\n            \"text\": \"This is a test post\",\n            \"timestamp\": \"2024-09-12T23:17:39+0000\",\n            \"shortcode\": \"string\",\n            \"is_quote_post\": false,\n            \"has_replies\": false\n        }\n    ],\n    \"paging\": {\n        \"cursors\": {\n            \"before\": \"string\",\n            \"after\": \"string\"\n        }\n    }\n}"
-								}
-							]
-						},
-						{
-							"name": "Get a List of All a User's Mentions",
 							"request": {
 								"method": "GET",
 								"header": [],
@@ -2517,7 +2394,7 @@
 					"description": "This folder will enable you to use the Threads API to retrieve details about a user's own replies."
 				}
 			],
-			"description": "This folder will enable you to use the Threads API to retrieve details about profiles and media objects, reads insights and handle reply moderation."
+			"description": "This folder enables you to use the Threads API to retrieve details about profiles and media objects, reads insights and handle reply moderation."
 		},
 		{
 			"name": "Discover Threads",
@@ -2696,7 +2573,8 @@
 						}
 					]
 				}
-			]
+			],
+			"description": "Discover Threads: This folder enables you to use the Threads API to search for public Threads posts and find posts in which the authenticated user is mentioned."
 		},
 		{
 			"name": "Display Threads",
@@ -2780,7 +2658,8 @@
 						}
 					]
 				}
-			]
+			],
+			"description": "This folder enables you to use the Threads API to display Threads posts in other websites."
 		},
 		{
 			"name": "Troubleshooting",
@@ -2896,7 +2775,7 @@
 					]
 				}
 			],
-			"description": "This folder will enbale you to perform basic toubleshooting."
+			"description": "This folder enables you to perform basic toubleshooting."
 		}
 	],
 	"auth": {
