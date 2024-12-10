@@ -2489,7 +2489,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{api_host}}/me/mentions?fields={{fields_threads}}",
+							"raw": "{{api_host}}/me/mentions?fields={{fields_threads}}&limit=50",
 							"host": [
 								"{{api_host}}"
 							],
@@ -2498,6 +2498,11 @@
 								"mentions"
 							],
 							"query": [
+								{
+									"key": "fields",
+									"value": "{{fields_threads}}",
+									"description": "A comma-separated list of fields for media objects on Threads."
+								},
 								{
 									"key": "since",
 									"value": "",
@@ -2512,14 +2517,20 @@
 								},
 								{
 									"key": "limit",
-									"value": "",
-									"description": "Query string parameter representing the maximum number of media objects or records to return.",
+									"value": "50",
+									"description": "Query string parameter representing the maximum number of media objects or records to return."
+								},
+								{
+									"key": "before",
+									"value": null,
+									"description": "Query string parameter representing a cursor that can be used for pagination. Both \"before\" and \"after\" cannot be sent in the same request.",
 									"disabled": true
 								},
 								{
-									"key": "fields",
-									"value": "{{fields_threads}}",
-									"description": "A comma-separated list of fields for media objects on Threads."
+									"key": "after",
+									"value": null,
+									"description": "Query string parameter representing a cursor that can be used for pagination. Both \"before\" and \"after\" cannot be sent in the same request.",
+									"disabled": true
 								}
 							]
 						}
