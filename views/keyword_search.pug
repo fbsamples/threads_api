@@ -1,0 +1,42 @@
+extends layout_with_account
+
+block content
+    form(action='/keywordSearch' id='form' method='GET')
+        textarea(placeholder='Enter a search query' name='keyword' autocomplete='off')
+
+        label(for="search-type") Search for top or recent Threads?
+        select#search-type(name='searchType')
+            option(value="TOP" selected) Top
+            option(value="RECENT") Recent
+
+        input(type='submit' value='Search')
+
+    if threads
+        h2=resultsTitle
+        table.threads-list
+            thead
+                tr
+                    th Username
+                    th ID
+                    th Created On
+                    th Media Type
+                    th Text
+                    th Permalink
+                    th Reply Audience
+            tbody
+                each thread in threads
+                    tr.threads-list-item
+                        td.thread-username=thread.username
+                        td.thread-id
+                            a(href=`/threads/${thread.id}`)=thread.id
+                        td.thread-timestamp=thread.timestamp
+                        td.thread-type=thread.media_type
+                        td.thread-text=thread.text
+                        td.thread-permalink
+                            a(href=thread.permalink target='_blank') View on Threads
+                        td.thread-reply-audience=thread.reply_audience
+
+        div.paging
+            if paging.nextUrl
+                div.paging-next
+                    a(href=paging.nextUrl) Next

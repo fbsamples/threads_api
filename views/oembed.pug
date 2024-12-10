@@ -1,0 +1,31 @@
+extends layout
+
+block content
+    style(type="text/css").
+        #example-accounts {
+            margin: 0 auto;
+            width: 100px;
+            text-align: left;
+        }
+        form.oembed {
+            margin-top: 50px;
+        }
+
+    p Try embedding a post from one of these accounts:
+    ul#example-accounts
+        li
+            a(href='https://www.threads.net/@meta') @meta
+        li
+            a(href='https://www.threads.net/@threads') @threads
+        li
+            a(href='https://www.threads.net/@instagram') @instagram
+        li
+            a(href='https://www.threads.net/@facebook') @facebook
+
+    form.oembed(action='/oEmbed' id='form' method='GET')
+        input(type='text' placeholder='Enter a URL of a Threads post to embed' name='url' autocomplete='off')
+
+        input(type='submit' value='Embed')
+
+    if html
+        div !{html}

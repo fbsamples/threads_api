@@ -24,6 +24,7 @@ const FIELD__ALT_TEXT = 'alt_text';
 const FIELD__ERROR_MESSAGE = 'error_message';
 const FIELD__FOLLOWERS_COUNT = 'followers_count';
 const FIELD__HIDE_STATUS = 'hide_status';
+const FIELD__ID = 'id';
 const FIELD__IS_REPLY = 'is_reply';
 const FIELD__LIKES = 'likes';
 const FIELD__LINK_ATTACHMENT_URL = 'link_attachment_url';
@@ -55,6 +56,7 @@ const PARAMS__FIELDS = 'fields';
 const PARAMS__HIDE = 'hide';
 const PARAMS__LINK_ATTACHMENT = 'link_attachment';
 const PARAMS__METRIC = 'metric';
+const PARAMS__Q = 'q';
 const PARAMS__QUOTA_USAGE = 'quota_usage';
 const PARAMS__QUOTE_POST_ID = 'quote_post_id';
 const PARAMS__REDIRECT_URI = 'redirect_uri';
@@ -65,6 +67,7 @@ const PARAMS__REPLY_TO_ID = 'reply_to_id';
 const PARAMS__RESPONSE_TYPE = 'response_type';
 const PARAMS__RETURN_URL = 'return_url';
 const PARAMS__SCOPE = 'scope';
+const PARAMS__SEARCH_TYPE = 'search_type';
 const PARAMS__TEXT = 'text';
 
 // Read variables from environment
@@ -78,7 +81,12 @@ const {
     GRAPH_API_VERSION,
     INITIAL_ACCESS_TOKEN,
     INITIAL_USER_ID,
+    REJECT_UNAUTHORIZED,
 } = process.env;
+
+const agent = new https.Agent({
+    rejectUnauthorized: REJECT_UNAUTHORIZED !== 'false',
+});
 
 const GRAPH_API_BASE_URL = 'https://graph.threads.net/' +
     (GRAPH_API_VERSION ? GRAPH_API_VERSION + '/' : '');
@@ -93,7 +101,9 @@ const SCOPES = [
     'threads_content_publish',
     'threads_manage_insights',
     'threads_manage_replies',
-    'threads_read_replies'
+    'threads_read_replies',
+    'threads_keyword_search',
+    'threads_manage_mentions',
 ];
 
 app.use(express.static('public'));
@@ -166,6 +176,7 @@ app.get('/callback', async (req, res) => {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
+            httpsAgent: agent,
         });
         req.session.access_token = response.data.access_token;
         res.redirect('/account');
@@ -188,7 +199,7 @@ app.get('/account', loggedInUserChecker, async (req, res) => {
 
     let userDetails = {};
     try {
-        const response = await axios.get(getUserDetailsUrl);
+        const response = await axios.get(getUserDetailsUrl, { httpsAgent: agent });
         userDetails = response.data;
 
         // This value is not currently used but it may come handy in the future
@@ -230,7 +241,7 @@ app.get('/userInsights', loggedInUserChecker, async (req, res) => {
 
     let data = [];
     try {
-        const queryResponse = await axios.get(queryThreadUrl);
+        const queryResponse = await axios.get(queryThreadUrl, { httpsAgent: agent });
         data = queryResponse.data;
     } catch (e) {
         console.error(e?.response?.data?.error?.message ?? e.message);
@@ -271,7 +282,7 @@ app.get('/publishingLimit', loggedInUserChecker, async (req, res) => {
 
     let data = [];
     try {
-        const queryResponse = await axios.get(publishingLimitUrl);
+        const queryResponse = await axios.get(publishingLimitUrl, { httpsAgent: agent });
         data = queryResponse.data;
     } catch (e) {
         console.error(e?.response?.data?.error?.message ?? e.message);
@@ -381,7 +392,7 @@ app.post('/upload', upload.array(), async (req, res) => {
 
     const postThreadsUrl = buildGraphAPIURL(`me/threads`, params, req.session.access_token);
     try {
-        const postResponse = await axios.post(postThreadsUrl, {});
+        const postResponse = await axios.post(postThreadsUrl, {}, { httpsAgent: agent });
         const containerId = postResponse.data.id;
         res.json({
             id: containerId,
@@ -414,7 +425,7 @@ app.get('/container/status/:containerId', loggedInUserChecker, async (req, res) 
     }, req.session.access_token);
 
     try {
-        const queryResponse = await axios.get(getContainerStatusUrl);
+        const queryResponse = await axios.get(getContainerStatusUrl, { httpsAgent: agent });
         res.json(queryResponse.data);
     } catch (e) {
         console.error(e.message);
@@ -432,7 +443,7 @@ app.post('/publish', upload.array(), async (req, res) => {
     }, req.session.access_token);
 
     try {
-        const postResponse = await axios.post(publishThreadsUrl);
+        const postResponse = await axios.post(publishThreadsUrl, { httpsAgent: agent });
         const threadId = postResponse.data.id;
         res.json({
             id: threadId,
@@ -466,7 +477,7 @@ app.get('/threads/:threadId', loggedInUserChecker, async (req, res) => {
     }, req.session.access_token);
 
     try {
-        const queryResponse = await axios.get(queryThreadUrl);
+        const queryResponse = await axios.get(queryThreadUrl, { httpsAgent: agent });
         data = queryResponse.data;
     } catch (e) {
         console.error(e?.response?.data?.error?.message ?? e.message);
@@ -506,7 +517,7 @@ app.get('/threads', loggedInUserChecker, async (req, res) => {
     const queryThreadsUrl = buildGraphAPIURL(`me/threads`, params, req.session.access_token);
 
     try {
-        const queryResponse = await axios.get(queryThreadsUrl);
+        const queryResponse = await axios.get(queryThreadsUrl, { httpsAgent: agent });
         threads = queryResponse.data.data;
 
         if (queryResponse.data.paging) {
@@ -557,7 +568,7 @@ app.get('/replies', loggedInUserChecker, async (req, res) => {
     const queryRepliesUrl = buildGraphAPIURL(`me/replies`, params, req.session.access_token);
 
     try {
-        const queryResponse = await axios.get(queryRepliesUrl);
+        const queryResponse = await axios.get(queryRepliesUrl, { httpsAgent: agent });
         threads = queryResponse.data.data;
 
         if (queryResponse.data.paging) {
@@ -602,7 +613,7 @@ app.post('/manage_reply/:replyId', upload.array(), async (req, res) => {
     const hideReplyUrl = buildGraphAPIURL(`${replyId}/manage_reply`, {}, req.session.access_token);
 
     try {
-        response = await axios.post(hideReplyUrl, params);
+        response = await axios.post(hideReplyUrl, params, { httpsAgent: agent });
     }
     catch (e) {
         console.error(e?.message);
@@ -639,7 +650,7 @@ app.get('/threads/:threadId/insights', loggedInUserChecker, async (req, res) => 
 
     let data = [];
     try {
-        const queryResponse = await axios.get(queryThreadUrl);
+        const queryResponse = await axios.get(queryThreadUrl, { httpsAgent: agent });
         data = queryResponse.data;
     } catch (e) {
         console.error(e?.response?.data?.error?.message ?? e.message);
@@ -660,6 +671,110 @@ app.get('/threads/:threadId/insights', loggedInUserChecker, async (req, res) => 
     });
 });
 
+app.get('/mentions', loggedInUserChecker, async (req, res) => {
+    const { before, after, limit } = req.query;
+    const params = {
+        [PARAMS__FIELDS]: [
+            FIELD__USERNAME,
+            FIELD__TEXT,
+            FIELD__MEDIA_TYPE,
+            FIELD__MEDIA_URL,
+            FIELD__PERMALINK,
+            FIELD__TIMESTAMP,
+            FIELD__REPLY_AUDIENCE,
+            FIELD__ALT_TEXT,
+        ].join(','),
+        limit: limit ?? DEFAULT_THREADS_QUERY_LIMIT,
+    };
+    if (before) {
+        params.before = before;
+    }
+    if (after) {
+        params.after = after;
+    }
+
+    const queryMentionsUrl = buildGraphAPIURL(`me/mentions`, params, req.session.access_token);
+
+    let threads = [];
+    let paging = {};
+
+    try {
+        const queryResponse = await axios.get(queryMentionsUrl, { httpsAgent: agent });
+        threads = queryResponse.data.data;
+
+        if (queryResponse.data.paging) {
+            const { next, previous } = queryResponse.data.paging;
+
+            if (next) {
+                paging.nextUrl = getCursorUrlFromGraphApiPagingUrl(req, next);
+            }
+
+            if (previous) {
+                paging.previousUrl = getCursorUrlFromGraphApiPagingUrl(req, previous);
+            }
+        }
+    } catch (e) {
+        console.error(e?.response?.data?.error?.message ?? e.message);
+    }
+
+    res.render('mentions', {
+        title: 'Mentions',
+        threads,
+        paging,
+    });
+});
+
+app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
+    const { keyword, searchType } = req.query;
+
+    if (!keyword) {
+        return res.render('keyword_search', {
+            title: 'Search for Threads',
+        });
+    }
+
+    const params = {
+        [PARAMS__Q]: keyword,
+        [PARAMS__SEARCH_TYPE]: searchType,
+        [PARAMS__FIELDS]: [
+            FIELD__USERNAME,
+            FIELD__ID,
+            FIELD__TIMESTAMP,
+            FIELD__MEDIA_TYPE,
+            FIELD__TEXT,
+            FIELD__PERMALINK,
+            FIELD__REPLY_AUDIENCE,
+        ].join(',')
+    };
+
+    const keywordSearchUrl = buildGraphAPIURL(`keyword_search`, params, req.session.access_token);
+
+    let threads = [];
+    let paging = {};
+
+    try {
+        const response = await axios.get(keywordSearchUrl, { httpsAgent: agent });
+        threads = response.data.data;
+
+        if (response.data.paging) {
+            const { next, previous } = response.data.paging;
+
+            if (next) {
+                paging.nextUrl = getCursorUrlFromGraphApiPagingUrl(req, next);
+            }
+        }
+    } catch (e) {
+        console.error(e?.response?.data?.error?.message ?? e.message);
+    }
+
+    return res.render('keyword_search', {
+        title: 'Search for Threads',
+        threads,
+        paging,
+        resultsTitle: `${searchType} results for '${keyword}'`,
+    });
+});
+
 // Logout route to kill the session
 app.get('/logout', (req, res) => {
     if (req.session) {
@@ -673,6 +788,35 @@ app.get('/logout', (req, res) => {
     } else {
         res.render('index', { response: 'Token not stored in session' });
     }
+});
+
+app.get('/oEmbed', async (req, res) => {
+    const { url } = req.query;
+    if (!url) {
+        return res.render('oembed', {
+            title: 'Embed Threads',
+        });
+    }
+
+    const oEmbedUrl = buildGraphAPIURL(`oembed`, {
+        url,
+    }, `TH|${APP_ID}|${API_SECRET}`);
+
+    let html = '<p>Unable to embed</p>';
+    try {
+        const response = await axios.get(oEmbedUrl, { httpsAgent: agent });
+        if (response.data?.html) {
+            html = response.data.html;
+        }
+    } catch (e) {
+        console.error(e?.response?.data?.error?.message ?? e.message);
+    }
+
+    return res.render('oembed', {
+        title: 'Embed Threads',
+        html,
+        url,
+    });
 });
 
 https
@@ -817,7 +961,7 @@ async function showReplies(req, res, isTopLevel) {
     const queryThreadsUrl = buildGraphAPIURL(`${threadId}/${repliesOrConversation}`, params, req.session.access_token);
 
     try {
-        const queryResponse = await axios.get(queryThreadsUrl);
+        const queryResponse = await axios.get(queryThreadsUrl, { httpsAgent: agent });
         replies = queryResponse.data.data;
 
         if (queryResponse.data.paging) {
