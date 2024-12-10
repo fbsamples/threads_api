@@ -2330,7 +2330,7 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "{{api_host}}/me/replies?fields={{fields_threads}}&limit=50",
+											"raw": "{{api_host}}/me/replies?fields={{fields_replies}}&limit=50",
 											"host": [
 												"{{api_host}}"
 											],
@@ -2341,7 +2341,7 @@
 											"query": [
 												{
 													"key": "fields",
-													"value": "{{fields_threads}}",
+													"value": "{{fields_replies}}",
 													"description": "A comma-separated list of fields for replies on Threads."
 												},
 												{
