@@ -2411,7 +2411,28 @@
 									]
 								}
 							},
-							"response": []
+							"response": [
+								{
+									"name": "Delete Threads Post",
+									"originalRequest": {
+										"method": "DELETE",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/{{thread_id}}",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"{{thread_id}}"
+											]
+										}
+									},
+									"_postman_previewlanguage": null,
+									"header": null,
+									"cookie": [],
+									"body": "{\n    \"success\": true,\n    \"deleted_id\": \"<string>\"\n}"
+								}
+							]
 						}
 					],
 					"description": "This folder will enable you to use the Threads API to delete your own posts."
