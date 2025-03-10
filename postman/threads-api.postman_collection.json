@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "b2ec0e9b-19bb-4a28-b96f-ee426777509c",
+		"_postman_id": "a93be385-2264-4766-826f-b53cb6f50d7e",
 		"name": "Threads API",
 		"description": "> ⚠️ We will update the Postman collection over time. Please note that all of the latest features may not be showcased in the Postman collection. Please refer to the developer documentation changelog for the most up-to-date features: [https://developers.facebook.com/docs/threads/changelog](https://developers.facebook.com/docs/threads/changelog) \n  \n\nWelcome to the Threads API from Meta. This collection contains the [Graph API](https://developers.facebook.com/docs/graph-api/) requests to create, manage, and publish Threads content, programmatically. For the full Threads documentation, refer to the [developer documentation](https://developers.facebook.com/docs/threads).\n\n# Getting Started\n\n## Step 1 - Create a Meta App\n\nYou need to [create a&nbsp;Meta app with the&nbsp;Threads use case](https://developers.facebook.com/docs/threads/get-started#meta-app).\n\n## Step 2 - Enable App Users To Authorize Data Access To Your App\n\nApp users must authorize data access for the app you are developing. Ensure that proper authorization protocols are implemented to comply with data privacy and security requirements. For detailed instructions and guidelines, refer to the [authorization documentation](https://developers.facebook.com/docs/threads/get-started#authorization).\n\n## Step 3 - Request an Access Token\n\n### API Provisioned Token\n\nTo request an access token via the API, use the requests under the _**Authorization**_ folder within this collection. See the [Threads User Access Tokens](https://developers.facebook.com/docs/threads/get-started#threads-user-access-tokens) section in the Threads API documentation for details on authenticating your requests. Once you have an access token, you will need to manually add the **access_token** header to your requests with this value.\n\nNote: You can receive an access token for your requests either by using the requests under the _**Authorization**_ folder within this collection, or by using the _Authorization_ tab above in which the token will be provisioned by Postman.\n\n### Postman Provisioned Token\n\nIf using the _Authorization_ tab to receive an access token, make sure to include the following:\n\n- The Grant type must be set to **Authorization Code**.\n    \n- You must supply the values for your Auth URL, Access Token URL, Client ID (your Threads app's ID), Client Secret (your Threads app's secret), and Scope.\n    \n\nAfter these values are entered, you may press **Get New Access Token** at the bottom of the page to receive an access token. This access token will automatically be attached to your requests.\n\n### Access Token Debugger\n\nYou can paste any token you generate into the [access token debugger](https://developers.facebook.com/tools/debug/accesstoken/) to see what type of token it is and what permissions you have granted to your app.\n\n# Limitations\n\nPlease be aware that certain limitations may apply to the API usage. For the most accurate and up-to-date details, we strongly recommend referring to the online documentation. Visit the [developer documentation](https://developers.facebook.com/docs/threads/overview#rate-limiting) for more information.\n\n# Using Variables\n\nWhen using variables in requests (see the _Variables_ tab above), make sure to **save the updated values** after modifying them (e.g. with Ctrl-S / Cmd-S). The values must be saved in the _Variables_ tab each time they are modified.\n\n# Autosaving Variables\n\nVariable values may be auto-updated and saved after a request. For example, when a new thread is published, the _thread_id_ field can be auto-updated with the new thread ID to be used in retrieval requests.\n\nTo use this feature, make sure to **set the auto_save_variables variable value to true**. Otherwise, variables will not be auto-updated and you will need to update them manually.\n\n# Installation\n\nFork this collection into Postman to start using the Threads API.\n\nYou can generate the code for the API calls in your language by following the steps here: [https://learning.postman.com/docs/sending-requests/generate-code-snippets/#generating-code-snippets-in-postman](https://learning.postman.com/docs/sending-requests/generate-code-snippets/#generating-code-snippets-in-postmanEnvironmentChangelogUpdates)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "29882223",
+		"_exporter_id": "34767301",
 		"_collection_link": "https://www.postman.com/meta/threads/collection/dht3nzz/threads-api?action=share&source=collection_link&creator=29882223"
 	},
 	"item": [
@@ -2392,6 +2392,29 @@
 						}
 					],
 					"description": "This folder will enable you to use the Threads API to retrieve details about a user's own replies."
+				},
+				{
+					"name": "Delete Threads Media Objects",
+					"item": [
+						{
+							"name": "Delete Threads Post",
+							"request": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/{{thread_id}}",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"{{thread_id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "This folder will enable you to use the Threads API to delete your own posts."
 				}
 			],
 			"description": "This folder enables you to use the Threads API to retrieve details about profiles and media objects, reads insights and handle reply moderation."
