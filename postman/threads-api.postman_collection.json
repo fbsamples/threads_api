@@ -351,7 +351,13 @@
 										{
 											"key": "link_attachment",
 											"value": "https://developers.facebook.com/",
-											"description": "Attach a link to your post (only available for text posts).",
+											"description": "Attach a link to your post (only available for text posts, and not compatible with poll attachments).",
+											"disabled": true
+										},
+										{
+											"key": "poll_attachment",
+											"value": "{\"option_a\":\"first\",\"option_b\":\"second\",\"option_c\":\"third\",\"option_d\":\"fourth\"}",
+											"description": "Attach a poll to your post (only available for text posts, and not compatible with link attachments).",
 											"disabled": true
 										}
 									]
@@ -3001,11 +3007,11 @@
 		},
 		{
 			"key": "fields_threads",
-			"value": "id,media_product_type,media_type,media_url,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,children,is_quote_post,quoted_post,reposted_post,has_replies,alt_text,link_attachment_url"
+			"value": "id,media_product_type,media_type,media_url,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,children,is_quote_post,quoted_post,reposted_post,has_replies,alt_text,link_attachment_url,poll_attachment{option_a,option_b,option_c,option_d,option_a_votes_percentage,option_b_votes_percentage,option_c_votes_percentage,option_d_votes_percentage,expiration_timestamp}"
 		},
 		{
 			"key": "fields_replies",
-			"value": "id,text,timestamp,media_product_type,media_type,media_url,permalink,shortcode,thumbnail_url,username,children,is_quote_post,quoted_post,reposted_post,alt_text,link_attachment_url,has_replies,is_reply,is_reply_owned_by_me,root_post,replied_to,hide_status,reply_audience"
+			"value": "id,text,timestamp,media_product_type,media_type,media_url,permalink,shortcode,thumbnail_url,username,children,is_quote_post,quoted_post,reposted_post,alt_text,link_attachment_url,has_replies,is_reply,is_reply_owned_by_me,root_post,replied_to,hide_status,reply_audience,poll_attachment{option_a,option_b,option_c,option_d,option_a_votes_percentage,option_b_votes_percentage,option_c_votes_percentage,option_d_votes_percentage,expiration_timestamp}"
 		},
 		{
 			"key": "fields_profile",
