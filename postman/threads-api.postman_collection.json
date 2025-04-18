@@ -1646,7 +1646,7 @@
 										}
 									],
 									"cookie": [],
-									"body": "{\n    \"id\": \"string\",\n    \"media_product_type\": \"THREADS\",\n    \"media_type\": \"TEXT_POST\",\n    \"permalink\": \"string\",\n    \"owner\": {\n        \"id\": \"string\"\n    },\n    \"username\": \"string\",\n    \"text\": \"This is a test post\",\n    \"timestamp\": \"2024-09-12T23:17:39+0000\",\n    \"shortcode\": \"string\",\n    \"is_quote_post\": false,\n    \"has_replies\": false\n}"
+									"body": "{\n    \"id\": \"string\",\n    \"media_product_type\": \"THREADS\",\n    \"media_type\": \"TEXT_POST\",\n    \"permalink\": \"string\",\n    \"owner\": {\n        \"id\": \"string\"\n    },\n    \"username\": \"string\",\n    \"text\": \"This is a test post\",\n    \"timestamp\": \"2024-09-12T23:17:39+0000\",\n    \"shortcode\": \"string\",\n    \"is_quote_post\": false,\n    \"has_replies\": false,\n    \"poll_attachment\": {\n        \"option_a\": \"first\",\n        \"option_b\": \"second\",\n        \"option_c\": \"third\",\n        \"option_d\": \"fourth\",\n        \"option_a_votes_percentage\": 0.25,\n        \"option_b_votes_percentage\": 0.25,\n        \"option_c_votes_percentage\": 0.25,\n        \"option_d_votes_percentage\": 0.25,\n        \"expiration_timestamp\": \"2024-09-12T23:17:39+0000\"\n    }\n}"
 								}
 							]
 						},
@@ -1769,7 +1769,7 @@
 										}
 									],
 									"cookie": [],
-									"body": "{\n    \"data\": [\n        {\n            \"id\": \"string\",\n            \"media_product_type\": \"THREADS\",\n            \"media_type\": \"TEXT_POST\",\n            \"permalink\": \"string\",\n            \"owner\": {\n                \"id\": \"string\"\n            },\n            \"username\": \"string\",\n            \"text\": \"This is a test post\",\n            \"timestamp\": \"2024-09-12T23:17:39+0000\",\n            \"shortcode\": \"string\",\n            \"is_quote_post\": false,\n            \"has_replies\": false\n        }\n    ],\n    \"paging\": {\n        \"cursors\": {\n            \"before\": \"string\",\n            \"after\": \"string\"\n        }\n    }\n}"
+									"body": "{\n    \"data\": [\n        {\n            \"id\": \"string\",\n            \"media_product_type\": \"THREADS\",\n            \"media_type\": \"TEXT_POST\",\n            \"permalink\": \"string\",\n            \"owner\": {\n                \"id\": \"string\"\n            },\n            \"username\": \"string\",\n            \"text\": \"This is a test post\",\n            \"timestamp\": \"2024-09-12T23:17:39+0000\",\n            \"shortcode\": \"string\",\n            \"is_quote_post\": false,\n            \"has_replies\": false,\n            \"poll_attachment\": {\n                \"option_a\": \"first\",\n                \"option_b\": \"second\",\n                \"option_c\": \"third\",\n                \"option_d\": \"fourth\",\n                \"option_a_votes_percentage\": 0.25,\n                \"option_b_votes_percentage\": 0.25,\n                \"option_c_votes_percentage\": 0.25,\n                \"option_d_votes_percentage\": 0.25,\n                \"expiration_timestamp\": \"2024-09-12T23:17:39+0000\"\n            }\n        }\n    ],\n    \"paging\": {\n        \"cursors\": {\n            \"before\": \"string\",\n            \"after\": \"string\"\n        }\n    }\n}"
 								}
 							]
 						}
