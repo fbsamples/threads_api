@@ -31,6 +31,7 @@ const FIELD__LINK_ATTACHMENT_URL = 'link_attachment_url';
 const FIELD__MEDIA_TYPE = 'media_type';
 const FIELD__MEDIA_URL = 'media_url';
 const FIELD__PERMALINK = 'permalink';
+const FIELD__POLL_ATTACHMENT = 'poll_attachment';
 const FIELD__REPLIES = 'replies';
 const FIELD__REPOSTS = 'reposts';
 const FIELD__QUOTES = 'quotes';
@@ -56,6 +57,7 @@ const PARAMS__FIELDS = 'fields';
 const PARAMS__HIDE = 'hide';
 const PARAMS__LINK_ATTACHMENT = 'link_attachment';
 const PARAMS__METRIC = 'metric';
+const PARAMS__POLL_ATTACHMENT = 'poll_attachment';
 const PARAMS__Q = 'q';
 const PARAMS__QUOTA_USAGE = 'quota_usage';
 const PARAMS__QUOTE_POST_ID = 'quote_post_id';
@@ -333,13 +335,37 @@ app.post('/repost', upload.array(), async (req, res) => {
 });
 
 app.post('/upload', upload.array(), async (req, res) => {
-    const { text, attachmentType, attachmentUrl, attachmentAltText, replyControl, replyToId, linkAttachment, quotePostId } = req.body;
+    const {
+        text,
+        attachmentType,
+        attachmentUrl,
+        attachmentAltText,
+        replyControl,
+        replyToId,
+        linkAttachment,
+        pollOptionA,
+        pollOptionB,
+        pollOptionC,
+        pollOptionD,
+        quotePostId
+    } = req.body;
+
     const params = {
         [PARAMS__TEXT]: text,
         [PARAMS__REPLY_CONTROL]: replyControl,
         [PARAMS__REPLY_TO_ID]: replyToId,
         [PARAMS__LINK_ATTACHMENT]: linkAttachment,
     };
+
+    if (pollOptionA && pollOptionB) {
+        const pollAttachment = JSON.stringify({
+            option_a: pollOptionA,
+            option_b: pollOptionB,
+            option_c: pollOptionC,
+            option_d: pollOptionD,
+        });
+        params[PARAMS__POLL_ATTACHMENT] = pollAttachment;
+    }
 
     if (quotePostId) {
         params[PARAMS__QUOTE_POST_ID] = quotePostId;
@@ -473,12 +499,21 @@ app.get('/threads/:threadId', loggedInUserChecker, async (req, res) => {
             FIELD__REPLY_AUDIENCE,
             FIELD__ALT_TEXT,
             FIELD__LINK_ATTACHMENT_URL,
+            FIELD__POLL_ATTACHMENT,
         ].join(','),
     }, req.session.access_token);
 
     try {
         const queryResponse = await axios.get(queryThreadUrl, { httpsAgent: agent });
-        data = queryResponse.data;
+        const { poll_attachment, ...rest } = queryResponse.data;
+        data = rest;
+
+        if (poll_attachment) {
+            data = {
+                ...data,
+                ...poll_attachment
+            };
+        }
     } catch (e) {
         console.error(e?.response?.data?.error?.message ?? e.message);
     }

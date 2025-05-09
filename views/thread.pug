@@ -27,6 +27,23 @@ block content
                 td Link Attachment URL
                 td #{link_attachment_url}
             tr
+                td Poll
+                td
+                    if option_a && option_b
+                        table
+                            tr
+                                td Option A
+                                td #{option_a}
+                            tr
+                                td Option B
+                                td #{option_b}
+                            tr
+                                td Option C
+                                td #{option_c}
+                            tr
+                                td Option D
+                                td #{option_d}
+            tr
                 td Permalink
                 td
                     a(href=permalink target='_blank') #{permalink}
