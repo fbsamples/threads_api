@@ -28,6 +28,7 @@ async function updateMediaType(attachmentsCount, attachmentListElem) {
 
 document.addEventListener('DOMContentLoaded', async () => {
     await processFormAsync((id) => `/publish/${id}`);
+    await processLocationSearchFormAsync();
 
     const attachmentsButton = document.getElementById('attachments-button');
     attachmentsButton.addEventListener('click', async (e) => {
@@ -68,6 +69,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             pollAttachmentOptions.style.display = 'none';
         }
+    });
 
+    const locationTagButton = document.getElementById('location-tag-button');
+    locationTagButton.addEventListener('click', async (e) => {
+        e.preventDefault();
+
+        const locationTagName = document.getElementById('location-tag-name');
+        if (locationTagName.style.display === 'none') {
+            locationTagName.style.display = 'block';
+        } else {
+            locationTagName.style.display = 'none';
+        }
+
+        const locationTagClear = document.getElementById('location-tag-clear');
+        if (locationTagClear.style.display === 'none') {
+            locationTagClear.style.display = 'block';
+        } else {
+            locationTagClear.style.display = 'none';
+        }
+
+        const locationSearch = document.getElementById('location-search');
+        if (locationSearch.style.display === 'none') {
+            locationSearch.style.display = 'block';
+        } else {
+            locationSearch.style.display = 'none';
+        }
     });
 });

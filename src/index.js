@@ -20,29 +20,37 @@ const upload = multer();
 
 const DEFAULT_THREADS_QUERY_LIMIT = 10;
 
+const FIELD__ADDRESS = 'address';
 const FIELD__ALT_TEXT = 'alt_text';
+const FIELD__CITY = 'city';
+const FIELD__COUNTRY = 'country';
 const FIELD__ERROR_MESSAGE = 'error_message';
 const FIELD__FOLLOWERS_COUNT = 'followers_count';
+const FIELD__GIF_URL = 'gif_url';
 const FIELD__HIDE_STATUS = 'hide_status';
 const FIELD__ID = 'id';
 const FIELD__IS_REPLY = 'is_reply';
+const FIELD__LATITUDE = 'latitude';
 const FIELD__LIKES = 'likes';
 const FIELD__LINK_ATTACHMENT_URL = 'link_attachment_url';
-const FIELD__TOPIC_TAG = 'topic_tag';
+const FIELD__LOCATION_ID = 'location_id';
+const FIELD__LONGITUDE = 'longitude';
 const FIELD__MEDIA_TYPE = 'media_type';
 const FIELD__MEDIA_URL = 'media_url';
-const FIELD__GIF_URL = 'gif_url';
+const FIELD__NAME = 'name';
 const FIELD__PERMALINK = 'permalink';
 const FIELD__POLL_ATTACHMENT = 'poll_attachment';
+const FIELD__POSTAL_CODE = 'postal_code';
+const FIELD__QUOTES = 'quotes';
 const FIELD__REPLIES = 'replies';
 const FIELD__REPOSTS = 'reposts';
-const FIELD__QUOTES = 'quotes';
 const FIELD__REPLY_AUDIENCE = 'reply_audience';
 const FIELD__STATUS = 'status';
 const FIELD__TEXT = 'text';
 const FIELD__TIMESTAMP = 'timestamp';
 const FIELD__THREADS_BIOGRAPHY = 'threads_biography';
 const FIELD__THREADS_PROFILE_PICTURE_URL = 'threads_profile_picture_url';
+const FIELD__TOPIC_TAG = 'topic_tag';
 const FIELD__USERNAME = 'username';
 const FIELD__VIEWS = 'views';
 
@@ -59,9 +67,12 @@ const PARAMS__DELETE_CONFIG = 'delete_config';
 const PARAMS__DELETE_QUOTA_USAGE = 'delete_quota_usage';
 const PARAMS__FIELDS = 'fields';
 const PARAMS__HIDE = 'hide';
+const PARAMS__LATITUDE = 'latitude';
 const PARAMS__LINK_ATTACHMENT = 'link_attachment';
+const PARAMS__LOCATION_ID = 'location_id';
 const PARAMS__LOCATION_SEARCH_CONFIG = 'location_search_config';
 const PARAMS__LOCATION_SEARCH_QUOTA_USAGE = 'location_search_quota_usage';
+const PARAMS__LONGITUDE = 'longitude';
 const PARAMS__METRIC = 'metric';
 const PARAMS__POLL_ATTACHMENT = 'poll_attachment';
 const PARAMS__Q = 'q';
@@ -367,7 +378,8 @@ app.post('/upload', upload.array(), async (req, res) => {
         pollOptionB,
         pollOptionC,
         pollOptionD,
-        quotePostId
+        quotePostId,
+        locationTagId,
     } = req.body;
 
     const params = {
@@ -385,6 +397,10 @@ app.post('/upload', upload.array(), async (req, res) => {
             option_d: pollOptionD,
         });
         params[PARAMS__POLL_ATTACHMENT] = pollAttachment;
+    }
+
+    if (locationTagId) {
+        params[PARAMS__LOCATION_ID] = locationTagId;
     }
 
     if (quotePostId) {
@@ -522,6 +538,7 @@ app.get('/threads/:threadId', loggedInUserChecker, async (req, res) => {
             FIELD__LINK_ATTACHMENT_URL,
             FIELD__TOPIC_TAG,
             FIELD__POLL_ATTACHMENT,
+            FIELD__LOCATION_ID,
         ].join(','),
     }, req.session.access_token);
 
@@ -781,7 +798,7 @@ app.get('/mentions', loggedInUserChecker, async (req, res) => {
     });
 });
 
-app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
+app.get('/keyword_search', loggedInUserChecker, async (req, res) => {
     const { keyword, searchType } = req.query;
 
     if (!keyword) {
@@ -829,6 +846,72 @@ app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
         threads,
         paging,
         resultsTitle: `${searchType} results for '${keyword}'`,
+    });
+});
+
+app.post('/location_search', upload.array(), loggedInUserChecker, async (req, res) => {
+    const { query, latitude, longitude } = req.body;
+
+    if (!query && !latitude && !longitude) {
+        return res.send([]);
+    }
+
+    const params = {
+        [PARAMS__Q]: query,
+        [PARAMS__FIELDS]: [
+            FIELD__ID,
+            FIELD__NAME,
+            FIELD__ADDRESS,
+            FIELD__CITY,
+            FIELD__COUNTRY,
+            FIELD__POSTAL_CODE,
+            FIELD__LATITUDE,
+            FIELD__LONGITUDE,
+        ].join(',')
+    };
+
+    const locationSearchUrl = buildGraphAPIURL(`location_search`, params, req.session.access_token);
+
+    let locations = [];
+    let paging = {};
+
+    try {
+        const response = await axios.get(locationSearchUrl, { httpsAgent: agent });
+        locations = response.data.data;
+    } catch (e) {
+        console.error(e?.response?.data?.error?.message ?? e.message);
+    }
+
+    return res.send(locations);
+});
+
+app.get('/locations/:locationId', loggedInUserChecker, async (req, res) => {
+    const { locationId } = req.params;
+    let data = {};
+    const params = {
+        [PARAMS__FIELDS]: [
+            FIELD__ID,
+            FIELD__NAME,
+            FIELD__ADDRESS,
+            FIELD__CITY,
+            FIELD__COUNTRY,
+            FIELD__POSTAL_CODE,
+            FIELD__LATITUDE,
+            FIELD__LONGITUDE,
+        ].join(',')
+    };
+    const locationUrl = buildGraphAPIURL(locationId, params, req.session.access_token);
+
+    try {
+        const queryResponse = await axios.get(locationUrl, { httpsAgent: agent });
+        data = queryResponse.data;
+    } catch (e) {
+        console.error(e?.response?.data?.error?.message ?? e.message);
+    }
+
+    res.render('location', {
+        ...data,
+        title: 'Location',
     });
 });
 

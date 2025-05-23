@@ -34,6 +34,10 @@ block content
                 td Topic Tag
                 td #{topic_tag}
             tr
+                td Location
+                td
+                    a(href=`/locations/${location_id}`) #{location_id}
+            tr
                 td Poll
                 td
                     if option_a && option_b

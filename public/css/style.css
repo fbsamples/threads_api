@@ -9,7 +9,7 @@
 }
 
 button {
-	background-color: #2196F3; /* Green */
+	background-color: #2196F3;
 	border: none;
 	color: white;
 	padding: 10px 20px;
@@ -18,6 +18,46 @@ button {
 	display: block;
 	margin: 10px auto;
 	width: 200px;
+}
+
+div#location-search {
+	margin-top: 50px;
+}
+
+form#location-search-form {
+	display: block;
+}
+
+input#search-locations-input {
+	display: inline-block;
+	max-width: 300px;
+}
+
+input#search-locations {
+	display: inline-block;
+}
+
+input[type="submit"].location-search {
+	background-color: #3b719f;
+	border: none;
+	color: white;
+	padding: 10px 20px;
+	margin-left: 10px;
+	font-size: 15px;
+	display: inline-block;
+}
+
+table#location-search-results {
+	width: 300px;
+	border: none;
+}
+
+td.location-search-result-name {
+	background-color: #c1ddf4;
+}
+
+td.location-search-result-button {
+	background-color: #85bcea;
 }
 
 body {
@@ -25,10 +65,10 @@ body {
 	text-align: center;
 }
 
-input[type='submit']{
+input[type='submit']:not(#search-locations):not(.location-search-result) {
 	justify-content: center;
 	width: 100px;
-	background-color: #2196F3; /* Green */
+	background-color: #2196F3;
 	border: none;
 	color: white;
 	padding: 10px 20px;
@@ -37,10 +77,10 @@ input[type='submit']{
 	display: block;
 	margin: 10px auto;
 	width: 200px;
-}
 
-input[type='submit']:disabled{
-	background-color: #cccccc;
+	:disabled {
+		background-color: #cccccc;
+	}
 }
 
 input[type='text'] {

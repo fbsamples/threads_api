@@ -99,6 +99,11 @@ block content
                 | Option D &nbsp;&nbsp;
                 input(type='text' name='pollOptionD' autocomplete='off')
 
+        button#location-tag-button(type='button') Tag Location 📍
+        input#location-tag-name(value='' disabled style='display:none')
+        input#location-tag-id(type='hidden' name='locationTagId' value='')
+        input#location-tag-clear(type='button' value='Clear Location' onclick='handleClearLocationButtonClick()' style='display:none')
+
         if quotePostId
             a(href=`/threads/${quotePostId}`) Quoting #{quotePostId}
             input#quote-post-id(type='hidden' name='quotePostId' value=quotePostId)
@@ -108,6 +113,12 @@ block content
 
         p#media-type-explanation Media Type:&nbsp;
             span#media-type
+
+    div#location-search(style='display:none')
+        form#location-search-form(action='/location_search' method='POST')
+            input#search-locations-input(type='text' name='query' placeholder='Search for a location' autocomplete='off')
+            input#search-locations.location-search(type='submit' value='Search')
+        table#location-search-results
 
     script#attachment-template(type='text/template')
         div.attachment-item
@@ -131,5 +142,6 @@ block content
             br
 
 block scripts
+    script(src='/scripts/location-search.js' type='text/javascript')
     script(src='/scripts/form.js' type='text/javascript')
     script(src='/scripts/upload.js', type='text/javascript')
