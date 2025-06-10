@@ -75,6 +75,28 @@ block content
         |   Link Attachment
         input#link-attachment(type='text' name='linkAttachment' value='')
 
+        button#poll-attachment-button(type='button' name='pollAttachment') Attach Poll 🗳️
+        div#poll-attachment-options(style='display:none')
+            div.poll-attachment-option
+                label(for='pollOptionA')
+                | Option A &nbsp;&nbsp;
+                input(type='text' name='pollOptionA' autocomplete='off')
+
+            div.poll-attachment-option
+                label(for='pollOptionB')
+                | Option B &nbsp;&nbsp;
+                input(type='text' name='pollOptionB' autocomplete='off')
+
+            div.poll-attachment-option
+                label(for='pollOptionC')
+                | Option C &nbsp;&nbsp;
+                input(type='text' name='pollOptionC' autocomplete='off')
+
+            div.poll-attachment-option
+                label(for='pollOptionD')
+                | Option D &nbsp;&nbsp;
+                input(type='text' name='pollOptionD' autocomplete='off')
+
         if quotePostId
             a(href=`/threads/${quotePostId}`) Quoting #{quotePostId}
             input#quote-post-id(type='hidden' name='quotePostId' value=quotePostId)

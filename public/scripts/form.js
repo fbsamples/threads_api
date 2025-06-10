@@ -23,6 +23,59 @@ function onAsyncRequestEnded() {
     }
 }
 
+function isPollInputValid(data) {
+    const pollOptionA = data.get('pollOptionA');
+    const pollOptionB = data.get('pollOptionB');
+    const pollOptionC = data.get('pollOptionC');
+    const pollOptionD = data.get('pollOptionD');
+    const pollAttached = pollOptionA || pollOptionB || pollOptionC || pollOptionD;
+
+    if (pollAttached && (!pollOptionA || !pollOptionB)) {
+        alert('Options A and B are required for polls.');
+        return false;
+    }
+
+    if (pollOptionD && !pollOptionC) {
+        alert('Option D cannot be used without option C.');
+        return false;
+    }
+
+    return true;
+}
+
+function isAttachmentsInputValid(data) {
+    const pollAttached =
+        data.get('pollOptionA') ||
+        data.get('pollOptionB') ||
+        data.get('pollOptionC') ||
+        data.get('pollOptionD');
+    const linkAttached = data.get('linkAttachment');
+    const hasMediaAttachment = data.has('attachmentType[]');
+
+    if (pollAttached && linkAttached) {
+        alert('Link attachments and poll attachments cannot be used together.');
+        return false;
+    }
+
+    if (hasMediaAttachment && linkAttached) {
+        alert('Link attachments can only be used with text posts.')
+    }
+
+    if (hasMediaAttachment && pollAttached) {
+        alert('Poll attachments can only be used with text posts.')
+    }
+
+    return true;
+}
+
+function isFormDataValid(data) {
+    if (!isPollInputValid(data) || !isAttachmentsInputValid(data)) {
+        return false;
+    }
+
+    return true;
+}
+
 async function processFormAsync(urlGenerator) {
     const form = document.getElementById('form');
     form.addEventListener('submit', async (e) => {
@@ -30,6 +83,10 @@ async function processFormAsync(urlGenerator) {
 
         const button = document.getElementById('submit');
         const formData = new FormData(e.target, button);
+
+        if (!isFormDataValid(formData)) {
+            return;
+        }
 
         onAsyncRequestStarting();
 

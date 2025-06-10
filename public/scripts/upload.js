@@ -57,4 +57,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     await updateMediaType(0, null);
+
+    const attachPollButton = document.getElementById('poll-attachment-button');
+    attachPollButton.addEventListener('click', async (e) => {
+        e.preventDefault();
+
+        const pollAttachmentOptions = document.getElementById('poll-attachment-options');
+        if (pollAttachmentOptions.style.display === 'none') {
+            pollAttachmentOptions.style.display = 'block';
+        } else {
+            pollAttachmentOptions.style.display = 'none';
+        }
+
+    });
 });
