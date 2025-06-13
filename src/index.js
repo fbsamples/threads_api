@@ -30,6 +30,7 @@ const FIELD__LIKES = 'likes';
 const FIELD__LINK_ATTACHMENT_URL = 'link_attachment_url';
 const FIELD__MEDIA_TYPE = 'media_type';
 const FIELD__MEDIA_URL = 'media_url';
+const FIELD__GIF_URL = 'gif_url';
 const FIELD__PERMALINK = 'permalink';
 const FIELD__POLL_ATTACHMENT = 'poll_attachment';
 const FIELD__REPLIES = 'replies';
@@ -492,6 +493,7 @@ app.get('/threads/:threadId', loggedInUserChecker, async (req, res) => {
             FIELD__TEXT,
             FIELD__MEDIA_TYPE,
             FIELD__MEDIA_URL,
+            FIELD__GIF_URL,
             FIELD__PERMALINK,
             FIELD__TIMESTAMP,
             FIELD__IS_REPLY,
