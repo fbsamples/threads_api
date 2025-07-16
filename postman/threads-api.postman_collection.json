@@ -223,12 +223,9 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "https://graph.threads.net/refresh_access_token?grant_type=th_refresh_token",
-									"protocol": "https",
+									"raw": "{{api_host}}/refresh_access_token?grant_type=th_refresh_token",
 									"host": [
-										"graph",
-										"threads",
-										"net"
+										"{{api_host}}"
 									],
 									"path": [
 										"refresh_access_token"
@@ -1887,15 +1884,11 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "https://graph.threads.net/v1.0/profile_lookup?username=threads",
-											"protocol": "https",
+											"raw": "{{api_host}}/profile_lookup?username=threads",
 											"host": [
-												"graph",
-												"threads",
-												"net"
+												"{{api_host}}"
 											],
 											"path": [
-												"v1.0",
 												"profile_lookup"
 											],
 											"query": [
@@ -3302,12 +3295,9 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "https://graph.threads.net/debug_token?input_token={{input_token}}",
-									"protocol": "https",
+									"raw": "{{api_host}}/debug_token?input_token={{input_token}}",
 									"host": [
-										"graph",
-										"threads",
-										"net"
+										"{{api_host}}"
 									],
 									"path": [
 										"debug_token"
