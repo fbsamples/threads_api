@@ -1398,12 +1398,9 @@
 										"method": "POST",
 										"header": [],
 										"url": {
-											"raw": "https://graph.threads.net/me/threads?text=This is a quoted post.&media_type=TEXT&quote_post_id={{quote_post_id}}",
-											"protocol": "https",
+											"raw": "{{api_host}}/me/threads?text=This is a quoted post.&media_type=TEXT&quote_post_id={{quote_post_id}}",
 											"host": [
-												"graph",
-												"threads",
-												"net"
+												"{{api_host}}"
 											],
 											"path": [
 												"me",
@@ -1822,12 +1819,9 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "https://graph.threads.net/me?fields={{fields_profile}}",
-											"protocol": "https",
+											"raw": "{{api_host}}/me?fields={{fields_profile}}",
 											"host": [
-												"graph",
-												"threads",
-												"net"
+												"{{api_host}}"
 											],
 											"path": [
 												"me"
@@ -1943,15 +1937,12 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "https://graph.threads.net/?fields={{fields_threads}}",
-											"protocol": "https",
+											"raw": "{{api_host}}/{{thread_id}}?fields={{fields_threads}}",
 											"host": [
-												"graph",
-												"threads",
-												"net"
+												"{{api_host}}"
 											],
 											"path": [
-												""
+												"{{thread_id}}"
 											],
 											"query": [
 												{
@@ -2036,12 +2027,9 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "https://graph.threads.net/me/threads?fields={{fields_threads}}&limit=50",
-											"protocol": "https",
+											"raw": "{{api_host}}/me/threads?fields={{fields_threads}}&limit=50",
 											"host": [
-												"graph",
-												"threads",
-												"net"
+												"{{api_host}}"
 											],
 											"path": [
 												"me",
@@ -2133,12 +2121,9 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "https://graph.threads.net/profile_posts?username=threads&fields={{fields_threads}}",
-											"protocol": "https",
+											"raw": "{{api_host}}/profile_posts?username=threads&fields={{fields_threads}}",
 											"host": [
-												"graph",
-												"threads",
-												"net"
+												"{{api_host}}"
 											],
 											"path": [
 												"profile_posts"
