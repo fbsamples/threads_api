@@ -7,4 +7,14 @@ block content
 
 block scripts
     script(src='/scripts/form.js' type='text/javascript')
-    script(src='/scripts/hide-reply.js', type='text/javascript')
+    script(src='/scripts/hide-reply.js' type='text/javascript')
+    script.
+        const selectAllCheckbox = document.getElementById('select-all-replies');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function (e) {
+                const checkboxes = document.querySelectorAll('.reply-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = e.target.checked;
+                });
+            });
+        }

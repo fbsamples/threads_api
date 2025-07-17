@@ -107,6 +107,7 @@ const SCOPES = [
     'threads_read_replies',
     'threads_keyword_search',
     'threads_manage_mentions',
+    'threads_delete',
 ];
 
 app.use(express.static('public'));
@@ -632,6 +633,30 @@ app.get('/replies', loggedInUserChecker, async (req, res) => {
 
 app.get('/threads/:threadId/replies', loggedInUserChecker, (req, res) => {
     showReplies(req, res, true);
+});
+
+app.post('/threads/delete', loggedInUserChecker, (req, res) => {
+    const { thread_ids } = req.body;
+    const threadIds = Array.isArray(thread_ids) ? thread_ids : [thread_ids];
+
+    const deletePromises = threadIds.map(threadId => {
+        if (threadId) {
+            const deleteThreadUrl = buildGraphAPIURL(`${threadId}`, {}, req.session.access_token);
+            return axios.delete(deleteThreadUrl, { httpsAgent: agent });
+        }
+    }).filter(Boolean);
+
+    Promise.all(deletePromises)
+        .then(() => {
+            res.redirect('/threads');
+        })
+        .catch((e) => {
+            console.error(e?.response?.data?.error?.message ?? e.message);
+            res.json({
+                error: true,
+                message: `Error deleting thread(s): ${e}`,
+            });
+        });
 });
 
 app.get('/threads/:threadId/conversation', loggedInUserChecker, (req, res) => {

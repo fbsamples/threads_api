@@ -39,3 +39,80 @@ div.paging
     if paging.previousUrl
         div.paging-previous
             a(href=paging.previousUrl) Previous
+
+if manage
+    form(action='/threads/replies/delete' method='POST')
+        input(type='hidden' name='threadId' value=threadId)
+        table.thread-replies
+            thead
+                tr
+                    th
+                        input(type='checkbox' id='select-all-replies')
+                    th ID
+                    th Created On
+                    th Media Type
+                    th Text
+                    th Permalink
+                    th Manage
+                    th Reply
+            tbody
+                each reply in replies
+                    tr.thread-replies-list-item
+                        td
+                            input(type='checkbox' name='reply_ids' value=reply.id class='reply-checkbox')
+                        td.reply-id
+                            a(href=`/threads/${reply.id}`)=reply.id
+                        td.reply-timestamp=reply.timestamp
+                        td.reply-type=reply.media_type
+                        td.reply-text=reply.text
+                        td.reply-permalink
+                            a(href=reply.permalink target='_blank') View on Threads
+                        td.manage-reply
+                            if username !== reply.username
+                                form.hide-reply(action=`/manage_reply/${reply.id}?hide=${reply.hide_status!=='HIDDEN'}&username=${username}`, method='POST')
+                                    input(type='submit', value=`${reply.hide_status==='HIDDEN' ? 'Unhide' : 'Hide'}`)
+                            else
+                                p(title='Cannot hide your own replies.') ⓘ
+                        td
+                            button(onclick=`location.href='/upload?replyToId=${reply.id}'`) Reply
+        button.delete-button(type='submit') Delete Selected
+else
+    table.thread-replies
+        thead
+            tr
+                th ID
+                th Created On
+                th Media Type
+                th Text
+                th Permalink
+                th Manage
+                th Reply
+        tbody
+            each reply in replies
+                tr.thread-replies-list-item
+                    td.reply-id
+                        a(href=`/threads/${reply.id}`)=reply.id
+                    td.reply-timestamp=reply.timestamp
+                    td.reply-type=reply.media_type
+                    td.reply-text=reply.text
+                    td.reply-permalink
+                        a(href=reply.permalink target='_blank') View on Threads
+                    td.manage-reply
+                        if username !== reply.username
+                            form.hide-reply(action=`/manage_reply/${reply.id}?hide=${reply.hide_status!=='HIDDEN'}&username=${username}`, method='POST')
+                                input(type='submit', value=`${reply.hide_status==='HIDDEN' ? 'Unhide' : 'Hide'}`)
+                        else
+                            p(title='Cannot hide your own replies.') ⓘ
+                    td
+                        button(onclick=`location.href='/upload?replyToId=${reply.id}'`) Reply
+
+
+
+div.paging
+    if paging.nextUrl
+        div.paging-next
+            a(href=paging.nextUrl) Next
+
+    if paging.previousUrl
+        div.paging-previous
+            a(href=paging.previousUrl) Previous
