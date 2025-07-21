@@ -241,11 +241,7 @@
 							},
 							"_postman_previewlanguage": "",
 							"header": [],
-							"cookie": [
-								{
-									"expires": "Invalid Date"
-								}
-							],
+							"cookie": [],
 							"body": ""
 						}
 					]
@@ -1694,11 +1690,7 @@
 									},
 									"_postman_previewlanguage": "",
 									"header": [],
-									"cookie": [
-										{
-											"expires": "Invalid Date"
-										}
-									],
+									"cookie": [],
 									"body": ""
 								}
 							]
@@ -1750,11 +1742,7 @@
 									},
 									"_postman_previewlanguage": "",
 									"header": [],
-									"cookie": [
-										{
-											"expires": "Invalid Date"
-										}
-									],
+									"cookie": [],
 									"body": ""
 								}
 							]
@@ -2144,11 +2132,7 @@
 									},
 									"_postman_previewlanguage": "",
 									"header": [],
-									"cookie": [
-										{
-											"expires": "Invalid Date"
-										}
-									],
+									"cookie": [],
 									"body": ""
 								}
 							]
@@ -3298,11 +3282,7 @@
 							},
 							"_postman_previewlanguage": "",
 							"header": [],
-							"cookie": [
-								{
-									"expires": "Invalid Date"
-								}
-							],
+							"cookie": [],
 							"body": ""
 						}
 					]
