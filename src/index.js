@@ -54,9 +54,13 @@ const PARAMS__ACCESS_TOKEN = 'access_token';
 const PARAMS__ALT_TEXT = 'alt_text';
 const PARAMS__CLIENT_ID = 'client_id';
 const PARAMS__CONFIG = 'config';
+const PARAMS__DELETE_CONFIG = 'delete_config';
+const PARAMS__DELETE_QUOTA_USAGE = 'delete_quota_usage';
 const PARAMS__FIELDS = 'fields';
 const PARAMS__HIDE = 'hide';
 const PARAMS__LINK_ATTACHMENT = 'link_attachment';
+const PARAMS__LOCATION_SEARCH_CONFIG = 'location_search_config';
+const PARAMS__LOCATION_SEARCH_QUOTA_USAGE = 'location_search_quota_usage';
 const PARAMS__METRIC = 'metric';
 const PARAMS__POLL_ATTACHMENT = 'poll_attachment';
 const PARAMS__Q = 'q';
@@ -279,7 +283,11 @@ app.get('/publishingLimit', loggedInUserChecker, async (req, res) => {
             PARAMS__QUOTA_USAGE,
             PARAMS__CONFIG,
             PARAMS__REPLY_QUOTA_USAGE,
-            PARAMS__REPLY_CONFIG
+            PARAMS__REPLY_CONFIG,
+            PARAMS__DELETE_QUOTA_USAGE,
+            PARAMS__DELETE_CONFIG,
+            PARAMS__LOCATION_SEARCH_QUOTA_USAGE,
+            PARAMS__LOCATION_SEARCH_CONFIG,
         ].join(','),
     };
 
@@ -299,6 +307,10 @@ app.get('/publishingLimit', loggedInUserChecker, async (req, res) => {
     const config = data[PARAMS__CONFIG];
     const replyQuotaUsage = data[PARAMS__REPLY_QUOTA_USAGE];
     const replyConfig = data[PARAMS__REPLY_CONFIG];
+    const deleteQuotaUsage = data[PARAMS__DELETE_QUOTA_USAGE];
+    const deleteConfig = data[PARAMS__DELETE_CONFIG];
+    const locationSearchQuotaUsage = data[PARAMS__LOCATION_SEARCH_QUOTA_USAGE];
+    const locationSearchConfig = data[PARAMS__LOCATION_SEARCH_CONFIG];
 
     res.render('publishing_limit', {
         title: 'Publishing Limit',
@@ -306,6 +318,10 @@ app.get('/publishingLimit', loggedInUserChecker, async (req, res) => {
         config,
         replyQuotaUsage,
         replyConfig,
+        deleteQuotaUsage,
+        deleteConfig,
+        locationSearchQuotaUsage,
+        locationSearchConfig,
     });
 });
 
