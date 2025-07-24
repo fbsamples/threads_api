@@ -108,6 +108,8 @@ const SCOPES = [
     'threads_read_replies',
     'threads_keyword_search',
     'threads_manage_mentions',
+    'threads_delete',
+    'threads_location_tagging',
 ];
 
 app.use(express.static('public'));
