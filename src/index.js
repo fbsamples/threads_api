@@ -28,6 +28,7 @@ const FIELD__ID = 'id';
 const FIELD__IS_REPLY = 'is_reply';
 const FIELD__LIKES = 'likes';
 const FIELD__LINK_ATTACHMENT_URL = 'link_attachment_url';
+const FIELD__TOPIC_TAG = 'topic_tag';
 const FIELD__MEDIA_TYPE = 'media_type';
 const FIELD__MEDIA_URL = 'media_url';
 const FIELD__GIF_URL = 'gif_url';
@@ -501,6 +502,7 @@ app.get('/threads/:threadId', loggedInUserChecker, async (req, res) => {
             FIELD__REPLY_AUDIENCE,
             FIELD__ALT_TEXT,
             FIELD__LINK_ATTACHMENT_URL,
+            FIELD__TOPIC_TAG,
             FIELD__POLL_ATTACHMENT,
         ].join(','),
     }, req.session.access_token);
