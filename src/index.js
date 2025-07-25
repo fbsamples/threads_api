@@ -266,6 +266,8 @@ app.get('/userInsights', loggedInUserChecker, async (req, res) => {
         if (metric.name === FIELD__VIEWS) {
             // The "views" metric returns as a value for user insights
             getInsightsValue(metrics, index);
+        } else if (metric.name === FIELD__CLICKS) {
+            getInsightsValueForClicks(metrics, index);
         }
         else {
             // All other metrics return as a total value
@@ -939,6 +941,17 @@ function getInsightsTotalValue(metrics, index) {
         metrics[index].value = metrics[index].total_value?.value;
     }
 }
+
+/**
+ * @param {{ value?: number, link_total_values: { value: number }[] }[]} metrics
+ * @param {number} index
+ */
+function getInsightsValueForClicks(metrics, index) {
+    if (metrics[index]) {
+        metrics[index].value = metrics[index].link_total_values.reduce((sum, { value }) => sum + value, 0);
+    }
+}
+
 
 /**
  * @param {object} target
