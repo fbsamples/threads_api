@@ -947,8 +947,10 @@ function getInsightsTotalValue(metrics, index) {
  * @param {number} index
  */
 function getInsightsValueForClicks(metrics, index) {
-    if (metrics[index]) {
-        metrics[index].value = metrics[index].link_total_values.reduce((sum, { value }) => sum + value, 0);
+    if (metrics[index] && metrics[index].link_total_values) {
+        metrics[index].value = metrics[index]?.link_total_values?.reduce((sum, { value }) => sum + value, 0);
+    } else {
+        metrics[index].value = 0
     }
 }
 
