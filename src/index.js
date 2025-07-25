@@ -21,6 +21,7 @@ const upload = multer();
 const DEFAULT_THREADS_QUERY_LIMIT = 10;
 
 const FIELD__ALT_TEXT = 'alt_text';
+const FIELD__CLICKS = 'clicks';
 const FIELD__ERROR_MESSAGE = 'error_message';
 const FIELD__FOLLOWERS_COUNT = 'followers_count';
 const FIELD__HIDE_STATUS = 'hide_status';
@@ -38,6 +39,7 @@ const FIELD__REPLIES = 'replies';
 const FIELD__REPOSTS = 'reposts';
 const FIELD__QUOTES = 'quotes';
 const FIELD__REPLY_AUDIENCE = 'reply_audience';
+const FIELD__SHARES = 'shares';
 const FIELD__STATUS = 'status';
 const FIELD__TEXT = 'text';
 const FIELD__TIMESTAMP = 'timestamp';
@@ -237,6 +239,7 @@ app.get('/userInsights', loggedInUserChecker, async (req, res) => {
             FIELD__REPLIES,
             FIELD__QUOTES,
             FIELD__REPOSTS,
+            FIELD__CLICKS,
             FIELD__FOLLOWERS_COUNT,
         ].join(',')
     };
@@ -694,6 +697,7 @@ app.get('/threads/:threadId/insights', loggedInUserChecker, async (req, res) => 
             FIELD__REPLIES,
             FIELD__REPOSTS,
             FIELD__QUOTES,
+            FIELD__SHARES,
         ].join(',')
     };
     if (since) {
