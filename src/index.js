@@ -26,6 +26,7 @@ const FIELD__FOLLOWERS_COUNT = 'followers_count';
 const FIELD__HIDE_STATUS = 'hide_status';
 const FIELD__ID = 'id';
 const FIELD__IS_REPLY = 'is_reply';
+const FIELD__IS_VERIFIED = 'is_verified';
 const FIELD__LIKES = 'likes';
 const FIELD__LINK_ATTACHMENT_URL = 'link_attachment_url';
 const FIELD__TOPIC_TAG = 'topic_tag';
@@ -204,6 +205,7 @@ app.get('/account', loggedInUserChecker, async (req, res) => {
             FIELD__USERNAME,
             FIELD__THREADS_PROFILE_PICTURE_URL,
             FIELD__THREADS_BIOGRAPHY,
+            FIELD__IS_VERIFIED,
         ].join(','),
     }, req.session.access_token);
 

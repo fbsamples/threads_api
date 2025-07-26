@@ -152,6 +152,15 @@ th {
 	cursor: pointer;
 }
 
+.pictures {
+	display: flex;
+	justify-content: center;
+}
+
 .profile-picture img {
 	border-radius: 50%;
+}
+
+.verified img {
+	position: relative;
 }
