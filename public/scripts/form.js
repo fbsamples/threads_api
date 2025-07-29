@@ -51,9 +51,15 @@ function isAttachmentsInputValid(data) {
         data.get('pollOptionD');
     const linkAttached = data.get('linkAttachment');
     const hasMediaAttachment = data.has('attachmentType[]');
+    const autoPublishText = data.get('autoPublishText');
 
     if (pollAttached && linkAttached) {
         alert('Link attachments and poll attachments cannot be used together.');
+        return false;
+    }
+
+    if (hasMediaAttachment && autoPublishText) {
+        alert('Media attachments cannot be automatically published.')
         return false;
     }
 
