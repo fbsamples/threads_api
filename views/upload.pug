@@ -77,6 +77,10 @@ block content
         |   Link Attachment
         input#link-attachment(type='text' name='linkAttachment' value='')
 
+        label(for="autoPublishText")
+        input(type="checkbox" name="autoPublishText" id="autoPublishText")
+        | Auto-Publish (only for text posts)
+
         button#poll-attachment-button(type='button' name='pollAttachment') Attach Poll 🗳️
         div#poll-attachment-options(style='display:none')
             div.poll-attachment-option
