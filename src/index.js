@@ -55,6 +55,7 @@ const MEDIA_TYPE__TEXT = 'TEXT';
 const MEDIA_TYPE__VIDEO = 'VIDEO';
 
 const PARAMS__ACCESS_TOKEN = 'access_token';
+const PARAMS__AUTO_PUBLISH_TEXT = 'auto_publish_text';
 const PARAMS__ALT_TEXT = 'alt_text';
 const PARAMS__CLIENT_ID = 'client_id';
 const PARAMS__CONFIG = 'config';
@@ -370,6 +371,7 @@ app.post('/upload', upload.array(), async (req, res) => {
         replyControl,
         replyToId,
         linkAttachment,
+        autoPublishText,
         pollOptionA,
         pollOptionB,
         pollOptionC,
@@ -419,6 +421,10 @@ app.post('/upload', upload.array(), async (req, res) => {
         });
     }
 
+    if (autoPublishText === 'on' && params.media_type === MEDIA_TYPE__TEXT) {
+        params[PARAMS__AUTO_PUBLISH_TEXT] = true;
+    }
+
     if (params.media_type === MEDIA_TYPE__CAROUSEL) {
         const createChildPromises = params.children.map(child => (
             axios.post(
@@ -446,10 +452,18 @@ app.post('/upload', upload.array(), async (req, res) => {
     const postThreadsUrl = buildGraphAPIURL(`me/threads`, params, req.session.access_token);
     try {
         const postResponse = await axios.post(postThreadsUrl, {}, { httpsAgent: agent });
-        const containerId = postResponse.data.id;
-        res.json({
-            id: containerId,
-        });
+        const id = postResponse.data.id;
+        if (autoPublishText === 'on' && params.media_type === MEDIA_TYPE__TEXT) {
+            // If auto_publish_text is on, the returned ID is the published Threads ID.
+            return res.json({
+                redirectUrl: `/threads/${id}`
+            });
+        } else {
+            // Otherwise, the returned ID is the container ID.
+            return res.json({
+                id: id,
+            });
+        }
     }
     catch (e) {
         console.error(e.message);

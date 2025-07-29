@@ -91,6 +91,7 @@ async function processFormAsync(urlGenerator) {
         onAsyncRequestStarting();
 
         let id;
+        let redirectUrl;
         try {
             let response = await fetch(e.target.getAttribute('action'), {
                 method: 'POST',
@@ -100,6 +101,7 @@ async function processFormAsync(urlGenerator) {
             if(response.ok) {
                 let jsonResponse = await response.json();
                 id = jsonResponse.id;
+                redirectUrl = jsonResponse.redirectUrl;
             } else {
                 resultElem.textContent = 'Error submitting form';
             }
@@ -112,6 +114,8 @@ async function processFormAsync(urlGenerator) {
 
         if (id) {
             window.location.href = urlGenerator(id);
+        } else if (redirectUrl) {
+            window.location.href = redirectUrl;
         }
     });
 }
