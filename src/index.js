@@ -81,6 +81,7 @@ const PARAMS__RETURN_URL = 'return_url';
 const PARAMS__SCOPE = 'scope';
 const PARAMS__SEARCH_TYPE = 'search_type';
 const PARAMS__TEXT = 'text';
+const PARAMS__USERNAME = 'username';
 
 // Read variables from environment
 require('dotenv').config();
@@ -118,6 +119,7 @@ const SCOPES = [
     'threads_manage_mentions',
     'threads_delete',
     'threads_location_tagging',
+    'threads_profile_discovery',
 ];
 
 app.use(express.static('public'));
@@ -895,6 +897,56 @@ app.get('/oEmbed', async (req, res) => {
         title: 'Embed Threads',
         html,
         url,
+    });
+});
+
+app.get('/profileLookup', async (req, res) => {
+    const { profile } = req.query;
+    if (!profile) {
+        return res.render('profile_lookup', {
+            title: 'Profile Lookup',
+        });
+    }
+
+    const params = {
+        [PARAMS__USERNAME]: profile,
+    }
+
+    const profileLookupUrl = buildGraphAPIURL(`profile_lookup`, params, req.session.access_token);
+
+    let response = {};
+    try {
+        response = await axios.get(profileLookupUrl, { httpsAgent: agent });
+    } catch (e) {
+        console.error(e?.response?.data?.error?.message ?? e.message);
+    }
+
+    const username = response.data?.username;
+    const displayName = response.data?.name;
+    const profilePictureUrl = response.data?.profile_picture_url;
+    const isVerified = response.data?.is_verified;
+    const bio = response.data?.biography;
+    const formatCount = count => count ? count.toLocaleString('en-US') : undefined;
+    const followerCount = formatCount(response.data?.follower_count);
+    const likesCount = formatCount(response.data?.likes_count);
+    const quotesCount = formatCount(response.data?.quotes_count);
+    const repliesCount = formatCount(response.data?.replies_count);
+    const repostsCount = formatCount(response.data?.reposts_count);
+    const viewsCount = formatCount(response.data?.views_count);
+
+    return res.render('profile_lookup', {
+        title: 'Profile Lookup for @'.concat(profile),
+        username,
+        displayName,
+        profilePictureUrl,
+        isVerified,
+        bio,
+        followerCount,
+        likesCount,
+        quotesCount,
+        repliesCount,
+        repostsCount,
+        viewsCount,
     });
 });
 
