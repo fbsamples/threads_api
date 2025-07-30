@@ -81,6 +81,7 @@ const PARAMS__RETURN_URL = 'return_url';
 const PARAMS__SCOPE = 'scope';
 const PARAMS__SEARCH_TYPE = 'search_type';
 const PARAMS__TEXT = 'text';
+const PARAMS__USERNAME = 'username';
 
 // Read variables from environment
 require('dotenv').config();
@@ -118,6 +119,7 @@ const SCOPES = [
     'threads_manage_mentions',
     'threads_delete',
     'threads_location_tagging',
+    'threads_profile_discovery',
 ];
 
 app.use(express.static('public'));
@@ -898,6 +900,99 @@ app.get('/oEmbed', async (req, res) => {
     });
 });
 
+app.get('/profileLookup', async (req, res) => {
+    const { username, before, after, limit } = req.query;
+    if (!username) {
+        return res.render('profile_lookup', {
+            title: 'Profile Lookup',
+        });
+    }
+
+    const params = {
+        [PARAMS__USERNAME]: username,
+    }
+
+    const profileLookupUrl = buildGraphAPIURL(`profile_lookup`, params, req.session.access_token);
+
+    let response = {};
+    try {
+        response = await axios.get(profileLookupUrl, { httpsAgent: agent });
+    } catch (e) {
+        console.error(e?.response?.data?.error?.message ?? e.message);
+    }
+
+    const displayName = response.data?.name;
+    const profilePictureUrl = response.data?.profile_picture_url;
+    const isVerified = response.data?.is_verified;
+    const bio = response.data?.biography;
+    const formatCount = count => count ? count.toLocaleString('en-US') : undefined;
+    const followerCount = formatCount(response.data?.follower_count);
+    const likesCount = formatCount(response.data?.likes_count);
+    const quotesCount = formatCount(response.data?.quotes_count);
+    const repliesCount = formatCount(response.data?.replies_count);
+    const repostsCount = formatCount(response.data?.reposts_count);
+    const viewsCount = formatCount(response.data?.views_count);
+
+    const profilePostsParams = {
+        [PARAMS__FIELDS]: [
+            FIELD__TEXT,
+            FIELD__MEDIA_TYPE,
+            FIELD__MEDIA_URL,
+            FIELD__PERMALINK,
+            FIELD__TIMESTAMP,
+        ].join(','),
+        limit: limit ?? DEFAULT_THREADS_QUERY_LIMIT,
+        [PARAMS__USERNAME]: username,
+    };
+    if (before) {
+        profilePostsParams.before = before;
+    }
+    if (after) {
+        profilePostsParams.after = after;
+    }
+
+    let threads = [];
+    let paging = {};
+
+    const queryThreadsUrl = buildGraphAPIURL(`profile_posts`, profilePostsParams, req.session.access_token);
+
+    try {
+        const queryResponse = await axios.get(queryThreadsUrl, { httpsAgent: agent });
+        threads = queryResponse.data.data;
+
+        if (queryResponse.data.paging) {
+            const { next, previous } = queryResponse.data.paging;
+
+            if (next) {
+                paging.nextUrl = getCursorUrlFromGraphApiPagingUrl(req, next);
+            }
+
+            if (previous) {
+                paging.previousUrl = getCursorUrlFromGraphApiPagingUrl(req, previous);
+            }
+        }
+    } catch (e) {
+        console.error(e?.response?.data?.error?.message ?? e.message);
+    }
+
+    return res.render('profile_lookup', {
+        title: 'Profile Lookup for @'.concat(username),
+        username,
+        displayName,
+        profilePictureUrl,
+        isVerified,
+        bio,
+        followerCount,
+        likesCount,
+        quotesCount,
+        repliesCount,
+        repostsCount,
+        viewsCount,
+        paging,
+        threads,
+    });
+});
+
 https
     .createServer({
         key: fs.readFileSync(path.join(__dirname, '../'+ HOST +'-key.pem')),
@@ -1013,6 +1108,7 @@ function getCursorUrlFromGraphApiPagingUrl(req, graphApiPagingUrl) {
     setUrlParamIfPresent(graphUrl, cursorUrl, 'limit');
     setUrlParamIfPresent(graphUrl, cursorUrl, 'before');
     setUrlParamIfPresent(graphUrl, cursorUrl, 'after');
+    setUrlParamIfPresent(graphUrl, cursorUrl, 'username');
 
     return cursorUrl.href;
 }

@@ -1,0 +1,107 @@
+extends layout
+
+block content
+    style(type="text/css").
+        #example-accounts {
+            margin: 0 auto;
+            width: 100px;
+            text-align: left;
+        }
+        form.profileLookup {
+            margin-top: 50px;
+        }
+
+    p Try looking up one of these profiles:
+    ul#example-accounts
+        li
+            a(href='https://www.threads.net/@meta') @meta
+        li
+            a(href='https://www.threads.net/@threads') @threads
+        li
+            a(href='https://www.threads.net/@instagram') @instagram
+        li
+            a(href='https://www.threads.net/@facebook') @facebook
+
+    form.profileLookup(action='/profileLookup' id='form' method='GET')
+        input(type='text' placeholder='Enter the username of a Threads profile to lookup' name='username' autocomplete='off')
+
+        input(type='submit' value='Search')
+
+    br
+    br
+
+    if username
+        div
+            .pictures
+                .profile-picture
+                    img(src=profilePictureUrl alt='User\'s profile picture' width=36 height=36)
+                .verified
+                    if isVerified
+                        img(src='/img/verified.png' alt='Verified Badge' width=20 height=20)
+
+        br
+
+        table
+            tbody
+                tr
+                    th(colspan=2) Username
+                    td(colspan=2)=username
+                tr
+                    th(colspan=2) Display Name
+                    td(colspan=2)=displayName
+                tr
+                    th(colspan=2) Bio
+                    td(colspan=2)=bio
+                tr
+                    th(colspan=2) Followers
+                    td(colspan=2)=followerCount
+                tr
+                    th(colspan=2) Likes
+                    td(colspan=2)=likesCount
+                tr
+                    th(colspan=2) Quotes
+                    td(colspan=2)=quotesCount
+                tr
+                    th(colspan=2) Replies
+                    td(colspan=2)=repliesCount
+                tr
+                    th(colspan=2) Reposts
+                    td(colspan=2)=repostsCount
+                tr
+                    th(colspan=2) Views
+                    td(colspan=2)=viewsCount
+
+        br
+        br
+
+        table.threads-list
+            thead
+                tr
+                    th ID
+                    th Created On
+                    th Media Type
+                    th Text
+                    th Permalink
+                    th Media URL
+            tbody
+                each thread in threads
+                    tr.threads-list-item
+                        td.thread-id
+                            a(href=`/threads/${thread.id}`)=thread.id
+                        td.thread-timestamp=thread.timestamp
+                        td.thread-type=thread.media_type
+                        td.thread-text=thread.text
+                        td.thread-permalink
+                            a(href=thread.permalink target='_blank') View on Threads
+                        td.thread-media-url
+                            if thread.media_url
+                                a(href=thread.media_url target='_blank') View Media File
+
+        div.paging
+            if paging.nextUrl
+                div.paging-next
+                    a(href=paging.nextUrl) Next
+
+            if paging.previousUrl
+                div.paging-previous
+                    a(href=paging.previousUrl) Previous
