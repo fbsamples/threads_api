@@ -219,6 +219,22 @@ app.get('/callback', async (req, res) => {
             }
         );
         req.session.access_token = response.data.access_token;
+        const extendAccessTokenUrl = buildGraphAPIURL(
+            `access_token`,
+            {
+                grant_type: 'th_exchange_token',
+                client_secret: API_SECRET,
+            },
+            req.session.access_token
+        );
+        try {
+            const extendTokenResponse = await axios.get(extendAccessTokenUrl, {
+                httpsAgent: agent,
+            });
+            req.session.access_token = extendTokenResponse.data.access_token;
+        } catch (e) {
+            console.error(e?.response?.data?.error?.message ?? e.message);
+        }
         res.redirect('/account');
     } catch (err) {
         console.error(err?.response?.data);
