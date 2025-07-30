@@ -33,6 +33,7 @@ const FIELD__ID = 'id';
 const FIELD__ISSUED_AT = 'issued_at';
 const FIELD__IS_REPLY = 'is_reply';
 const FIELD__IS_VERIFIED = 'is_verified';
+const FIELD__IS_QUOTE_POST = 'is_quote_post';
 const FIELD__LIKES = 'likes';
 const FIELD__LINK_ATTACHMENT_URL = 'link_attachment_url';
 const FIELD__TOPIC_TAG = 'topic_tag';
@@ -43,8 +44,10 @@ const FIELD__PERMALINK = 'permalink';
 const FIELD__POLL_ATTACHMENT = 'poll_attachment';
 const FIELD__REPLIES = 'replies';
 const FIELD__REPOSTS = 'reposts';
+const FIELD__QUOTED_POST = 'quoted_post';
 const FIELD__QUOTES = 'quotes';
 const FIELD__REPLY_AUDIENCE = 'reply_audience';
+const FIELD__REPOSTED_POST = 'reposted_post';
 const FIELD__SCOPES = 'scopes';
 const FIELD__SHARES = 'shares';
 const FIELD__STATUS = 'status';
@@ -552,6 +555,9 @@ app.get('/threads/:threadId', loggedInUserChecker, async (req, res) => {
             FIELD__LINK_ATTACHMENT_URL,
             FIELD__TOPIC_TAG,
             FIELD__POLL_ATTACHMENT,
+            FIELD__IS_QUOTE_POST,
+            FIELD__QUOTED_POST,
+            FIELD__REPOSTED_POST,
         ].join(','),
     }, req.session.access_token);
 
@@ -586,8 +592,7 @@ app.get('/threads', loggedInUserChecker, async (req, res) => {
             FIELD__MEDIA_URL,
             FIELD__PERMALINK,
             FIELD__TIMESTAMP,
-            FIELD__REPLY_AUDIENCE,
-            FIELD__ALT_TEXT,
+            FIELD__USERNAME,
         ].join(','),
         limit: limit ?? DEFAULT_THREADS_QUERY_LIMIT,
     };
@@ -638,7 +643,7 @@ app.get('/replies', loggedInUserChecker, async (req, res) => {
             FIELD__MEDIA_URL,
             FIELD__PERMALINK,
             FIELD__TIMESTAMP,
-            FIELD__REPLY_AUDIENCE,
+            FIELD__USERNAME,
         ].join(','),
         limit: limit ?? DEFAULT_THREADS_QUERY_LIMIT,
     };
@@ -769,8 +774,6 @@ app.get('/mentions', loggedInUserChecker, async (req, res) => {
             FIELD__MEDIA_URL,
             FIELD__PERMALINK,
             FIELD__TIMESTAMP,
-            FIELD__REPLY_AUDIENCE,
-            FIELD__ALT_TEXT,
         ].join(','),
         limit: limit ?? DEFAULT_THREADS_QUERY_LIMIT,
     };
@@ -862,7 +865,7 @@ app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
             FIELD__MEDIA_TYPE,
             FIELD__TEXT,
             FIELD__PERMALINK,
-            FIELD__REPLY_AUDIENCE,
+            FIELD__MEDIA_URL,
         ].join(',')
     };
 
