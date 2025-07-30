@@ -8,14 +8,27 @@ block content
                 th Value
         tbody
             tr
-                td Media Type
-                td #{media_type}
+                td Thread ID
+                td #{threadId}
+            tr
+                td Author
+                td #{username}
+            tr
+                td Created On
+                td #{timestamp}
+            tr
+                td Permalink
+                td
+                    a(href=permalink target='_blank') #{permalink}
             tr
                 td Text
                 td #{text}
             tr
-                td Created On
-                td #{timestamp}
+                td Topic Tag
+                td #{topic_tag}
+            tr
+                td Media Type
+                td #{media_type}
             tr
                 td Media URL
                 td
@@ -30,9 +43,6 @@ block content
             tr
                 td Link Attachment URL
                 td #{link_attachment_url}
-            tr
-                td Topic Tag
-                td #{topic_tag}
             tr
                 td Poll
                 td
@@ -51,10 +61,6 @@ block content
                                 td Option D
                                 td #{option_d}
             tr
-                td Permalink
-                td
-                    a(href=permalink target='_blank') #{permalink}
-            tr
                 td Replies
                 td
                     a(href=`/threads/${threadId}/replies?username=${username}`) View Direct Replies
@@ -64,6 +70,19 @@ block content
             tr
                 td Reply Audience
                 td #{reply_audience}
+            tr
+                td Is Quote Post
+                td #{is_quote_post}
+            tr
+                td Quoted Post
+                td
+                    if (quoted_post)
+                        a(href=`/threads/${quoted_post.id}`) View Quoted Post
+            tr
+                td Reposted Post
+                td
+                    if (reposted_post)
+                        a(href=`/threads/${reposted_post.id}`) View Reposted Post
             tr
                 td Insights
                 td

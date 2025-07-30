@@ -6,21 +6,25 @@ block content
             tr
                 th ID
                 th Created On
+                th Author
                 th Media Type
                 th Text
                 th Permalink
-                th Reply Audience
+                th Media URL
         tbody
             each thread in threads
                 tr.threads-list-item
                     td.thread-id
                         a(href=`/threads/${thread.id}`)=thread.id
                     td.thread-timestamp=thread.timestamp
+                    td.thread-author=thread.username
                     td.thread-type=thread.media_type
                     td.thread-text=thread.text
                     td.thread-permalink
                         a(href=thread.permalink target='_blank') View on Threads
-                    td.thread-reply-audience=thread.reply_audience
+                    td.thread-media-url
+                        if thread.media_url
+                            a(href=thread.media_url target='_blank') View Media File
 
     div.paging
         if paging.nextUrl

@@ -22,7 +22,7 @@ block content
                     th Media Type
                     th Text
                     th Permalink
-                    th Reply Audience
+                    th Media URL
             tbody
                 each thread in threads
                     tr.threads-list-item
@@ -34,7 +34,9 @@ block content
                         td.thread-text=thread.text
                         td.thread-permalink
                             a(href=thread.permalink target='_blank') View on Threads
-                        td.thread-reply-audience=thread.reply_audience
+                        td.thread-media-url
+                            if thread.media_url
+                                a(href=thread.media_url target='_blank') View Media File
 
         div.paging
             if paging.nextUrl

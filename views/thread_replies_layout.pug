@@ -2,6 +2,7 @@ table.thread-replies
     thead
         tr
             th ID
+            th Username
             th Created On
             th Media Type
             th Text
@@ -14,6 +15,7 @@ table.thread-replies
             tr.thread-replies-list-item
                 td.reply-id
                     a(href=`/threads/${reply.id}`)=reply.id
+                td.reply-username=reply.username
                 td.reply-timestamp=reply.timestamp
                 td.reply-type=reply.media_type
                 td.reply-text=reply.text
