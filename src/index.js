@@ -14,6 +14,7 @@ const path = require('path');
 const fs = require('fs');
 const { URLSearchParams, URL } = require('url');
 const multer = require('multer');
+const { DateTime } = require('luxon');
 
 const app = express();
 const upload = multer();
@@ -21,11 +22,15 @@ const upload = multer();
 const DEFAULT_THREADS_QUERY_LIMIT = 10;
 
 const FIELD__ALT_TEXT = 'alt_text';
+const FIELD__APPLICATION = 'application';
+const FIELD__APP_SCOPED_USER_ID = 'user_id';
 const FIELD__CLICKS = 'clicks';
 const FIELD__ERROR_MESSAGE = 'error_message';
+const FIELD__EXPIRES_AT = 'expires_at';
 const FIELD__FOLLOWERS_COUNT = 'followers_count';
 const FIELD__HIDE_STATUS = 'hide_status';
 const FIELD__ID = 'id';
+const FIELD__ISSUED_AT = 'issued_at';
 const FIELD__IS_REPLY = 'is_reply';
 const FIELD__IS_VERIFIED = 'is_verified';
 const FIELD__LIKES = 'likes';
@@ -40,6 +45,7 @@ const FIELD__REPLIES = 'replies';
 const FIELD__REPOSTS = 'reposts';
 const FIELD__QUOTES = 'quotes';
 const FIELD__REPLY_AUDIENCE = 'reply_audience';
+const FIELD__SCOPES = 'scopes';
 const FIELD__SHARES = 'shares';
 const FIELD__STATUS = 'status';
 const FIELD__TEXT = 'text';
@@ -63,6 +69,7 @@ const PARAMS__DELETE_CONFIG = 'delete_config';
 const PARAMS__DELETE_QUOTA_USAGE = 'delete_quota_usage';
 const PARAMS__FIELDS = 'fields';
 const PARAMS__HIDE = 'hide';
+const PARAMS__INPUT_TOKEN = 'input_token';
 const PARAMS__LINK_ATTACHMENT = 'link_attachment';
 const PARAMS__LOCATION_SEARCH_CONFIG = 'location_search_config';
 const PARAMS__LOCATION_SEARCH_QUOTA_USAGE = 'location_search_quota_usage';
@@ -805,6 +812,37 @@ app.get('/mentions', loggedInUserChecker, async (req, res) => {
     });
 });
 
+app.get('/debug', loggedInUserChecker, async (req, res) => {
+    const params = {
+        [PARAMS__INPUT_TOKEN]: req.session.access_token,
+    };
+
+    const debugAccessTokenUrl = buildGraphAPIURL(`debug_token`, params, req.session.access_token);
+
+    let data = {};
+    try {
+        const response = await axios.get(debugAccessTokenUrl, { httpsAgent: agent });
+        data = response.data.data;
+    } catch (e) {
+        console.error(e?.response?.data?.error?.message ?? e.message);
+    }
+
+    const applicationName = data[FIELD__APPLICATION];
+    const expiresAt = formatTimestamp(data[FIELD__EXPIRES_AT]);
+    const issuedAt = formatTimestamp(data[FIELD__ISSUED_AT]);
+    const scopes = data[FIELD__SCOPES].join(', ');
+    const appScopedUserId = data[FIELD__APP_SCOPED_USER_ID];
+
+    return res.render('debug', {
+        title: 'Inspect Access Token',
+        applicationName,
+        expiresAt,
+        issuedAt,
+        scopes,
+        appScopedUserId,
+    });
+});
+
 app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
     const { keyword, searchType } = req.query;
 
@@ -1081,6 +1119,15 @@ function addAttachmentFields(target, attachmentType, url, altText) {
         target.video_url = url;
         target.alt_text = altText;
     }
+}
+
+/**
+ * @param {int} timestamp
+ */
+function formatTimestamp(timestamp) {
+  const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return DateTime.fromSeconds(timestamp, { zone: userTimeZone })
+    .toLocaleString(DateTime.DATETIME_FULL_WITH_SECONDS);
 }
 
 /**
