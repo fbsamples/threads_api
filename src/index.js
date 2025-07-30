@@ -901,15 +901,15 @@ app.get('/oEmbed', async (req, res) => {
 });
 
 app.get('/profileLookup', async (req, res) => {
-    const { profile } = req.query;
-    if (!profile) {
+    const { username, before, after, limit } = req.query;
+    if (!username) {
         return res.render('profile_lookup', {
             title: 'Profile Lookup',
         });
     }
 
     const params = {
-        [PARAMS__USERNAME]: profile,
+        [PARAMS__USERNAME]: username,
     }
 
     const profileLookupUrl = buildGraphAPIURL(`profile_lookup`, params, req.session.access_token);
@@ -921,7 +921,6 @@ app.get('/profileLookup', async (req, res) => {
         console.error(e?.response?.data?.error?.message ?? e.message);
     }
 
-    const username = response.data?.username;
     const displayName = response.data?.name;
     const profilePictureUrl = response.data?.profile_picture_url;
     const isVerified = response.data?.is_verified;
@@ -934,8 +933,50 @@ app.get('/profileLookup', async (req, res) => {
     const repostsCount = formatCount(response.data?.reposts_count);
     const viewsCount = formatCount(response.data?.views_count);
 
+    const profilePostsParams = {
+        [PARAMS__FIELDS]: [
+            FIELD__TEXT,
+            FIELD__MEDIA_TYPE,
+            FIELD__MEDIA_URL,
+            FIELD__PERMALINK,
+            FIELD__TIMESTAMP,
+        ].join(','),
+        limit: limit ?? DEFAULT_THREADS_QUERY_LIMIT,
+        [PARAMS__USERNAME]: username,
+    };
+    if (before) {
+        profilePostsParams.before = before;
+    }
+    if (after) {
+        profilePostsParams.after = after;
+    }
+
+    let threads = [];
+    let paging = {};
+
+    const queryThreadsUrl = buildGraphAPIURL(`profile_posts`, profilePostsParams, req.session.access_token);
+
+    try {
+        const queryResponse = await axios.get(queryThreadsUrl, { httpsAgent: agent });
+        threads = queryResponse.data.data;
+
+        if (queryResponse.data.paging) {
+            const { next, previous } = queryResponse.data.paging;
+
+            if (next) {
+                paging.nextUrl = getCursorUrlFromGraphApiPagingUrl(req, next);
+            }
+
+            if (previous) {
+                paging.previousUrl = getCursorUrlFromGraphApiPagingUrl(req, previous);
+            }
+        }
+    } catch (e) {
+        console.error(e?.response?.data?.error?.message ?? e.message);
+    }
+
     return res.render('profile_lookup', {
-        title: 'Profile Lookup for @'.concat(profile),
+        title: 'Profile Lookup for @'.concat(username),
         username,
         displayName,
         profilePictureUrl,
@@ -947,6 +988,8 @@ app.get('/profileLookup', async (req, res) => {
         repliesCount,
         repostsCount,
         viewsCount,
+        paging,
+        threads,
     });
 });
 
@@ -1065,6 +1108,7 @@ function getCursorUrlFromGraphApiPagingUrl(req, graphApiPagingUrl) {
     setUrlParamIfPresent(graphUrl, cursorUrl, 'limit');
     setUrlParamIfPresent(graphUrl, cursorUrl, 'before');
     setUrlParamIfPresent(graphUrl, cursorUrl, 'after');
+    setUrlParamIfPresent(graphUrl, cursorUrl, 'username');
 
     return cursorUrl.href;
 }

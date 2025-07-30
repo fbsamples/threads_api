@@ -23,9 +23,12 @@ block content
             a(href='https://www.threads.net/@facebook') @facebook
 
     form.profileLookup(action='/profileLookup' id='form' method='GET')
-        input(type='text' placeholder='Enter the username of a Threads profile to lookup' name='profile' autocomplete='off')
+        input(type='text' placeholder='Enter the username of a Threads profile to lookup' name='username' autocomplete='off')
 
         input(type='submit' value='Search')
+
+    br
+    br
 
     if username
         div
@@ -35,6 +38,8 @@ block content
                 .verified
                     if isVerified
                         img(src='/img/verified.png' alt='Verified Badge' width=20 height=20)
+
+        br
 
         table
             tbody
@@ -65,3 +70,38 @@ block content
                 tr
                     th(colspan=2) Views
                     td(colspan=2)=viewsCount
+
+        br
+        br
+
+        table.threads-list
+            thead
+                tr
+                    th ID
+                    th Created On
+                    th Media Type
+                    th Text
+                    th Permalink
+                    th Media URL
+            tbody
+                each thread in threads
+                    tr.threads-list-item
+                        td.thread-id
+                            a(href=`/threads/${thread.id}`)=thread.id
+                        td.thread-timestamp=thread.timestamp
+                        td.thread-type=thread.media_type
+                        td.thread-text=thread.text
+                        td.thread-permalink
+                            a(href=thread.permalink target='_blank') View on Threads
+                        td.thread-media-url
+                            if thread.media_url
+                                a(href=thread.media_url target='_blank') View Media File
+
+        div.paging
+            if paging.nextUrl
+                div.paging-next
+                    a(href=paging.nextUrl) Next
+
+            if paging.previousUrl
+                div.paging-previous
+                    a(href=paging.previousUrl) Previous
