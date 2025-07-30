@@ -28,7 +28,8 @@ function isPollInputValid(data) {
     const pollOptionB = data.get('pollOptionB');
     const pollOptionC = data.get('pollOptionC');
     const pollOptionD = data.get('pollOptionD');
-    const pollAttached = pollOptionA || pollOptionB || pollOptionC || pollOptionD;
+    const pollAttached =
+        pollOptionA || pollOptionB || pollOptionC || pollOptionD;
 
     if (pollAttached && (!pollOptionA || !pollOptionB)) {
         alert('Options A and B are required for polls.');
@@ -59,16 +60,16 @@ function isAttachmentsInputValid(data) {
     }
 
     if (hasMediaAttachment && autoPublishText) {
-        alert('Media attachments cannot be automatically published.')
+        alert('Media attachments cannot be automatically published.');
         return false;
     }
 
     if (hasMediaAttachment && linkAttached) {
-        alert('Link attachments can only be used with text posts.')
+        alert('Link attachments can only be used with text posts.');
     }
 
     if (hasMediaAttachment && pollAttached) {
-        alert('Poll attachments can only be used with text posts.')
+        alert('Poll attachments can only be used with text posts.');
     }
 
     return true;
@@ -101,10 +102,10 @@ async function processFormAsync(urlGenerator) {
         try {
             let response = await fetch(e.target.getAttribute('action'), {
                 method: 'POST',
-                body: formData
+                body: formData,
             });
 
-            if(response.ok) {
+            if (response.ok) {
                 let jsonResponse = await response.json();
                 id = jsonResponse.id;
                 redirectUrl = jsonResponse.redirectUrl;
