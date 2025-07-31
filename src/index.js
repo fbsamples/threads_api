@@ -92,6 +92,7 @@ const PARAMS__RETURN_URL = 'return_url';
 const PARAMS__SCOPE = 'scope';
 const PARAMS__SEARCH_TYPE = 'search_type';
 const PARAMS__TEXT = 'text';
+const PARAMS__TOPIC_TAG = 'topic_tag';
 const PARAMS__USERNAME = 'username';
 
 // Read variables from environment
@@ -433,6 +434,7 @@ app.post('/upload', upload.array(), async (req, res) => {
         attachmentAltText,
         replyControl,
         replyToId,
+        topicTag,
         linkAttachment,
         autoPublishText,
         pollOptionA,
@@ -448,6 +450,15 @@ app.post('/upload', upload.array(), async (req, res) => {
         [PARAMS__REPLY_TO_ID]: replyToId,
         [PARAMS__LINK_ATTACHMENT]: linkAttachment,
     };
+
+    if (
+        topicTag.length >= 1 &&
+        topicTag.length <= 50 &&
+        !topicTag.includes('.') &&
+        !topicTag.includes('&')
+    ) {
+        params[PARAMS__TOPIC_TAG] = topicTag;
+    }
 
     if (pollOptionA && pollOptionB) {
         const pollAttachment = JSON.stringify({

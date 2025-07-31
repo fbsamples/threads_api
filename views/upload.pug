@@ -42,6 +42,10 @@ block content
         #reply-control {
             margin-bottom: 15px;
         }
+        #topic-tag {
+            width: 200px;
+            margin-bottom: 15px;
+        }
         #link-attachment {
             width: 200px;
             margin-bottom: 15px;
@@ -72,6 +76,10 @@ block content
             option(value="mentioned_only") Mentioned Only
             option(value="parent_post_author_only") Parent Post Author Only
             option(value="followers_only") Followers Only
+
+        label(for='topicTag')
+        |   Topic Tag
+        input#topic-tag(type='text' name='topicTag' value='' maxlength='50')
 
         label(for='linkAttachment')
         |   Link Attachment
