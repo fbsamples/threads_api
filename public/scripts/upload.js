@@ -11,15 +11,12 @@ async function updateMediaType(attachmentsCount, attachmentListElem) {
     let mediaTypeDesc;
     if (attachmentsCount === 0) {
         mediaTypeDesc = 'Text 📝';
-    }
-    else if (attachmentsCount === 1) {
-        const singleAttachmentType = attachmentListElem.querySelector('select').value;
-        if (singleAttachmentType === 'Image')
-            mediaTypeDesc = 'Image 🖼️';
-        else
-            mediaTypeDesc = 'Video 🎬';
-    }
-    else {
+    } else if (attachmentsCount === 1) {
+        const singleAttachmentType =
+            attachmentListElem.querySelector('select').value;
+        if (singleAttachmentType === 'Image') mediaTypeDesc = 'Image 🖼️';
+        else mediaTypeDesc = 'Video 🎬';
+    } else {
         mediaTypeDesc = 'Carousel 🎠';
     }
 
@@ -45,12 +42,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             const parentDiv = e.target.parentNode.parentNode;
             parentDiv.remove();
 
-            await updateMediaType(attachmentsList.children.length, attachmentsList);
+            await updateMediaType(
+                attachmentsList.children.length,
+                attachmentsList
+            );
         });
 
         const mediaTypeSelectElem = div.querySelector('select');
         mediaTypeSelectElem.addEventListener('change', async (e) => {
-            await updateMediaType(attachmentsList.children.length, attachmentsList);
+            await updateMediaType(
+                attachmentsList.children.length,
+                attachmentsList
+            );
         });
 
         await updateMediaType(attachmentsList.children.length, attachmentsList);
@@ -62,12 +65,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     attachPollButton.addEventListener('click', async (e) => {
         e.preventDefault();
 
-        const pollAttachmentOptions = document.getElementById('poll-attachment-options');
+        const pollAttachmentOptions = document.getElementById(
+            'poll-attachment-options'
+        );
         if (pollAttachmentOptions.style.display === 'none') {
             pollAttachmentOptions.style.display = 'block';
         } else {
             pollAttachmentOptions.style.display = 'none';
         }
-
     });
 });

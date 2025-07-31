@@ -17,18 +17,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             try {
                 let response = await fetch(e.target.getAttribute('action'), {
                     method: 'POST',
-                    body: formData
+                    body: formData,
                 });
 
-                if(response.ok) {
-                    const submitButton = e.target.querySelector('input[type="submit"]');
-                    submitButton.value = submitButton.value === 'Hide' ? 'Unhide' : 'Hide';
+                if (response.ok) {
+                    const submitButton = e.target.querySelector(
+                        'input[type="submit"]'
+                    );
+                    submitButton.value =
+                        submitButton.value === 'Hide' ? 'Unhide' : 'Hide';
                 } else {
                     alert('An error occurred while hiding/unhiding the reply.');
                 }
             } catch (e) {
                 console.error('There was an error:', error);
-                alert('error while hiding reply')
+                alert('error while hiding reply');
             } finally {
                 onAsyncRequestEnded();
             }

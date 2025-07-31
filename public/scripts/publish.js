@@ -15,7 +15,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function queryContainerStatus() {
-    const containerId = document.getElementById('container-id').getAttribute('value');
+    const containerId = document
+        .getElementById('container-id')
+        .getAttribute('value');
 
     const statusDOMElement = document.getElementById('container-status');
     statusDOMElement.innerText = QUERYING_STATUS_TEXT;
@@ -26,7 +28,7 @@ async function queryContainerStatus() {
     try {
         let response = await fetch(`/container/status/${containerId}`);
 
-        if(response?.ok) {
+        if (response?.ok) {
             jsonResponse = await response.json();
         } else {
             console.error(response);
@@ -44,11 +46,15 @@ async function queryContainerStatus() {
             break;
         case 'IN_PROGRESS':
             // Retry
-            setTimeout(queryContainerStatus, QUERY_CONTAINER_STATUS_TIMEOUT_IN_SECONDS * 1000);
+            setTimeout(
+                queryContainerStatus,
+                QUERY_CONTAINER_STATUS_TIMEOUT_IN_SECONDS * 1000
+            );
             break;
         case 'ERROR':
         default:
-            document.getElementById('error-message').textContent = jsonResponse?.error_message ?? "Unknown error";
+            document.getElementById('error-message').textContent =
+                jsonResponse?.error_message ?? 'Unknown error';
             break;
     }
 
@@ -58,9 +64,12 @@ async function queryContainerStatus() {
 function updateView(statusDOMElement, status) {
     statusDOMElement.innerText = status;
 
-    const explanationTemplate = document.getElementById(`template-status-${status}`);
+    const explanationTemplate = document.getElementById(
+        `template-status-${status}`
+    );
     if (explanationTemplate) {
-        const explanationParentDOMElement = document.getElementById('status-explanation');
+        const explanationParentDOMElement =
+            document.getElementById('status-explanation');
         if (explanationParentDOMElement) {
             const explanationNode = explanationTemplate.content.cloneNode(true);
             explanationParentDOMElement.replaceChildren(explanationNode);
