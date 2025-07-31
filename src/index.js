@@ -39,6 +39,7 @@ const FIELD__LINK_ATTACHMENT_URL = 'link_attachment_url';
 const FIELD__TOPIC_TAG = 'topic_tag';
 const FIELD__MEDIA_TYPE = 'media_type';
 const FIELD__MEDIA_URL = 'media_url';
+const FIELD__NAME = 'name';
 const FIELD__GIF_URL = 'gif_url';
 const FIELD__PERMALINK = 'permalink';
 const FIELD__POLL_ATTACHMENT = 'poll_attachment';
@@ -250,6 +251,7 @@ app.get('/account', loggedInUserChecker, async (req, res) => {
         {
             [PARAMS__FIELDS]: [
                 FIELD__USERNAME,
+                FIELD__NAME,
                 FIELD__THREADS_PROFILE_PICTURE_URL,
                 FIELD__THREADS_BIOGRAPHY,
                 FIELD__IS_VERIFIED,
