@@ -15,7 +15,9 @@ const fs = require('fs');
 const { URLSearchParams, URL } = require('url');
 const multer = require('multer');
 const { DateTime } = require('luxon');
+const textParser = require('../public/scripts/text-parser.js');
 
+const spoilerMarker = "**spoiler**";;
 const app = express();
 const upload = multer();
 
@@ -58,6 +60,8 @@ const FIELD__THREADS_BIOGRAPHY = 'threads_biography';
 const FIELD__THREADS_PROFILE_PICTURE_URL = 'threads_profile_picture_url';
 const FIELD__USERNAME = 'username';
 const FIELD__VIEWS = 'views';
+const FIELD_IS_SPOILER_MEDIA = 'is_spoiler_media';
+const FIELD_TEXT_ENTITES = 'text_entities';
 
 const MEDIA_TYPE__CAROUSEL = 'CAROUSEL';
 const MEDIA_TYPE__IMAGE = 'IMAGE';
@@ -94,6 +98,8 @@ const PARAMS__SEARCH_TYPE = 'search_type';
 const PARAMS__TEXT = 'text';
 const PARAMS__TOPIC_TAG = 'topic_tag';
 const PARAMS__USERNAME = 'username';
+const PARAMS_IS_SPOILER_MEDIA = 'is_spoiler_media';
+const PARAMS_TEXT_ENTITES = 'text_entities';
 
 // Read variables from environment
 require('dotenv').config();
@@ -442,15 +448,24 @@ app.post('/upload', upload.array(), async (req, res) => {
         pollOptionC,
         pollOptionD,
         quotePostId,
+        spoilerMedia,
     } = req.body;
 
     const params = {
-        [PARAMS__TEXT]: text,
         [PARAMS__REPLY_CONTROL]: replyControl,
         [PARAMS__REPLY_TO_ID]: replyToId,
         [PARAMS__LINK_ATTACHMENT]: linkAttachment,
     };
 
+    if (text.includes(spoilerMarker)) {
+        parsedInput = textParser.extractSpoilerInfo(text);
+        processedText = parsedInput.text;
+        textEntites = parsedInput.textEntities;
+        params[PARAMS__TEXT] = processedText;
+        params[PARAMS_TEXT_ENTITES] = JSON.stringify(textEntites);
+    } else {
+        params[PARAMS__TEXT] = text;
+    }
     if (
         topicTag.length >= 1 &&
         topicTag.length <= 50 &&
@@ -458,6 +473,10 @@ app.post('/upload', upload.array(), async (req, res) => {
         !topicTag.includes('&')
     ) {
         params[PARAMS__TOPIC_TAG] = topicTag;
+    }
+
+    if (spoilerMedia) {
+        params[PARAMS_IS_SPOILER_MEDIA] = true;
     }
 
     if (pollOptionA && pollOptionB) {
@@ -658,6 +677,8 @@ app.get('/threads/:threadId', loggedInUserChecker, async (req, res) => {
                 FIELD__IS_QUOTE_POST,
                 FIELD__QUOTED_POST,
                 FIELD__REPOSTED_POST,
+                FIELD_IS_SPOILER_MEDIA,
+                FIELD_TEXT_ENTITES,
             ].join(','),
         },
         req.session.access_token
