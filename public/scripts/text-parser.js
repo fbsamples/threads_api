@@ -22,7 +22,7 @@ function extractSpoilerInfo(text) {
     let currentPosition = 0;
     let searchPosition = 0;
 
-    while (searchPosition < text.length) {
+    while (currentPosition < text.length && searchPosition < text.length) {
         // Find the next spoiler start marker
         const startMarkerIndex = text.indexOf(spoilerMarker, searchPosition);
 
