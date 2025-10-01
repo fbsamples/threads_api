@@ -35,6 +35,8 @@ block content
         textarea {
             text-align: center;
             padding: 5px 0;
+            border-radius: 20px;
+            height: 100px;
         }
         img {
             margin-bottom: 15px;
@@ -53,6 +55,9 @@ block content
         #quote-post-id {
             width: 200px;
         }
+        .spoiler-media-control {
+            display: none;
+        }
 
     if (replyToId !== undefined)
         p(style='color: gray') Replying to #{replyToId}
@@ -67,6 +72,11 @@ block content
             img#attachments-button(src='/img/attachment.png')
             div.attachment-controls
                 div#attachments-list.attachments
+        div.spoiler-media-control
+            label(for='spoilerMedia')
+            |   Mark Media as Spoiler &nbsp;&nbsp;
+            input(type='checkbox' name='spoilerMedia' value='true')
+        br
 
         label(for="reply-control") Who Can Reply
         select#reply-control(name='replyControl' hint="Reply Control")

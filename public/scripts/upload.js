@@ -7,17 +7,21 @@
 
 async function updateMediaType(attachmentsCount, attachmentListElem) {
     const mediaTypeElem = document.getElementById('media-type');
+    const spoilerMediaControl = document.querySelector('.spoiler-media-control');
 
     let mediaTypeDesc;
     if (attachmentsCount === 0) {
         mediaTypeDesc = 'Text 📝';
+        spoilerMediaControl.style.display = 'none';
     } else if (attachmentsCount === 1) {
         const singleAttachmentType =
             attachmentListElem.querySelector('select').value;
         if (singleAttachmentType === 'Image') mediaTypeDesc = 'Image 🖼️';
         else mediaTypeDesc = 'Video 🎬';
+        spoilerMediaControl.style.display = 'block';
     } else {
         mediaTypeDesc = 'Carousel 🎠';
+        spoilerMediaControl.style.display = 'block';
     }
 
     mediaTypeElem.innerText = mediaTypeDesc;
