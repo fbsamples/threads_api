@@ -53,7 +53,6 @@ function extractSpoilerInfo(text) {
         // Record spoiler info
         textEntities.push({
             entity_type: "SPOILER",
-            text: spoilerContent,
             offset: currentPosition.toString(),
             length: spoilerContent.length.toString(),
         });
