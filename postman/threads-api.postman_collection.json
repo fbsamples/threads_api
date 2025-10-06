@@ -434,7 +434,7 @@
 										},
 										{
 											"key": "text_entities",
-											"value": "[{\"entity_type\": \"SPOILER\",\"offset\": 10,\"length\": 4}]",
+											"value": "[{\"entity_type\": \"SPOILER\",\"offset\": 0,\"length\": 4}]",
 											"description": "Optional field to specify spoilers present in the text field.",
 											"disabled": true
 										}
@@ -604,7 +604,7 @@
 										},
 										{
 											"key": "text_entities",
-											"value": "[{\"entity_type\": \"SPOILER\",\"offset\": 10,\"length\": 4}]",
+											"value": "[{\"entity_type\": \"SPOILER\",\"offset\": 0,\"length\": 4}]",
 											"description": "Optional field to specify spoilers present in the text field.",
 											"disabled": true
 										},
@@ -773,7 +773,7 @@
 										},
 										{
 											"key": "text_entities",
-											"value": "[{\"entity_type\": \"SPOILER\",\"offset\": 10,\"length\": 4}]",
+											"value": "[{\"entity_type\": \"SPOILER\",\"offset\": 0,\"length\": 4}]",
 											"description": "Optional field to specify spoilers present in the text field.",
 											"disabled": true
 										},
@@ -1262,7 +1262,7 @@
 										},
 										{
 											"key": "text_entities",
-											"value": "[{\"entity_type\": \"SPOILER\",\"offset\": 10,\"length\": 4}]",
+											"value": "[{\"entity_type\": \"SPOILER\",\"offset\": 0,\"length\": 4}]",
 											"description": "Optional field to specify spoilers present in the text field.",
 											"disabled": true
 										},
