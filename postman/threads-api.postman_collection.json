@@ -437,6 +437,12 @@
 											"value": "[{\"entity_type\": \"SPOILER\",\"offset\": 0,\"length\": 4}]",
 											"description": "Optional field to specify spoilers present in the text field.",
 											"disabled": true
+										},
+										{
+											"key": "text_attachment",
+											"value": "{\"plaintext\":\"this is a text attachment\",\"link_attachment_url\":\"https://meta.com\",\"text_with_styling_info\":[\n{\n'offset': 10,\n'length': 4,\n'styling_info':['bold','italic']\n}]}",
+											"description": "Attach a text attachment to your post (only available for text posts, and not compatible with poll attachments).",
+											"disabled": true
 										}
 									]
 								},
