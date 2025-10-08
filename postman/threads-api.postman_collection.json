@@ -441,7 +441,8 @@
 										{
 											"key": "text_attachment",
 											"value": "{\"plaintext\":\"this is a text attachment\",\"link_attachment_url\":\"https://meta.com\",\"text_with_styling_info\":[\n{\n'offset': 10,\n'length': 4,\n'styling_info':['bold','italic']\n}]}",
-											"description": "Attach a text attachment to your post (only available for text posts, and not compatible with poll attachments)."
+											"description": "Attach a text attachment to your post (only available for text posts, and not compatible with poll attachments).",
+											"disabled": true
 										}
 									]
 								},
