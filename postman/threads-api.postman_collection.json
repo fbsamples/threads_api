@@ -443,6 +443,12 @@
 											"value": "{\"plaintext\":\"this is a text attachment\",\"link_attachment_url\":\"https://meta.com\",\"text_with_styling_info\":[\n{\n'offset': 10,\n'length': 4,\n'styling_info':['bold','italic']\n}]}",
 											"description": "Attach a text attachment to your post (only available for text posts, and not compatible with poll attachments).",
 											"disabled": true
+										},
+										{
+											"key": "gif_attachment",
+											"value": "{\"gif_id\":\"16185153483944881729\",\"provider\":\"TENOR\"}",
+											"description": "Optional field to attach a GIF to your text posts.",
+											"disabled": true
 										}
 									]
 								},
