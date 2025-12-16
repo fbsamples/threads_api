@@ -449,6 +449,13 @@
 											"value": "{\"gif_id\":\"16185153483944881729\",\"provider\":\"TENOR\"}",
 											"description": "Optional field to attach a GIF to your text posts.",
 											"disabled": true
+										},
+										{
+											"key": "is_ghost_post",
+											"value": "true",
+											"description": "When this optional flag is passed, a ghost post is created which will expire after 24 hours.",
+											"disabled": true
+
 										}
 									]
 								},
