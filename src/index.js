@@ -62,6 +62,7 @@ const FIELD__USERNAME = 'username';
 const FIELD__VIEWS = 'views';
 const FIELD_IS_SPOILER_MEDIA = 'is_spoiler_media';
 const FIELD_TEXT_ENTITES = 'text_entities';
+const FIELD_GHOST_POST_STATUS = 'ghost_post_status';
 
 const MEDIA_TYPE__CAROUSEL = 'CAROUSEL';
 const MEDIA_TYPE__IMAGE = 'IMAGE';
@@ -100,6 +101,7 @@ const PARAMS__TOPIC_TAG = 'topic_tag';
 const PARAMS__USERNAME = 'username';
 const PARAMS_IS_SPOILER_MEDIA = 'is_spoiler_media';
 const PARAMS_TEXT_ENTITES = 'text_entities';
+const PARAMS_IS_GHOST_POST = 'is_ghost_post';
 
 // Read variables from environment
 require('dotenv').config();
@@ -449,6 +451,7 @@ app.post('/upload', upload.array(), async (req, res) => {
         pollOptionD,
         quotePostId,
         spoilerMedia,
+        ghostPostMedia,
     } = req.body;
 
     const params = {
@@ -477,6 +480,10 @@ app.post('/upload', upload.array(), async (req, res) => {
 
     if (spoilerMedia) {
         params[PARAMS_IS_SPOILER_MEDIA] = true;
+    }
+
+    if (ghostPostMedia) {
+        params[PARAMS_IS_GHOST_POST] = true;
     }
 
     if (pollOptionA && pollOptionB) {
@@ -679,6 +686,7 @@ app.get('/threads/:threadId', loggedInUserChecker, async (req, res) => {
                 FIELD__REPOSTED_POST,
                 FIELD_IS_SPOILER_MEDIA,
                 FIELD_TEXT_ENTITES,
+                FIELD_GHOST_POST_STATUS,
             ].join(','),
         },
         req.session.access_token
@@ -688,7 +696,7 @@ app.get('/threads/:threadId', loggedInUserChecker, async (req, res) => {
         const queryResponse = await axios.get(queryThreadUrl, {
             httpsAgent: agent,
         });
-        const { poll_attachment, ...rest } = queryResponse.data;
+        const { poll_attachment, ghost_post_status, ...rest } = queryResponse.data;
         data = rest;
 
         if (poll_attachment) {
@@ -697,6 +705,12 @@ app.get('/threads/:threadId', loggedInUserChecker, async (req, res) => {
                 ...poll_attachment,
             };
         }
+
+        const is_ghost_post = ghost_post_status === 'ACTIVE';
+        data = {
+            ...data,
+            is_ghost_post,
+        };
     } catch (e) {
         console.error(e?.response?.data?.error?.message ?? e.message);
     }
