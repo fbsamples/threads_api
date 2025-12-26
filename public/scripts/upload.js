@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const topicTagMediaControl = document.querySelector('.topic-tag-media-control');
     const linkAttachmentMediaControl = document.querySelector('.link-attachment-media-control');
     const attachImageMediaControl = document.querySelector('.attach-image-media-control');
-    const replyMediaControl = document.querySelector('.reply-options-media-control');
+    const replyOptionsMediaControl = document.querySelector('.reply-options-media-control');
 
     const topicTagInput = document.getElementById('topic-tag');
     const linkAttachmentInput = document.getElementById('link-attachment');
@@ -106,7 +106,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 linkAttachmentMediaControl.style.display = 'none';
                 attachPollButton.style.display = 'none';
                 attachImageMediaControl.style.display = 'none';
-                replyMediaControl.style.display = 'none';
+                replyOptionsMediaControl.style.display = 'none';
 
                 if (topicTagInput) topicTagInput.value = '';
                 if (linkAttachmentInput) linkAttachmentInput.value = '';
@@ -119,14 +119,12 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
 
                 await updateMediaType(0, null);
-            }
-            // When the checkbox is unchecked, enable all fields
-            if (!ghostPostCheckbox.checked) {
+            } else { // When the checkbox is unchecked, enable all fields
                 topicTagMediaControl.style.display = 'block';
                 linkAttachmentMediaControl.style.display = 'block';
                 attachPollButton.style.display = 'block';
                 attachImageMediaControl.style.display = 'block';
-                replyMediaControl.style.display = 'block';
+                replyOptionsMediaControl.style.display = 'block';
             }
         });
     }
