@@ -58,6 +58,16 @@ block content
         .spoiler-media-control {
             display: none;
         }
+        .ghost-post-media-control {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+        }
+        #ghost-post-img{
+            width: 25px;
+            height: 25px;
+            margin-bottom: 0;
+        }
 
     if (replyToId !== undefined)
         p(style='color: gray') Replying to #{replyToId}
@@ -67,37 +77,55 @@ block content
         | Text:
         textarea(placeholder='Start a thread...' id='text' name='text' autocomplete='off')
         br
-        | To attach an image or video, click the image below
-        div.attachments-area
-            img#attachments-button(src='/img/attachment.png')
-            div.attachment-controls
-                div#attachments-list.attachments
-        div.spoiler-media-control
-            label(for='spoilerMedia')
-            |   Mark Media as Spoiler &nbsp;&nbsp;
-            input(type='checkbox' name='spoilerMedia' value='true')
+        div.attach-image-media-control
+            | To attach an image or video, click the image below
+            div.attachments-area
+                img#attachments-button(src='/img/attachment.png')
+                div.attachment-controls
+                    div#attachments-list.attachments
+            div.spoiler-media-control
+                label(for='spoilerMedia')
+                |   Mark Media as Spoiler &nbsp;&nbsp;
+                input(type='checkbox' name='spoilerMedia' value='true')
+            br
+
+        div.reply-options-media-control
+            label(for="reply-control") Who Can Reply
+            br
+            select#reply-control(name='replyControl' hint="Reply Control")
+                option(value="" selected)
+                option(value="everyone") Everyone
+                option(value="accounts_you_follow") Accounts You Follow
+                option(value="mentioned_only") Mentioned Only
+                option(value="parent_post_author_only") Parent Post Author Only
+                option(value="followers_only") Followers Only
+
+        div.topic-tag-media-control
+            label(for='topicTag')
+            |   Topic Tag
+            br
+            input#topic-tag(type='text' name='topicTag' value='' maxlength='50')
         br
 
-        label(for="reply-control") Who Can Reply
-        select#reply-control(name='replyControl' hint="Reply Control")
-            option(value="" selected)
-            option(value="everyone") Everyone
-            option(value="accounts_you_follow") Accounts You Follow
-            option(value="mentioned_only") Mentioned Only
-            option(value="parent_post_author_only") Parent Post Author Only
-            option(value="followers_only") Followers Only
-
-        label(for='topicTag')
-        |   Topic Tag
-        input#topic-tag(type='text' name='topicTag' value='' maxlength='50')
-
-        label(for='linkAttachment')
-        |   Link Attachment
-        input#link-attachment(type='text' name='linkAttachment' value='')
+        div.link-attachment-media-control
+            label(for='linkAttachment')
+            |   Link Attachment
+            br
+            input#link-attachment(type='text' name='linkAttachment' value='')
+        br
 
         label(for="autoPublishText")
         input(type="checkbox" name="autoPublishText" id="autoPublishText")
         | Auto-Publish (only for text posts)
+        br
+
+        br
+        div.ghost-post-media-control
+            input(type='checkbox' name='ghostPostMedia' value='true')
+            label(for='ghostPostMedia')
+            |   Publish as Ghost Post &nbsp;
+            img#ghost-post-img(src='/img/ghost_post.png')
+        br
 
         button#poll-attachment-button(type='button' name='pollAttachment') Attach Poll 🗳️
         div#poll-attachment-options(style='display:none')
