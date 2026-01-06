@@ -9,12 +9,14 @@ async function updateMediaType(attachmentsCount, attachmentListElem) {
     const mediaTypeElem = document.getElementById('media-type');
     const spoilerMediaControl = document.querySelector('.spoiler-media-control');
     const ghostPostMediaControl = document.querySelector('.ghost-post-media-control');
+    const autoPublishTextMediaControl = document.querySelector('.auto-publish-text-media-control');
 
     let mediaTypeDesc;
     if (attachmentsCount === 0) {
         mediaTypeDesc = 'Text 📝';
         spoilerMediaControl.style.display = 'none';
         ghostPostMediaControl.style.display = 'block';
+        autoPublishTextMediaControl.style.display = 'block';
     } else if (attachmentsCount === 1) {
         const singleAttachmentType =
             attachmentListElem.querySelector('select').value;
@@ -22,10 +24,12 @@ async function updateMediaType(attachmentsCount, attachmentListElem) {
         else mediaTypeDesc = 'Video 🎬';
         spoilerMediaControl.style.display = 'block';
         ghostPostMediaControl.style.display = 'none';
+        autoPublishTextMediaControl.style.display = 'none';
     } else {
         mediaTypeDesc = 'Carousel 🎠';
         spoilerMediaControl.style.display = 'block';
         ghostPostMediaControl.style.display = 'none';
+        autoPublishTextMediaControl.style.display = 'none';
     }
 
     mediaTypeElem.innerText = mediaTypeDesc;
