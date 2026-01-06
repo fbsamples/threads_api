@@ -113,11 +113,11 @@ block content
             br
             input#link-attachment(type='text' name='linkAttachment' value='')
         br
-
-        label(for="autoPublishText")
-        input(type="checkbox" name="autoPublishText" id="autoPublishText")
-        | Auto-Publish (only for text posts)
-        br
+        div.auto-publish-text-media-control
+            label(for="autoPublishText")
+            input(type="checkbox" name="autoPublishText" id="autoPublishText")
+            | Auto-Publish (only for text posts)
+            br
 
         br
         div.ghost-post-media-control
