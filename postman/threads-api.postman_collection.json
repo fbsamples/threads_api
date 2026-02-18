@@ -449,6 +449,18 @@
 											"value": "{\"gif_id\":\"16185153483944881729\",\"provider\":\"TENOR\"}",
 											"description": "Optional field to attach a GIF to your text posts.",
 											"disabled": true
+										},
+										{
+											"key": "is_ghost_post",
+											"value": "true",
+											"description": "When this optional flag is passed, a ghost post is created which will expire after 24 hours.",
+											"disabled": true
+
+										},
+										{
+											"key": "enable_reply_approvals",
+											"value": "true",
+											"description": "Optional field to enable reply approvals on Threads Posts"
 										}
 									]
 								},
@@ -2342,6 +2354,88 @@
 							]
 						},
 						{
+							"name": "Get Threads Pending Replies",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/{{thread_id}}/pending_replies?fields={{fields_replies}}&reverse=false&approval_status=pending",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"{{thread_id}}",
+										"pending_replies"
+									],
+									"query": [
+										{
+											"key": "fields",
+											"value": "{{fields_replies}}",
+											"description": "A comma-separated list of fields for replies on Threads."
+										},
+										{
+											"key": "reverse",
+											"value": "false",
+											"description": "Whether or not replies should be sorted in reverse chronological order. The default is true if not specified."
+										},
+										{
+											"key": "approval_status",
+											"value": "pending",
+											"description": "Set to \"pending\" to only fetch pending replies, set to \"ignored\" to only fetch ignored replies"
+										}
+									]
+								},
+								"description": "Use `GET` /pending_replies [endpoint](https://developers.facebook.com/docs/threads/reply-management#retrieve-pending-replies) to fetch a paginated list of all pending replies."
+							},
+							"response": [
+								{
+									"name": "Get Threads Pending Replies",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/{{thread_id}}/pending_replies?fields={{fields_replies}}&reverse=false",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"{{thread_id}}",
+												"replies"
+											],
+											"query": [
+												{
+													"key": "fields",
+													"value": "{{fields_replies}}",
+													"description": "A comma-separated list of fields for replies on Threads."
+												},
+												{
+													"key": "reverse",
+													"value": "false",
+													"description": "Whether or not replies should be sorted in reverse chronological order. The default is true if not specified."
+												},
+												{
+													"key": "approval_status",
+													"value": "pending",
+													"description": "Set to \"pending\" to only fetch pending replies, set to \"ignored\" to only fetch ignored replies"
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json",
+											"description": "",
+											"type": "text"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"data\": [\n        {\n            \"id\": \"string\",\n            \"text\": \"reply\",\n            \"timestamp\": \"2024-09-17T20:54:47+0000\",\n            \"media_product_type\": \"THREADS\",\n            \"media_type\": \"TEXT_POST\",\n            \"permalink\": \"string\",\n            \"shortcode\": \"string\",\n            \"username\": \"string\",\n            \"is_quote_post\": false,\n            \"has_replies\": false,\n            \"is_reply\": true,\n            \"is_reply_owned_by_me\": false,\n            \"root_post\": {\n                \"id\": \"string\"\n            },\n            \"replied_to\": {\n                \"id\": \"string\"\n            }\n        }\n    ],\n    \"paging\": {\n        \"cursors\": {\n            \"before\": \"string\",\n            \"after\": \"string\"\n        }\n    }\n}"
+								}
+							]
+						},
+						{
 							"name": "Get Threads Conversations",
 							"request": {
 								"method": "GET",
@@ -2457,6 +2551,68 @@
 													"key": "hide",
 													"value": "true",
 													"description": "Set to true to hide a reply and set to false to unhide a reply."
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json",
+											"description": "",
+											"type": "text"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"success\": true\n}"
+								}
+							]
+						},
+						{
+							"name": "Manage Pending Replies",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/{{reply_thread_id}}/manage_pending_reply?approve=true",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"{{reply_thread_id}}",
+										"manage_pending_reply"
+									],
+									"query": [
+										{
+											"key": "approve",
+											"value": "true",
+											"description": "Set to true to approve a reply and set to false to ignore a reply."
+										}
+									]
+								},
+								"description": "Use `POST` /manage_pending_reply [endpoint](https://developers.facebook.com/docs/threads/reply-management#manage-pending-replies) to approve or ignore pending replies."
+							},
+							"response": [
+								{
+									"name": "Manage Pending Replies",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/{{reply_thread_id}}/manage_pending_reply?approve=true",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"{{reply_thread_id}}",
+												"manage_pending_reply"
+											],
+											"query": [
+												{
+													"key": "approve",
+													"value": "true",
+													"description": "Set to true to approve a reply and set to false to ignore a reply."
 												}
 											]
 										}
@@ -3585,11 +3741,11 @@
 		},
 		{
 			"key": "fields_threads",
-			"value": "id,media_product_type,media_type,media_url,gif_url,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,children,is_quote_post,quoted_post,reposted_post,has_replies,alt_text,link_attachment_url,poll_attachment{option_a,option_b,option_c,option_d,option_a_votes_percentage,option_b_votes_percentage,option_c_votes_percentage,option_d_votes_percentage,expiration_timestamp},location_id,topic_tag"
+			"value": "id,media_product_type,media_type,media_url,gif_url,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,children,is_quote_post,quoted_post,reposted_post,has_replies,alt_text,link_attachment_url,poll_attachment{option_a,option_b,option_c,option_d,option_a_votes_percentage,option_b_votes_percentage,option_c_votes_percentage,option_d_votes_percentage,expiration_timestamp},location_id,topic_tag,is_verified,profile_picture_url"
 		},
 		{
 			"key": "fields_replies",
-			"value": "id,text,timestamp,media_product_type,media_type,media_url,gif_url,permalink,shortcode,thumbnail_url,username,children,is_quote_post,quoted_post,reposted_post,alt_text,link_attachment_url,has_replies,is_reply,is_reply_owned_by_me,root_post,replied_to,hide_status,reply_audience,poll_attachment{option_a,option_b,option_c,option_d,option_a_votes_percentage,option_b_votes_percentage,option_c_votes_percentage,option_d_votes_percentage,expiration_timestamp},location_id,topic_tag"
+			"value": "id,text,timestamp,media_product_type,media_type,media_url,gif_url,permalink,shortcode,thumbnail_url,username,children,is_quote_post,quoted_post,reposted_post,alt_text,link_attachment_url,has_replies,is_reply,is_reply_owned_by_me,root_post,replied_to,hide_status,reply_audience,poll_attachment{option_a,option_b,option_c,option_d,option_a_votes_percentage,option_b_votes_percentage,option_c_votes_percentage,option_d_votes_percentage,expiration_timestamp},location_id,topic_tag,is_verified,profile_picture_url,reply_approval_status"
 		},
 		{
 			"key": "fields_profile",
