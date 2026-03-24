@@ -1117,8 +1117,7 @@ app.get('/oEmbed', async (req, res) => {
         `oembed`,
         {
             url,
-        },
-        `TH|${APP_ID}|${API_SECRET}`
+        }
     );
 
     let html = '<p>Unable to embed</p>';
