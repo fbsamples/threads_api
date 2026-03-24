@@ -3343,18 +3343,6 @@
 									"key": "url",
 									"value": "https://www.threads.net/@threads/post/DCkkKl_OGb1",
 									"description": "This is the URL of the Threads post to be embedded. With standard access, you may embed posts from the @meta, @threads, @instagram, and @facebook accounts."
-								},
-								{
-									"key": "access_token",
-									"value": "TH|{{app_id}}|{{app_secret}}",
-									"description": "This is your app access token. This consists of your app's ID and secret.",
-									"disabled": true
-								},
-								{
-									"key": "access_token",
-									"value": "{{app_access_token}}",
-									"description": "This is your app access token received via the GET /oauth/access_token endpoint. See the Authorization folder for details.",
-									"disabled": true
 								}
 							]
 						}
@@ -3378,18 +3366,6 @@
 											"key": "url",
 											"value": "https://www.threads.net/@threads/post/DCkkKl_OGb1",
 											"description": "This is the URL of the Threads post to be embedded. With standard access, you may embed posts from the @meta, @threads, @instagram, and @facebook accounts."
-										},
-										{
-											"key": "access_token",
-											"value": "TH|{{app_id}}|{{app_secret}}",
-											"description": "This is your app access token. This consists of your app's ID and secret.",
-											"disabled": true
-										},
-										{
-											"key": "access_token",
-											"value": "{{app_access_token}}",
-											"description": "This is your app access token received via the GET /oauth/access_token endpoint. See the Authorization folder for details.",
-											"disabled": true
 										}
 									]
 								}

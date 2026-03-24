@@ -122,9 +122,9 @@ const agent = new https.Agent({
 });
 
 const GRAPH_API_BASE_URL =
-    'https://graph.threads.net/' +
+    'https://graph.threads.com/' +
     (GRAPH_API_VERSION ? GRAPH_API_VERSION + '/' : '');
-const AUTHORIZATION_BASE_URL = 'https://www.threads.net';
+const AUTHORIZATION_BASE_URL = 'https://www.threads.com';
 
 let initial_access_token = INITIAL_ACCESS_TOKEN;
 let initial_user_id = INITIAL_USER_ID;
@@ -1117,8 +1117,7 @@ app.get('/oEmbed', async (req, res) => {
         `oembed`,
         {
             url,
-        },
-        `TH|${APP_ID}|${API_SECRET}`
+        }
     );
 
     let html = '<p>Unable to embed</p>';
