@@ -2,12 +2,12 @@ extends layout_with_account
 
 block content
     form(action='/keywordSearch' id='form' method='GET')
-        textarea(placeholder='Enter a search query' name='keyword' autocomplete='off')
+        textarea(placeholder='Enter a search query' name='keyword' autocomplete='off')=keyword
 
         label(for="search-type") Search for top or recent Threads?
         select#search-type(name='searchType')
-            option(value="TOP" selected) Top
-            option(value="RECENT") Recent
+            option(value="TOP" selected=searchType !== 'RECENT') Top
+            option(value="RECENT" selected=searchType === 'RECENT') Recent
 
         input(type='submit' value='Search')
 
@@ -39,6 +39,9 @@ block content
                                 a(href=thread.media_url target='_blank') View Media File
 
         div.paging
+            if paging.previousUrl
+                div.paging-previous
+                    a(href=paging.previousUrl) Previous
             if paging.nextUrl
                 div.paging-next
                     a(href=paging.nextUrl) Next

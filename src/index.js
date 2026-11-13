@@ -84,8 +84,10 @@ const DELETABLE_MEDIA_TYPES = [
 ];
 
 const PARAMS__ACCESS_TOKEN = 'access_token';
+const PARAMS__AFTER = 'after';
 const PARAMS__AUTO_PUBLISH_TEXT = 'auto_publish_text';
 const PARAMS__ALT_TEXT = 'alt_text';
+const PARAMS__BEFORE = 'before';
 const PARAMS__CLIENT_ID = 'client_id';
 const PARAMS__CONFIG = 'config';
 const PARAMS__DELETE_CONFIG = 'delete_config';
@@ -93,6 +95,7 @@ const PARAMS__DELETE_QUOTA_USAGE = 'delete_quota_usage';
 const PARAMS__FIELDS = 'fields';
 const PARAMS__HIDE = 'hide';
 const PARAMS__INPUT_TOKEN = 'input_token';
+const PARAMS__LIMIT = 'limit';
 const PARAMS__LINK_ATTACHMENT = 'link_attachment';
 const PARAMS__LOCATION_SEARCH_CONFIG = 'location_search_config';
 const PARAMS__LOCATION_SEARCH_QUOTA_USAGE = 'location_search_quota_usage';
@@ -1213,7 +1216,7 @@ app.get('/debug', loggedInUserChecker, async (req, res) => {
 });
 
 app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
-    const { keyword, searchType } = req.query;
+    const { keyword, searchType = 'TOP', before, after, limit } = req.query;
 
     if (!keyword) {
         return res.render('keyword_search', {
@@ -1234,6 +1237,16 @@ app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
             FIELD__MEDIA_URL,
         ].join(','),
     };
+
+    if (before) {
+        params[PARAMS__BEFORE] = before;
+    }
+    if (after) {
+        params[PARAMS__AFTER] = after;
+    }
+    if (limit !== undefined) {
+        params[PARAMS__LIMIT] = limit;
+    }
 
     const keywordSearchUrl = buildGraphAPIURL(
         `keyword_search`,
@@ -1256,13 +1269,27 @@ app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
             if (next) {
                 paging.nextUrl = getCursorUrlFromGraphApiPagingUrl(req, next);
             }
+            if (previous) {
+                paging.previousUrl = getCursorUrlFromGraphApiPagingUrl(
+                    req,
+                    previous
+                );
+            }
         }
     } catch (e) {
         console.error(e?.response?.data?.error?.message ?? e.message);
+        return res.render('keyword_search', {
+            title: 'Search for Threads',
+            keyword,
+            searchType,
+            error: e?.response?.data?.error?.message ?? e.message,
+        });
     }
 
     return res.render('keyword_search', {
         title: 'Search for Threads',
+        keyword,
+        searchType,
         threads,
         paging,
         resultsTitle: `${searchType} results for '${keyword}'`,
@@ -1546,14 +1573,17 @@ function setUrlParamIfPresent(sourceUrl, destinationUrl, paramName) {
 function getCursorUrlFromGraphApiPagingUrl(req, graphApiPagingUrl) {
     const graphUrl = new URL(graphApiPagingUrl);
 
-    const cursorUrl = new URL(
+    const requestUrl = new URL(
         req.protocol + '://' + req.get('host') + req.originalUrl
     );
+    const cursorUrl = new URL(requestUrl);
     cursorUrl.search = '';
 
-    setUrlParamIfPresent(graphUrl, cursorUrl, 'limit');
-    setUrlParamIfPresent(graphUrl, cursorUrl, 'before');
-    setUrlParamIfPresent(graphUrl, cursorUrl, 'after');
+    setUrlParamIfPresent(requestUrl, cursorUrl, 'keyword');
+    setUrlParamIfPresent(requestUrl, cursorUrl, 'searchType');
+    setUrlParamIfPresent(graphUrl, cursorUrl, PARAMS__LIMIT);
+    setUrlParamIfPresent(graphUrl, cursorUrl, PARAMS__BEFORE);
+    setUrlParamIfPresent(graphUrl, cursorUrl, PARAMS__AFTER);
     setUrlParamIfPresent(graphUrl, cursorUrl, 'username');
 
     return cursorUrl.href;
