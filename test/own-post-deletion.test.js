@@ -381,10 +381,13 @@ test('delete limits block API work and keep independent client IP budgets', asyn
     assert.equal(blocked.status, 429);
     const retryAfter = Number(blocked.headers.get('retry-after'));
     assert.ok(retryAfter > 0 && retryAfter <= 60);
+    const blockedHtml = await blocked.text();
     assert.match(
-        await blocked.text(),
-        /Too many delete requests\. Wait a minute and try again\./
+        blockedHtml,
+        /Error: Too many delete requests\. Wait a minute and try again\./
     );
+    assert.match(blockedHtml, /href="\/threads">Back to Your Posts<\/a>/);
+    assert.doesNotMatch(blockedHtml, /\.\!|action="\/repost"|quotePostId=/);
     assert.equal(reads, readCount);
     assert.equal(deletes, 10);
 
@@ -420,4 +423,73 @@ test('delete limits block API work and keep independent client IP budgets', asyn
     await otherIpBlocked.text();
     assert.equal(reads, readCount);
     assert.equal(deletes, 10);
+});
+
+test('the shared error banner preserves message punctuation and escapes text', () => {
+    const pug = appRequire('pug');
+    const template = path.join(__dirname, '../views/error.pug');
+    for (const message of [
+        'The post ID is invalid.',
+        'Already punctuated!',
+        '<script>Example error</script>.',
+    ]) {
+        const html = pug.renderFile(template, {
+            title: 'Thread',
+            error: message,
+        });
+        const escaped = message.replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+        assert.ok(html.includes(`Error: ${escaped}`));
+        assert.doesNotMatch(html, /Error Occured|\.\!|<script>Example error/);
+        assert.match(html, /href="\/threads">Back to Your Posts<\/a>/);
+        assert.doesNotMatch(html, /action="\/repost"|quotePostId=|\/undefined/);
+    }
+    const empty = pug.renderFile(template, { title: 'Thread' });
+    assert.doesNotMatch(empty, /alert-error|Error:/);
+});
+
+test('the renamed error page preserves post and deletion failure statuses', async (t) => {
+    let reads = 0;
+    const api = apiForPost(ownPost, async () => {
+        throw {
+            response: {
+                data: {
+                    error: { message: '<script>Example failure</script>.' },
+                },
+            },
+        };
+    });
+    const get = api.get;
+    api.get = async (url) => {
+        reads++;
+        return get(url);
+    };
+    const request = await startApp(t, api);
+    const invalid = await request('/threads/not-a-number');
+    assert.equal(invalid.status, 400);
+    assert.equal(reads, 0);
+    const invalidHtml = await invalid.text();
+    assert.match(invalidHtml, /Error: The post ID is invalid\./);
+    assert.match(invalidHtml, /href="\/threads">Back to Your Posts<\/a>/);
+    assert.doesNotMatch(
+        invalidHtml,
+        /Error Occured|\.\!|action="\/repost"|quotePostId=/
+    );
+    const forbidden = await deleteRequest(request, 'synthetic-invalid-token');
+    assert.equal(forbidden.status, 403);
+    assert.equal(reads, 0);
+    assert.match(
+        await forbidden.text(),
+        /Error: The request could not be verified\./
+    );
+    const token = await csrfToken(request);
+    const failed = await deleteRequest(request, token);
+    assert.equal(failed.status, 502);
+    assert.equal(failed.headers.get('location'), null);
+    const failedHtml = await failed.text();
+    assert.match(
+        failedHtml,
+        /Error: &lt;script&gt;Example failure&lt;\/script&gt;\./
+    );
+    assert.doesNotMatch(failedHtml, /<script>Example failure|\.\!/);
+    assert.match(failedHtml, /href="\/threads">Back to Your Posts<\/a>/);
 });

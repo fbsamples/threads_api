@@ -678,7 +678,7 @@ app.post('/publish', upload.array(), async (req, res) => {
 app.get('/threads/:threadId', loggedInUserChecker, async (req, res) => {
     const { threadId } = req.params;
     if (!/^\d+$/.test(threadId)) {
-        return res.status(400).render('delete_post', {
+        return res.status(400).render('error', {
             title: 'Thread',
             error: 'The post ID is invalid.',
         });
@@ -861,7 +861,7 @@ const deleteRateLimit = rateLimit({
     standardHeaders: 'draft-8',
     legacyHeaders: false,
     handler: (_req, res, _next, options) => {
-        res.status(options.statusCode).render('delete_post', {
+        res.status(options.statusCode).render('error', {
             title: 'Delete Post',
             error: 'Too many delete requests. Wait a minute and try again.',
         });
@@ -877,7 +877,7 @@ app.post(
         const { threadId } = req.params;
         const title = 'Delete Post';
         if (!/^\d+$/.test(threadId)) {
-            return res.status(400).render('delete_post', {
+            return res.status(400).render('error', {
                 title,
                 error: 'The post ID is invalid.',
             });
@@ -887,7 +887,7 @@ app.post(
             typeof req.body.csrfToken !== 'string' ||
             req.body.csrfToken !== req.session.deleteCsrfToken
         ) {
-            return res.status(403).render('delete_post', {
+            return res.status(403).render('error', {
                 title,
                 error: 'The request could not be verified. Open your posts and try again.',
             });
@@ -917,7 +917,7 @@ app.post(
                 httpsAgent: agent,
             });
             if (!DELETABLE_MEDIA_TYPES.includes(postResponse.data.media_type)) {
-                return res.status(403).render('delete_post', {
+                return res.status(403).render('error', {
                     title,
                     error: 'This post type is not supported for deletion in this sample.',
                 });
@@ -927,7 +927,7 @@ app.post(
                 postResponse.data.id !== threadId ||
                 postResponse.data.owner?.id !== userResponse.data.id
             ) {
-                return res.status(403).render('delete_post', {
+                return res.status(403).render('error', {
                     title,
                     error: 'This post cannot be deleted. Choose one of your posts on the Threads page.',
                 });
@@ -945,7 +945,7 @@ app.post(
                 response.data.success !== true ||
                 response.data.deleted_id !== threadId
             ) {
-                return res.status(502).render('delete_post', {
+                return res.status(502).render('error', {
                     title,
                     error: 'Deletion was not confirmed. Refresh your posts before trying again.',
                 });
@@ -956,7 +956,7 @@ app.post(
                 e?.response?.data?.error?.message ??
                 'Unable to confirm deletion. Refresh your posts before trying again.';
             console.error(error);
-            return res.status(502).render('delete_post', { title, error });
+            return res.status(502).render('error', { title, error });
         }
     }
 );
