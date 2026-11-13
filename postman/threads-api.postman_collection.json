@@ -336,7 +336,7 @@
 							"_postman_previewlanguage": null,
 							"header": null,
 							"cookie": [],
-							"body": "{\n    \"access_token\": \"TH|1234567890|abcd1234\",\n    \"token_type\": \"bearer\"\n}"
+							"body": "{\n    \"access_token\": \"<ACCESS_TOKEN>\",\n    \"token_type\": \"bearer\"\n}"
 						}
 					]
 				}
@@ -2924,6 +2924,7 @@
 							"name": "Delete Threads Post",
 							"request": {
 								"method": "DELETE",
+								"description": "Deletes a post created by the authenticated user. Requires threads_delete. Deletion cannot be undone. Use a test app and test user.",
 								"header": [],
 								"url": {
 									"raw": "{{api_host}}/{{thread_id}}",

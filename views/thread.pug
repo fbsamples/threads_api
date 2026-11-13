@@ -106,3 +106,10 @@ block content
                     form(action='/repost' method='post')
                         input(type='hidden' name='repostId' value=threadId)
                         button(type='submit') Repost
+            if canDelete
+                tr
+                    td Delete
+                    td
+                        form(action=`/threads/${threadId}/delete` method='POST' onsubmit="return confirm('Are you sure? This permanently deletes your post and cannot be undone.');")
+                            input(type='hidden' name='csrfToken' value=csrfToken)
+                            button(type='submit' aria-label='Delete Post' title='Delete Post') 🗑

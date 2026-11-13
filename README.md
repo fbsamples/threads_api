@@ -7,11 +7,23 @@ You can use this Sample App to test the [Threads API](https://developers.faceboo
 1. Make sure that you are using the APP ID and Secret defined for the Threads API of your app. These ARE not the same as the regular app ID and app secret.
 2. Make sure you add your application's redirect URL e.g. https://threads-sample.meta:8000/callback, to your app's redirect callback URLs in the app dashboard.
 
+## Delete Your Posts
+
+On the Threads page, use the trash button beside one of your posts to delete it. Eligible post detail pages also show Delete after Quote and Repost. Confirm the warning to continue, or cancel to leave the post unchanged. Deletion cannot be undone.
+
+The app checks the authenticated user and post owner before requesting deletion. It returns to your posts only after the API confirms success. Delete controls are shown on your posts list and eligible post detail pages, not the replies list. Reposts are not supported.
+
+Deletion requires `threads_delete`. See [Delete Posts](https://developers.facebook.com/documentation/threads/posts/delete-posts) for permissions and limits. Use a test app and test user when trying this feature.
+
+The deletion route uses `express-rate-limit` to allow 10 requests per minute per IPv4 address or IPv6 subnet. Limits apply within one running app process. Excess requests show a retry message without calling the API.
+
+Run `npm test` to check deletion safeguards with mocked API responses. These tests do not call the Threads API.
+
 ## Required software
 
 In order to run the Sample App you will need to install some required software, as follows:
 
--   Node JS
+-   Node.js 18 or later
 
 ## Running the Sample App
 
