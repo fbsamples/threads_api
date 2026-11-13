@@ -65,7 +65,11 @@ Note: If you are using devcontainers, ensure that containers are enabled and sup
 
 ## Keyword and Topic Tag Search
 
-Select Keyword or Topic Tag under Search Mode, enter your query, then choose Top or Recent. Next, Previous and API errors keep your query and search mode.
+Choose Keyword or Topic Tag under Search Mode. Enter your query and select Top or Recent under Results Order.
+
+Use Previous or Next to browse results. Your query and search mode stay unchanged between pages. If a search fails, the page shows an error without clearing your selections.
+
+The results table shows each post's returned topic tag. A missing tag leaves the cell blank. Creation dates are shown in UTC. If a date cannot be parsed, the table keeps its original text.
 
 See [Keyword and Topic Tag Search](https://developers.facebook.com/documentation/threads/keyword-search) for permissions and limits.
 

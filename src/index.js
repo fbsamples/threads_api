@@ -679,6 +679,18 @@ app.post('/publish', upload.array(), async (req, res) => {
     }
 });
 
+function formatPostTimestamp(timestamp) {
+    if (typeof timestamp !== 'string' || timestamp.trim() === '')
+        return timestamp;
+    const date = DateTime.fromISO(timestamp, { zone: 'utc', setZone: true });
+    return date.isValid
+        ? date
+              .toUTC()
+              .setLocale('en')
+              .toFormat("LLLL d, yyyy 'at' h:mm a 'UTC'")
+        : timestamp;
+}
+
 app.get('/threads/:threadId', loggedInUserChecker, async (req, res) => {
     const { threadId } = req.params;
     if (!/^\d+$/.test(threadId)) {
@@ -1246,6 +1258,7 @@ app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
             FIELD__ID,
             FIELD__TIMESTAMP,
             FIELD__MEDIA_TYPE,
+            FIELD__TOPIC_TAG,
             FIELD__TEXT,
             FIELD__PERMALINK,
             FIELD__MEDIA_URL,
@@ -1309,6 +1322,7 @@ app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
         searchMode,
         threads,
         paging,
+        formatPostTimestamp,
         resultsTitle: `${resultTypeLabel} ${
             searchMode === 'TAG' ? 'Topic Tag' : 'Keyword'
         } Results for '${keyword}'`,

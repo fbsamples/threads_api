@@ -267,15 +267,87 @@ test('keyword mode is the default and invalid modes do not reach the API', async
 test('topic tag search errors preserve the mode and render escaped error text', async (t) => {
     const request = await startApp(t, async () => {
         throw {
-            response: { data: { error: { message: 'Permission <denied>.' } } },
+            response: {
+                data: {
+                    error: { message: '(#100) Unsupported field <topic_tag>.' },
+                },
+            },
         };
     });
     const html = await (
-        await request('/keywordSearch?keyword=music&searchMode=TAG')
+        await request(
+            '/keywordSearch?keyword=music&searchMode=TAG&searchType=RECENT'
+        )
     ).text();
     assert.match(html, /<option value="TAG" selected/);
+    assert.match(html, /<option value="RECENT" selected/);
     assert.match(html, /<textarea[^>]*>music<\/textarea>/);
-    assert.match(html, /Permission &lt;denied&gt;\./);
-    assert.doesNotMatch(html, /Permission <denied>/);
+    assert.match(html, /\(#100\) Unsupported field &lt;topic_tag&gt;\./);
+    assert.doesNotMatch(html, /Unsupported field <topic_tag>/);
     assert.doesNotMatch(html, />Next<|>Previous</);
+});
+
+test('search results request and display the returned topic tag without inventing a missing tag', async (t) => {
+    const request = await startApp(t, async (url) => {
+        assert.ok(
+            new URL(url).searchParams
+                .get('fields')
+                .split(',')
+                .includes('topic_tag')
+        );
+        return {
+            data: {
+                data: [
+                    {
+                        id: '123',
+                        username: 'example-author',
+                        text: 'Example tagged post',
+                        timestamp: '2026-01-02T14:30:00+0200',
+                        topic_tag: 'Returned NBA & News',
+                        permalink: 'https://example.com/tagged',
+                        media_url: 'https://example.com/media',
+                    },
+                    {
+                        id: '456',
+                        username: 'example-author',
+                        text: 'Example untagged post',
+                        timestamp: '<script>invalid timestamp</script>',
+                        topic_tag: null,
+                        permalink: 'https://example.com/untagged',
+                    },
+                    {
+                        id: '789',
+                        username: 'example-author',
+                        text: 'Example post with an omitted tag',
+                    },
+                ],
+            },
+        };
+    });
+    const html = await (
+        await request('/keywordSearch?keyword=Requested+Topic&searchMode=TAG')
+    ).text();
+    const table = html.match(
+        /<table class="threads-list">[\s\S]*?<\/table>/
+    )[0];
+    assert.match(table, /<th scope="col">Topic Tag<\/th>/);
+    for (const label of ['Post ID', 'Creation Date and Time', 'Post Link']) {
+        assert.ok(table.includes(`<th scope="col">${label}</th>`));
+    }
+    assert.doesNotMatch(table, /<th[^>]*>(?:ID|Created On|Permalink)<\/th>/);
+    assert.match(table, /January 2, 2026 at 12:30 PM UTC/);
+    assert.match(table, /&lt;script&gt;invalid timestamp&lt;\/script&gt;/);
+    assert.doesNotMatch(table, /<script>invalid timestamp/);
+    assert.match(table, /<td class="thread-timestamp"><\/td>/);
+    assert.match(table, /Returned NBA &amp; News/);
+    assert.equal(
+        (table.match(/<td class="thread-topic-tag"><\/td>/g) || []).length,
+        2
+    );
+    assert.doesNotMatch(table, /Not Provided|Requested Topic/);
+    assert.match(table, />View Media File<\/a>/);
+    assert.match(
+        html,
+        /role="region" aria-label="Search Results" tabindex="0"/
+    );
 });

@@ -1,53 +1,62 @@
 extends layout_with_account
 
+block head
+    meta(name='viewport' content='width=device-width, initial-scale=1')
+
 block content
-    form(action='/keywordSearch' id='form' method='GET')
-        label(for='search-mode') Search Mode
-        select#search-mode(name='searchMode')
-            option(value='KEYWORD' selected=searchMode !== 'TAG') Keyword
-            option(value='TAG' selected=searchMode === 'TAG') Topic Tag
+    .keyword-search
+        form.keyword-search-form(action='/keywordSearch' id='form' method='GET')
+            .search-basic-controls
+                .search-field
+                    label(for='search-mode') Search Mode
+                    select#search-mode(name='searchMode')
+                        option(value='KEYWORD' selected=searchMode !== 'TAG') Keyword
+                        option(value='TAG' selected=searchMode === 'TAG') Topic Tag
+                .search-field
+                    label(for='search-type') Results Order
+                    select#search-type(name='searchType')
+                        option(value='TOP' selected=searchType !== 'RECENT') Top
+                        option(value='RECENT' selected=searchType === 'RECENT') Recent
+            .search-field
+                label(for='search-query') Search Query
+                textarea#search-query(placeholder='Enter a search query' name='keyword' autocomplete='off' rows='2')=keyword
+            .search-actions
+                input(type='submit' value='Search')
 
-        label(for='search-query') Search Query
-        textarea#search-query(placeholder='Enter a search query' name='keyword' autocomplete='off')=keyword
-
-        label(for="search-type") Search for top or recent Threads?
-        select#search-type(name='searchType')
-            option(value="TOP" selected=searchType !== 'RECENT') Top
-            option(value="RECENT" selected=searchType === 'RECENT') Recent
-
-        input(type='submit' value='Search')
-
-    if threads
-        h2=resultsTitle
-        table.threads-list
-            thead
-                tr
-                    th Username
-                    th ID
-                    th Created On
-                    th Media Type
-                    th Text
-                    th Permalink
-                    th Media URL
-            tbody
-                each thread in threads
-                    tr.threads-list-item
-                        td.thread-username=thread.username
-                        td.thread-id
-                            a(href=`/threads/${thread.id}`)=thread.id
-                        td.thread-timestamp=thread.timestamp
-                        td.thread-type=thread.media_type
-                        td.thread-text=thread.text
-                        td.thread-permalink
-                            a(href=thread.permalink target='_blank') View on Threads
-                        td.thread-media-url
-                            if thread.media_url
-                                a(href=thread.media_url target='_blank') View Media File
-
-        div.paging
-            if paging.previousUrl
-                div.paging-previous
-                    a(href=paging.previousUrl) Previous
-            if paging.nextUrl
-                div.paging-next
-                    a(href=paging.nextUrl) Next
+        if threads
+            h2.search-results-heading=resultsTitle
+            p.search-table-hint Scroll horizontally to see all columns on smaller screens.
+            .search-table-region(role='region' aria-label='Search Results' tabindex='0')
+                table.threads-list
+                    thead
+                        tr
+                            th(scope='col') Username
+                            th(scope='col') Post ID
+                            th(scope='col') Creation Date and Time
+                            th(scope='col') Media Type
+                            th(scope='col') Topic Tag
+                            th(scope='col') Text
+                            th(scope='col') Post Link
+                            th(scope='col') Media URL
+                    tbody
+                        each thread in threads
+                            tr.threads-list-item
+                                td.thread-username=thread.username
+                                td.thread-id
+                                    a(href=`/threads/${thread.id}`)=thread.id
+                                td.thread-timestamp=formatPostTimestamp(thread.timestamp)
+                                td.thread-type=thread.media_type
+                                td.thread-topic-tag=typeof thread.topic_tag === 'string' && thread.topic_tag.trim() ? thread.topic_tag : ''
+                                td.thread-text=thread.text
+                                td.thread-permalink
+                                    a(href=thread.permalink target='_blank' rel='noopener noreferrer') View on Threads
+                                td.thread-media-url
+                                    if thread.media_url
+                                        a(href=thread.media_url target='_blank' rel='noopener noreferrer') View Media File
+            div.paging
+                if paging.previousUrl
+                    div.paging-previous
+                        a(href=paging.previousUrl) Previous
+                if paging.nextUrl
+                    div.paging-next
+                        a(href=paging.nextUrl) Next
