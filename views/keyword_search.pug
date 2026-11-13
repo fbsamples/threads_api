@@ -22,6 +22,16 @@ block content
                 textarea#search-query(placeholder='Enter a search query…' name='keyword' autocomplete='off' rows='2')=keyword
             .search-filter-controls
                 .search-field
+                    label(for='media-type') Media Type
+                    select#media-type(name='mediaType')
+                        option(value='' selected=!mediaType) All Media Types
+                        option(value='TEXT' selected=mediaType === 'TEXT') Text
+                        option(value='IMAGE' selected=mediaType === 'IMAGE') Image
+                        option(value='VIDEO' selected=mediaType === 'VIDEO') Video
+                .search-field
+                    label(for='author-username') Author Username
+                    input#author-username(type='text' name='authorUsername' value=authorUsername placeholder='Username without @')
+                .search-field
                     label(for='since') Since
                     input#since(type='text' name='since' value=since placeholder='YYYY-MM-DD or Unix timestamp')
                 .search-field

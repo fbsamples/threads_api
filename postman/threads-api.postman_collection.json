@@ -3148,6 +3148,18 @@
 									"value": "2025-02-01",
 									"description": "Query string parameter representing the end date for retrieval (must be a Unix timestamp or a date/time representation parseable by strtotime();, the timestamp must be less than or equal to the current timestamp and greater than the since parameter).",
 									"disabled": true
+								},
+								{
+									"key": "media_type",
+									"value": "IMAGE",
+									"description": "Filter by TEXT, IMAGE or VIDEO.",
+									"disabled": true
+								},
+								{
+									"key": "author_username",
+									"value": "<AUTHOR_USERNAME>",
+									"description": "Filter by the exact author username without the @ symbol.",
+									"disabled": true
 								}
 							]
 						}

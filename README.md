@@ -73,6 +73,8 @@ The results table shows each post's returned topic tag. A missing tag leaves the
 
 Use Since and Until to filter by date or Unix timestamp. Page Size accepts a whole number from 0 to 100. Leave optional filters blank to use the API defaults. The form keeps your filters when a request returns an error.
 
+Media Type filters by Text, Image or Video. Choose All Media Types to leave that filter off. Enter the exact Author Username without @ to show only that profile's matching posts.
+
 See [Keyword and Topic Tag Search](https://developers.facebook.com/documentation/threads/keyword-search) for permissions and limits.
 
 ## Tests
