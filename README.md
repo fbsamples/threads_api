@@ -1,85 +1,64 @@
-# Threads Publishing API Sample App
+# Threads API Sample App
 
-> ⚠️ We will update the sample app over time. Please note that all of the latest features may not be demonstrated in the sample app. Please refer to the [developer documentation changelog](https://developers.facebook.com/docs/threads/changelog) for the most up-to-date features.
+Use this app to try the [Threads API](https://developers.facebook.com/documentation/threads) with a local web interface and Postman examples. The app does not demonstrate every API feature. See the [Changelog](https://developers.facebook.com/documentation/threads/changelog) for current API capabilities.
 
-You can use this Sample App to test the [Threads API](https://developers.facebook.com/docs/threads).
+## Setup
 
-1. Make sure that you are using the APP ID and Secret defined for the Threads API of your app. These ARE not the same as the regular app ID and app secret.
-2. Make sure you add your application's redirect URL e.g. https://threads-sample.meta:8000/callback, to your app's redirect callback URLs in the app dashboard.
+You need Node.js 18 or later and [mkcert](https://github.com/FiloSottile/mkcert). You can also use the repository's [Dev Container](https://code.visualstudio.com/docs/devcontainers/containers).
 
-## Delete Your Posts
+1. Install dependencies with `npm install`.
+2. Copy `.env.template` to `.env`. Set `APP_ID` and `API_SECRET` to the Threads app ID and Threads app secret from your app dashboard. They differ from the app's main app ID and app secret. Replace `SESSION_SECRET` with a random value.
+3. Add `https://threads-sample.meta:8000/callback` to your app's allowed redirect URLs. Keep it consistent with `REDIRECT_URI` in `.env`.
+4. Add the following entry to your hosts file (`/etc/hosts` on macOS or Linux):
 
-On the Threads page, use the trash button beside one of your posts to delete it. Eligible post detail pages also show Delete after Quote and Repost. Confirm the warning to continue, or cancel to leave the post unchanged. Deletion cannot be undone.
+    ```text
+    127.0.0.1 threads-sample.meta
+    ```
 
-The app checks the authenticated user and post owner before requesting deletion. It returns to your posts only after the API confirms success. Delete controls are shown on your posts list and eligible post detail pages, not the replies list. Reposts are not supported.
+5. For first-time certificate setup, run `mkcert -install`. This installs a local certificate authority and changes your system or browser trust store.
+6. Run `mkcert threads-sample.meta` from the repository root. This creates `threads-sample.meta.pem` and `threads-sample.meta-key.pem` for local HTTPS.
+7. Run `npm start`, then open `https://threads-sample.meta:8000` and sign in.
 
-Deletion requires `threads_delete`. See [Delete Posts](https://developers.facebook.com/documentation/threads/posts/delete-posts) for permissions and limits. Use a test app and test user when trying this feature.
+If you use another domain or port, update `HOST`, `PORT`, `REDIRECT_URI`, the hosts entry, certificate filenames and app redirect settings together. OAuth redirects require HTTPS. Threads redirect URLs cannot use `localhost`, so the sample uses a mapped domain.
 
-The deletion route uses `express-rate-limit` to allow 10 requests per minute per IPv4 address or IPv6 subnet. Limits apply within one running app process. Excess requests show a retry message without calling the API.
+If you use a Dev Container, installing the CA inside it does not make your host browser trust it. Follow [Installing the CA on Other Systems](https://github.com/FiloSottile/mkcert#installing-the-ca-on-other-systems) to trust that CA on the host without copying its private key.
 
-Run `npm test` to check deletion safeguards with mocked API responses. These tests do not call the Threads API.
+Keep `.env`, access tokens, private certificate keys and mkcert's CA private key local. Never add them to commits, screenshots or shared examples. Use a test app and test user when trying publishing, reply management or deletion.
 
-## Required software
+## Features
 
-In order to run the Sample App you will need to install some required software, as follows:
+-   **Publishing.** Create text, image, video and carousel posts. Try replies, quotes, reposts, topic tags, links, alternative text, polls, spoilers and ghost posts. The upload form includes an auto-publish option for text posts.
+-   **Post Browsing.** View your posts, replies and mentions, inspect post details, and browse direct replies or a conversation.
+-   **Reply Management.** The direct-replies view includes Hide and Unhide controls.
+-   **Search.** Search by keyword or topic tag with Top or Recent results. Refine by date, page size, media type or author username. Search state is retained through paging and errors. Creation times are shown in UTC. See the [Search Guide](https://developers.facebook.com/documentation/threads/keyword-search) for options, permissions and limits.
+-   **Profiles.** Look up a public profile and browse its posts.
+-   **Insights.** View user and post metrics. Use Since and Until to filter by date.
+-   **Tools.** Inspect an access token, view publishing quotas, and try oEmbed with a post URL.
+-   **Deletion.** Delete eligible posts you own from the posts list or post details. See the guidance below.
 
--   Node.js 18 or later
+API permissions and restrictions still apply. Start with the [Developer Documentation](https://developers.facebook.com/documentation/threads) for each workflow.
 
-## Running the Sample App
+### Delete Your Posts
 
-Note: If you are using devcontainers, ensure that containers are enabled and supported by your IDE.
+Use the trash button beside an eligible post in your list, or Delete after Quote and Repost on its detail page. Confirm to continue, or cancel to leave the post unchanged. Deletion cannot be undone. The app checks the authenticated user and post owner, and returns to the list only after the API confirms success. Reposts are not supported for deletion in this sample.
 
-1. Install necessary tools
+Deletion requires `threads_delete`. The route allows 10 requests per minute per IPv4 address or IPv6 subnet within one running app process. See [Delete Posts](https://developers.facebook.com/documentation/threads/posts/delete-posts) for API permissions and limits.
 
-    - If you are using a [devcontainer](https://code.visualstudio.com/docs/devcontainers/containers), skip to step 2.
-    - Install [nodeJS](https://nodejs.org/en/download/) to run the application. If you're using a Mac, you can install it via Homebrew: `brew install node`
-    - Install [mkcert](https://mkcert.org/) to create the OpenSSL Certificate. If you're using a Mac, you can install it via Homebrew: `brew install mkcert`
+## Postman Examples
 
-2. Run `npm install` in your terminal
+The collection is in `postman/threads-api.postman_collection.json`. Import it into Postman to explore request examples. Examples can cover API options that are not exposed in the web interface. Keep real credentials in your local environment, not in the collection.
 
-3. Create a new file called `.env` and copy/paste all the environment variables from `.env.template`. Replace any environnment variables that have placeholders, such as APP_ID.
+## Testing and Small Changes
 
-4. Map a domain to your local machine for local development
+Run `npm test` for mocked search modes, filters, pagination, deletion and error-rendering regressions. These tests do not call the Threads API. Check formatting on the files you change, for example `npx prettier --check README.md`.
 
-    - Note: Threads apps do not support redirect URLs with using `localhost` so you must map a domain to test locally this Sample App.
-    - Map a new entry in your hosts file to the domain that you will use to test the Sample App e.g. `threads-sample.meta`.
-    - If you're using a Linux or Mac, this will be your `/etc/hosts` file.
-    - Add an entry like so:
-        ```
-        127.0.0.1   threads-sample.meta
-        ```
-    - This will map threads-sample.meta to localhost, so you may visit https://threads-sample.meta:8000 to see the Threads Sample App.
-    - This domain must match the one defined in your `.env` file as the value of the `HOST` variable.
+For people and coding agents changing the sample:
 
-5. Create an OpenSSL Cert
-
-    - OAuth redirects are only supported over HTTPS so you must create an SSL certificate
-    - `mkcert threads-sample.meta` - This will create pem files for SSL.
-    - You will see `threads-sample.meta.pem` and `threads-sample.meta-key.pem `files generated.
-    - If you are using a host that is different than `threads-sample.meta` then replace it with your specific domain.
-
-6. Run the Sample App
-    - Run `npm start` from the command line.
-    - Once the Sample App starts running, go to https://threads-sample.meta:8000 to test the workflow.
-    - If you are using a different domain or port then replace those values accordingly.
-
-## Keyword and Topic Tag Search
-
-Choose Keyword or Topic Tag under Search Mode. Enter your query and select Top or Recent under Results Order.
-
-Use Previous or Next to browse results. Your query and search mode stay unchanged between pages. If a search fails, the page shows an error without clearing your selections.
-
-The results table shows each post's returned topic tag. A missing tag leaves the cell blank. Creation dates are shown in UTC. If a date cannot be parsed, the table keeps its original text.
-
-Use Since and Until to filter by date or Unix timestamp. Page Size accepts a whole number from 0 to 100. Leave optional filters blank to use the API defaults. The form keeps your filters when a request returns an error.
-
-Media Type filters by Text, Image or Video. Choose All Media Types to leave that filter off. Enter the exact Author Username without @ to show only that profile's matching posts.
-
-See [Keyword and Topic Tag Search](https://developers.facebook.com/documentation/threads/keyword-search) for permissions and limits.
-
-## Tests
-
-Run `npm test` to check search modes, filters and pagination with mocked API responses. These tests do not call the Threads API.
+-   Keep each change focused and easy to review. Read the current public API documentation before adding a field or endpoint.
+-   Keep backend routes in `src/index.js`, use CommonJS and the existing `FIELD__`, `PARAMS__` and `MEDIA_TYPE__` constants, and use Pug templates in `views/`.
+-   Add a small regression for the behavior you change. Update setup instructions, `.env.template` or Postman examples when relevant.
+-   Keep feature descriptions brief and consistent with this overview. Preserve necessary safety guidance without adding large feature-specific sections or repeated testing text.
+-   Use synthetic values in fixtures. Report only checks that actually ran, and keep secrets and user data out of the repository.
 
 ## License
 
