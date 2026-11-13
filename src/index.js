@@ -6,6 +6,7 @@
  */
 
 const express = require('express');
+const { rateLimit } = require('express-rate-limit');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const axios = require('axios');
@@ -854,8 +855,22 @@ app.get('/threads', loggedInUserChecker, async (req, res) => {
     });
 });
 
+const deleteRateLimit = rateLimit({
+    windowMs: 60 * 1000,
+    limit: 10,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    handler: (_req, res, _next, options) => {
+        res.status(options.statusCode).render('delete_post', {
+            title: 'Delete Post',
+            error: 'Too many delete requests. Wait a minute and try again.',
+        });
+    },
+});
+
 app.post(
     '/threads/:threadId/delete',
+    deleteRateLimit,
     loggedInUserChecker,
     upload.array(),
     async (req, res) => {

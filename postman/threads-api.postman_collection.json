@@ -336,7 +336,7 @@
 							"_postman_previewlanguage": null,
 							"header": null,
 							"cookie": [],
-							"body": "{\n    \"access_token\": \"TH|1234567890|abcd1234\",\n    \"token_type\": \"bearer\"\n}"
+							"body": "{\n    \"access_token\": \"<ACCESS_TOKEN>\",\n    \"token_type\": \"bearer\"\n}"
 						}
 					]
 				}

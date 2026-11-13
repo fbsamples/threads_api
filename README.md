@@ -15,13 +15,15 @@ The app checks the authenticated user and post owner before requesting deletion.
 
 Deletion requires `threads_delete`. See [Delete Posts](https://developers.facebook.com/documentation/threads/posts/delete-posts) for permissions and limits. Use a test app and test user when trying this feature.
 
+The deletion route uses `express-rate-limit` to allow 10 requests per minute per IPv4 address or IPv6 subnet. Limits apply within one running app process. Excess requests show a retry message without calling the API.
+
 Run `npm test` to check deletion safeguards with mocked API responses. These tests do not call the Threads API.
 
 ## Required software
 
 In order to run the Sample App you will need to install some required software, as follows:
 
--   Node JS
+-   Node.js 18 or later
 
 ## Running the Sample App
 

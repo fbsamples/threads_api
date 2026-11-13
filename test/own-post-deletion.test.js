@@ -24,7 +24,7 @@ const ownPost = {
     text: 'Test post',
 };
 
-async function startApp(t, api, authenticated = true) {
+async function startApp(t, api, authenticated = true, onApp) {
     const app = vm.runInNewContext(
         fs.readFileSync(entryPath, 'utf8') + '\napp;',
         {
@@ -50,6 +50,7 @@ async function startApp(t, api, authenticated = true) {
         },
         { filename: entryPath }
     );
+    onApp?.(app);
     const server = http.createServer(app);
     server.listen(0, '127.0.0.1');
     await once(server, 'listening');
@@ -351,4 +352,72 @@ test('signed-out and nonnumeric detail requests do not call the API', async (t) 
     assert.equal((await signedOut('/threads/123')).status, 302);
     const request = await startApp(t, api);
     assert.equal((await request('/threads/%2F%2Fexample.com')).status, 400);
+});
+
+test('delete limits block API work and keep independent client IP budgets', async (t) => {
+    let app;
+    let reads = 0;
+    let deletes = 0;
+    const api = apiForPost(ownPost, async () => {
+        deletes++;
+        return { data: { success: true, deleted_id: ownPost.id } };
+    });
+    const get = api.get;
+    api.get = async (url) => {
+        reads++;
+        return get(url);
+    };
+    const request = await startApp(t, api, true, (instance) => {
+        app = instance;
+    });
+    const token = await csrfToken(request);
+    for (let i = 0; i < 10; i++) {
+        const response = await deleteRequest(request, token);
+        assert.equal(response.status, 303);
+        await response.text();
+    }
+    const readCount = reads;
+    const blocked = await deleteRequest(request, token);
+    assert.equal(blocked.status, 429);
+    const retryAfter = Number(blocked.headers.get('retry-after'));
+    assert.ok(retryAfter > 0 && retryAfter <= 60);
+    assert.match(
+        await blocked.text(),
+        /Too many delete requests\. Wait a minute and try again\./
+    );
+    assert.equal(reads, readCount);
+    assert.equal(deletes, 10);
+
+    async function signedOutClient(host) {
+        const server = http.createServer(app);
+        server.listen(0, host);
+        await once(server, 'listening');
+        t.after(() => new Promise((resolve) => server.close(resolve)));
+        const address = host.includes(':') ? `[${host}]` : host;
+        return () =>
+            fetch(
+                `http://${address}:${server.address().port}/threads/123/delete`,
+                {
+                    method: 'POST',
+                    redirect: 'manual',
+                    signal: AbortSignal.timeout(10000),
+                }
+            );
+    }
+    const sameIp = await signedOutClient('127.0.0.1');
+    const sameIpResponse = await sameIp();
+    assert.equal(sameIpResponse.status, 429);
+    await sameIpResponse.text();
+    const otherIp = await signedOutClient('::1');
+    for (let i = 0; i < 10; i++) {
+        const response = await otherIp();
+        assert.equal(response.status, 302);
+        await response.text();
+    }
+    const otherIpBlocked = await otherIp();
+    assert.equal(otherIpBlocked.status, 429);
+    assert.ok(Number(otherIpBlocked.headers.get('retry-after')) > 0);
+    await otherIpBlocked.text();
+    assert.equal(reads, readCount);
+    assert.equal(deletes, 10);
 });
