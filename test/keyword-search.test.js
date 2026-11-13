@@ -82,6 +82,8 @@ test('search pagination keeps the query, replaces cursors, and excludes tokens',
               }
             : {
                   next: 'https://graph.threads.com/keyword_search?limit=5&after=next%2B%2F%3D&access_token=private-api-token',
+                  previous:
+                      'https://graph.threads.com/keyword_search?limit=5&before=back%2B%2F%3D&access_token=private-api-token',
               };
         return { data: { data: [], paging } };
     });
@@ -99,6 +101,10 @@ test('search pagination keeps the query, replaces cursors, and excludes tokens',
     assert.equal(response.status, 200);
     assert.match(html, /<option value="RECENT" selected/);
     const next = pagingLink(html, 'Next');
+    const previousPosition = html.indexOf('>Previous</a>');
+    assert.ok(
+        previousPosition >= 0 && previousPosition < html.indexOf('>Next</a>')
+    );
     assert.equal(next.pathname, '/keywordSearch');
     assert.equal(next.searchParams.get('keyword'), query);
     assert.equal(next.searchParams.get('searchType'), 'RECENT');

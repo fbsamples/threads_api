@@ -39,9 +39,9 @@ block content
                                 a(href=thread.media_url target='_blank') View Media File
 
         div.paging
-            if paging.nextUrl
-                div.paging-next
-                    a(href=paging.nextUrl) Next
             if paging.previousUrl
                 div.paging-previous
                     a(href=paging.previousUrl) Previous
+            if paging.nextUrl
+                div.paging-next
+                    a(href=paging.nextUrl) Next
