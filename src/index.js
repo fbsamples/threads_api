@@ -112,6 +112,7 @@ const PARAMS__REPLY_TO_ID = 'reply_to_id';
 const PARAMS__RESPONSE_TYPE = 'response_type';
 const PARAMS__RETURN_URL = 'return_url';
 const PARAMS__SCOPE = 'scope';
+const PARAMS__SEARCH_MODE = 'search_mode';
 const PARAMS__SEARCH_TYPE = 'search_type';
 const PARAMS__TEXT = 'text';
 const PARAMS__TOPIC_TAG = 'topic_tag';
@@ -1217,15 +1218,28 @@ app.get('/debug', loggedInUserChecker, async (req, res) => {
 
 app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
     const { keyword, searchType = 'TOP', before, after, limit } = req.query;
+    const { searchMode = 'KEYWORD' } = req.query;
+
+    if (!['KEYWORD', 'TAG'].includes(searchMode)) {
+        return res.status(400).render('keyword_search', {
+            title: 'Search for Threads',
+            keyword,
+            searchType,
+            searchMode,
+            error: 'Choose Keyword or Topic Tag for the search mode.',
+        });
+    }
 
     if (!keyword) {
         return res.render('keyword_search', {
             title: 'Search for Threads',
+            searchMode,
         });
     }
 
     const params = {
         [PARAMS__Q]: keyword,
+        [PARAMS__SEARCH_MODE]: searchMode,
         [PARAMS__SEARCH_TYPE]: searchType,
         [PARAMS__FIELDS]: [
             FIELD__USERNAME,
@@ -1282,17 +1296,22 @@ app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
             title: 'Search for Threads',
             keyword,
             searchType,
+            searchMode,
             error: e?.response?.data?.error?.message ?? e.message,
         });
     }
 
+    const resultTypeLabel = searchType === 'RECENT' ? 'Recent' : 'Top';
     return res.render('keyword_search', {
         title: 'Search for Threads',
         keyword,
         searchType,
+        searchMode,
         threads,
         paging,
-        resultsTitle: `${searchType} results for '${keyword}'`,
+        resultsTitle: `${resultTypeLabel} ${
+            searchMode === 'TAG' ? 'Topic Tag' : 'Keyword'
+        } Results for '${keyword}'`,
     });
 });
 
@@ -1580,6 +1599,7 @@ function getCursorUrlFromGraphApiPagingUrl(req, graphApiPagingUrl) {
     cursorUrl.search = '';
 
     setUrlParamIfPresent(requestUrl, cursorUrl, 'keyword');
+    setUrlParamIfPresent(requestUrl, cursorUrl, 'searchMode');
     setUrlParamIfPresent(requestUrl, cursorUrl, 'searchType');
     setUrlParamIfPresent(graphUrl, cursorUrl, PARAMS__LIMIT);
     setUrlParamIfPresent(graphUrl, cursorUrl, PARAMS__BEFORE);

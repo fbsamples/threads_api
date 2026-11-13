@@ -63,15 +63,15 @@ Note: If you are using devcontainers, ensure that containers are enabled and sup
     - Once the Sample App starts running, go to https://threads-sample.meta:8000 to test the workflow.
     - If you are using a different domain or port then replace those values accordingly.
 
-## Keyword Search
+## Keyword and Topic Tag Search
 
-Search for public posts by keyword with Top or Recent results. Use Next and Previous when available to browse results without changing your query. If a search request fails, the page shows the error and keeps your query.
+Select Keyword or Topic Tag under Search Mode, enter your query, then choose Top or Recent. Next, Previous and API errors keep your query and search mode.
 
 See [Keyword and Topic Tag Search](https://developers.facebook.com/documentation/threads/keyword-search) for permissions and limits.
 
 ## Tests
 
-Run `npm test` to check search pagination with mocked API responses. These tests do not call the Threads API.
+Run `npm test` to check search modes and pagination with mocked API responses. These tests do not call the Threads API.
 
 ## License
 

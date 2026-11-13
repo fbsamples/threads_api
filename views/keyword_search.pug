@@ -2,7 +2,13 @@ extends layout_with_account
 
 block content
     form(action='/keywordSearch' id='form' method='GET')
-        textarea(placeholder='Enter a search query' name='keyword' autocomplete='off')=keyword
+        label(for='search-mode') Search Mode
+        select#search-mode(name='searchMode')
+            option(value='KEYWORD' selected=searchMode !== 'TAG') Keyword
+            option(value='TAG' selected=searchMode === 'TAG') Topic Tag
+
+        label(for='search-query') Search Query
+        textarea#search-query(placeholder='Enter a search query' name='keyword' autocomplete='off')=keyword
 
         label(for="search-type") Search for top or recent Threads?
         select#search-type(name='searchType')
