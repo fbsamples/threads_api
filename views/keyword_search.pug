@@ -19,7 +19,17 @@ block content
                         option(value='RECENT' selected=searchType === 'RECENT') Recent
             .search-field
                 label(for='search-query') Search Query
-                textarea#search-query(placeholder='Enter a search query' name='keyword' autocomplete='off' rows='2')=keyword
+                textarea#search-query(placeholder='Enter a search query…' name='keyword' autocomplete='off' rows='2')=keyword
+            .search-filter-controls
+                .search-field
+                    label(for='since') Since
+                    input#since(type='text' name='since' value=since placeholder='YYYY-MM-DD or Unix timestamp')
+                .search-field
+                    label(for='until') Until
+                    input#until(type='text' name='until' value=until placeholder='YYYY-MM-DD or Unix timestamp')
+                .search-field
+                    label(for='limit') Page Size
+                    input#limit(type='number' name='limit' value=limit min='0' max='100' step='1' placeholder='25')
             .search-actions
                 input(type='submit' value='Search')
 

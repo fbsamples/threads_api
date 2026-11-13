@@ -71,11 +71,13 @@ Use Previous or Next to browse results. Your query and search mode stay unchange
 
 The results table shows each post's returned topic tag. A missing tag leaves the cell blank. Creation dates are shown in UTC. If a date cannot be parsed, the table keeps its original text.
 
+Use Since and Until to filter by date or Unix timestamp. Page Size accepts a whole number from 0 to 100. Leave optional filters blank to use the API defaults. The form keeps your filters when a request returns an error.
+
 See [Keyword and Topic Tag Search](https://developers.facebook.com/documentation/threads/keyword-search) for permissions and limits.
 
 ## Tests
 
-Run `npm test` to check search modes and pagination with mocked API responses. These tests do not call the Threads API.
+Run `npm test` to check search modes, filters and pagination with mocked API responses. These tests do not call the Threads API.
 
 ## License
 

@@ -57,6 +57,7 @@ async function startApp(t, get, authenticated = true) {
     return async (url) => {
         const response = await fetch(new URL(url, baseUrl), {
             redirect: 'manual',
+            signal: AbortSignal.timeout(10000),
             headers: cookie ? { cookie } : {},
         });
         cookie = response.headers.get('set-cookie')?.split(';')[0] ?? cookie;
@@ -327,6 +328,7 @@ test('search results request and display the returned topic tag without inventin
     const html = await (
         await request('/keywordSearch?keyword=Requested+Topic&searchMode=TAG')
     ).text();
+    assert.match(html, /placeholder="Enter a search query…"/);
     const table = html.match(
         /<table class="threads-list">[\s\S]*?<\/table>/
     )[0];
@@ -350,4 +352,123 @@ test('search results request and display the returned topic tag without inventin
         html,
         /role="region" aria-label="Search Results" tabindex="0"/
     );
+});
+
+test('date and page-size filters are forwarded and kept in page links', async (t) => {
+    const calls = [];
+    const request = await startApp(t, async (url) => {
+        calls.push(new URL(url));
+        return {
+            data: {
+                data: [],
+                paging: {
+                    next: 'https://graph.threads.com/keyword_search?after=next&access_token=private-api-token',
+                },
+            },
+        };
+    });
+    const html = await (
+        await request(
+            '/keywordSearch?keyword=music&searchMode=TAG&since=2026-01-01&until=2026-01-10&limit=2'
+        )
+    ).text();
+    assert.equal(calls[0].searchParams.get('since'), '2026-01-01');
+    assert.equal(calls[0].searchParams.get('until'), '2026-01-10');
+    assert.equal(calls[0].searchParams.get('limit'), '2');
+    assert.match(html, /name="since" value="2026-01-01"/);
+    assert.match(html, /name="until" value="2026-01-10"/);
+    const next = pagingLink(html, 'Next');
+    assert.equal(next.searchParams.get('since'), '2026-01-01');
+    assert.equal(next.searchParams.get('until'), '2026-01-10');
+    assert.equal(next.searchParams.get('limit'), '2');
+    assert.equal(next.searchParams.has('access_token'), false);
+    await request(next);
+    assert.equal(calls[1].searchParams.get('since'), '2026-01-01');
+    assert.equal(calls[1].searchParams.get('limit'), '2');
+    assert.equal(calls[1].searchParams.get('search_mode'), 'TAG');
+    assert.equal(calls[1].searchParams.get('after'), 'next');
+});
+
+test('blank filters use API defaults, zero is kept, and invalid page sizes make no API call', async (t) => {
+    const calls = [];
+    const request = await startApp(t, async (url) => {
+        calls.push(new URL(url));
+        return { data: { data: [] } };
+    });
+    await request('/keywordSearch?keyword=music&since=&until=&limit=');
+    assert.equal(calls[0].searchParams.has('since'), false);
+    assert.equal(calls[0].searchParams.has('until'), false);
+    assert.equal(calls[0].searchParams.has('limit'), false);
+    const zeroHtml = await (
+        await request('/keywordSearch?keyword=music&limit=0')
+    ).text();
+    assert.equal(calls[1].searchParams.get('limit'), '0');
+    assert.match(zeroHtml, /name="limit" value="0"/);
+    const count = calls.length;
+    for (const query of [
+        'limit=-1',
+        'limit=101',
+        'limit=1.5',
+        'limit[toString]=bad',
+    ]) {
+        const response = await request(`/keywordSearch?keyword=music&${query}`);
+        assert.equal(response.status, 400);
+        assert.equal(calls.length, count);
+        assert.match(await response.text(), /whole number from 0 to 100/);
+    }
+    const malformedDate = await request(
+        '/keywordSearch?keyword=music&since[]=a'
+    );
+    assert.equal(malformedDate.status, 400);
+    assert.equal(calls.length, count);
+    assert.match(await malformedDate.text(), /Use a date or Unix timestamp/);
+});
+
+test('API date errors keep the query and filters without page links', async (t) => {
+    const request = await startApp(t, async () => {
+        throw {
+            response: {
+                data: { error: { message: 'Since must be before Until.' } },
+            },
+        };
+    });
+    const html = await (
+        await request(
+            '/keywordSearch?keyword=music&searchMode=TAG&since=2026-01-10&until=2026-01-01&limit=2'
+        )
+    ).text();
+    assert.match(html, /Since must be before Until\./);
+    assert.match(html, /name="since" value="2026-01-10"/);
+    assert.match(html, /name="until" value="2026-01-01"/);
+    assert.match(html, /name="limit" value="2"/);
+    assert.match(html, /<option value="TAG" selected/);
+    assert.doesNotMatch(html, />Next<|>Previous</);
+});
+
+test('API paging date bounds override request dates when supplied', async (t) => {
+    const calls = [];
+    const request = await startApp(t, async (url) => {
+        calls.push(new URL(url));
+        return {
+            data: {
+                data: [],
+                paging: {
+                    next: 'https://graph.threads.com/keyword_search?limit=2&since=1767225600&until=1767571200',
+                },
+            },
+        };
+    });
+    const html = await (
+        await request(
+            '/keywordSearch?keyword=music&since=2026-01-01&until=2026-01-10&limit=5'
+        )
+    ).text();
+    const next = pagingLink(html, 'Next');
+    assert.equal(next.searchParams.get('since'), '1767225600');
+    assert.equal(next.searchParams.get('until'), '1767571200');
+    assert.equal(next.searchParams.get('limit'), '2');
+    await request(next);
+    assert.equal(calls[1].searchParams.get('since'), '1767225600');
+    assert.equal(calls[1].searchParams.get('limit'), '2');
+    assert.equal(calls[1].searchParams.get('until'), '1767571200');
 });

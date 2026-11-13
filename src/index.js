@@ -114,8 +114,10 @@ const PARAMS__RETURN_URL = 'return_url';
 const PARAMS__SCOPE = 'scope';
 const PARAMS__SEARCH_MODE = 'search_mode';
 const PARAMS__SEARCH_TYPE = 'search_type';
+const PARAMS__SINCE = 'since';
 const PARAMS__TEXT = 'text';
 const PARAMS__TOPIC_TAG = 'topic_tag';
+const PARAMS__UNTIL = 'until';
 const PARAMS__USERNAME = 'username';
 const PARAMS_IS_SPOILER_MEDIA = 'is_spoiler_media';
 const PARAMS_TEXT_ENTITES = 'text_entities';
@@ -1230,7 +1232,12 @@ app.get('/debug', loggedInUserChecker, async (req, res) => {
 
 app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
     const { keyword, searchType = 'TOP', before, after, limit } = req.query;
-    const { searchMode = 'KEYWORD' } = req.query;
+    const { searchMode = 'KEYWORD', since, until } = req.query;
+    const hasLimit =
+        limit !== undefined &&
+        (typeof limit !== 'string' || limit.trim() !== '');
+    const pageSize =
+        hasLimit && typeof limit === 'string' ? Number(limit) : undefined;
 
     if (!['KEYWORD', 'TAG'].includes(searchMode)) {
         return res.status(400).render('keyword_search', {
@@ -1238,7 +1245,41 @@ app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
             keyword,
             searchType,
             searchMode,
+            since: typeof since === 'string' ? since : undefined,
+            until: typeof until === 'string' ? until : undefined,
+            limit: typeof limit === 'string' ? limit : undefined,
             error: 'Choose Keyword or Topic Tag for the search mode.',
+        });
+    }
+    if (
+        hasLimit &&
+        (typeof limit !== 'string' ||
+            !Number.isInteger(pageSize) ||
+            pageSize < 0 ||
+            pageSize > 100)
+    ) {
+        return res.status(400).render('keyword_search', {
+            title: 'Search for Threads',
+            keyword,
+            searchType,
+            searchMode,
+            since: typeof since === 'string' ? since : undefined,
+            until: typeof until === 'string' ? until : undefined,
+            limit: typeof limit === 'string' ? limit : undefined,
+            error: 'Page size must be a whole number from 0 to 100.',
+        });
+    }
+    if (
+        (since !== undefined && typeof since !== 'string') ||
+        (until !== undefined && typeof until !== 'string')
+    ) {
+        return res.status(400).render('keyword_search', {
+            title: 'Search for Threads',
+            keyword,
+            searchType,
+            searchMode,
+            limit: pageSize,
+            error: 'Use a date or Unix timestamp for Since and Until.',
         });
     }
 
@@ -1246,6 +1287,10 @@ app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
         return res.render('keyword_search', {
             title: 'Search for Threads',
             searchMode,
+            searchType,
+            since,
+            until,
+            limit: pageSize,
         });
     }
 
@@ -1271,8 +1316,14 @@ app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
     if (after) {
         params[PARAMS__AFTER] = after;
     }
-    if (limit !== undefined) {
-        params[PARAMS__LIMIT] = limit;
+    if (hasLimit) {
+        params[PARAMS__LIMIT] = pageSize;
+    }
+    if (since && since.trim()) {
+        params[PARAMS__SINCE] = since.trim();
+    }
+    if (until && until.trim()) {
+        params[PARAMS__UNTIL] = until.trim();
     }
 
     const keywordSearchUrl = buildGraphAPIURL(
@@ -1310,6 +1361,9 @@ app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
             keyword,
             searchType,
             searchMode,
+            since,
+            until,
+            limit: pageSize,
             error: e?.response?.data?.error?.message ?? e.message,
         });
     }
@@ -1320,6 +1374,9 @@ app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
         keyword,
         searchType,
         searchMode,
+        since,
+        until,
+        limit: pageSize,
         threads,
         paging,
         formatPostTimestamp,
@@ -1615,7 +1672,12 @@ function getCursorUrlFromGraphApiPagingUrl(req, graphApiPagingUrl) {
     setUrlParamIfPresent(requestUrl, cursorUrl, 'keyword');
     setUrlParamIfPresent(requestUrl, cursorUrl, 'searchMode');
     setUrlParamIfPresent(requestUrl, cursorUrl, 'searchType');
+    setUrlParamIfPresent(requestUrl, cursorUrl, PARAMS__SINCE);
+    setUrlParamIfPresent(requestUrl, cursorUrl, PARAMS__UNTIL);
+    setUrlParamIfPresent(requestUrl, cursorUrl, PARAMS__LIMIT);
     setUrlParamIfPresent(graphUrl, cursorUrl, PARAMS__LIMIT);
+    setUrlParamIfPresent(graphUrl, cursorUrl, PARAMS__SINCE);
+    setUrlParamIfPresent(graphUrl, cursorUrl, PARAMS__UNTIL);
     setUrlParamIfPresent(graphUrl, cursorUrl, PARAMS__BEFORE);
     setUrlParamIfPresent(graphUrl, cursorUrl, PARAMS__AFTER);
     setUrlParamIfPresent(graphUrl, cursorUrl, 'username');
