@@ -11,6 +11,8 @@ block content
                 th Text
                 th Permalink
                 th Media URL
+                if canDelete
+                    th Actions
         tbody
             each thread in threads
                 tr.threads-list-item
@@ -25,6 +27,12 @@ block content
                     td.thread-media-url
                         if thread.media_url
                             a(href=thread.media_url target='_blank') View Media File
+                    if canDelete
+                        td
+                            if deletableMediaTypes.includes(thread.media_type)
+                                form(action=`/threads/${thread.id}/delete` method='POST' onsubmit="return confirm('Are you sure? This permanently deletes your post and cannot be undone.');")
+                                    input(type='hidden' name='csrfToken' value=csrfToken)
+                                    button(type='submit' aria-label='Delete Post' title='Delete Post') 🗑
 
     div.paging
         if paging.nextUrl

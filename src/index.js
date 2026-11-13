@@ -9,6 +9,7 @@ const express = require('express');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const axios = require('axios');
+const crypto = require('crypto');
 const https = require('https');
 const path = require('path');
 const fs = require('fs');
@@ -17,7 +18,7 @@ const multer = require('multer');
 const { DateTime } = require('luxon');
 const textParser = require('../public/scripts/text-parser.js');
 
-const spoilerMarker = "**spoiler**";;
+const spoilerMarker = '**spoiler**';
 const app = express();
 const upload = multer();
 
@@ -42,6 +43,7 @@ const FIELD__TOPIC_TAG = 'topic_tag';
 const FIELD__MEDIA_TYPE = 'media_type';
 const FIELD__MEDIA_URL = 'media_url';
 const FIELD__NAME = 'name';
+const FIELD__OWNER = 'owner';
 const FIELD__GIF_URL = 'gif_url';
 const FIELD__PERMALINK = 'permalink';
 const FIELD__POLL_ATTACHMENT = 'poll_attachment';
@@ -64,10 +66,21 @@ const FIELD_IS_SPOILER_MEDIA = 'is_spoiler_media';
 const FIELD_TEXT_ENTITES = 'text_entities';
 const FIELD_GHOST_POST_STATUS = 'ghost_post_status';
 
+const MEDIA_TYPE__AUDIO = 'AUDIO';
 const MEDIA_TYPE__CAROUSEL = 'CAROUSEL';
+const MEDIA_TYPE__CAROUSEL_ALBUM = 'CAROUSEL_ALBUM';
 const MEDIA_TYPE__IMAGE = 'IMAGE';
 const MEDIA_TYPE__TEXT = 'TEXT';
+const MEDIA_TYPE__TEXT_POST = 'TEXT_POST';
 const MEDIA_TYPE__VIDEO = 'VIDEO';
+
+const DELETABLE_MEDIA_TYPES = [
+    MEDIA_TYPE__TEXT_POST,
+    MEDIA_TYPE__IMAGE,
+    MEDIA_TYPE__VIDEO,
+    MEDIA_TYPE__CAROUSEL_ALBUM,
+    MEDIA_TYPE__AUDIO,
+];
 
 const PARAMS__ACCESS_TOKEN = 'access_token';
 const PARAMS__AUTO_PUBLISH_TEXT = 'auto_publish_text';
@@ -663,7 +676,15 @@ app.post('/publish', upload.array(), async (req, res) => {
 
 app.get('/threads/:threadId', loggedInUserChecker, async (req, res) => {
     const { threadId } = req.params;
+    if (!/^\d+$/.test(threadId)) {
+        return res.status(400).render('delete_post', {
+            title: 'Thread',
+            error: 'The post ID is invalid.',
+        });
+    }
     let data = {};
+    let canDelete = false;
+    let error;
     const queryThreadUrl = buildGraphAPIURL(
         `${threadId}`,
         {
@@ -696,7 +717,8 @@ app.get('/threads/:threadId', loggedInUserChecker, async (req, res) => {
         const queryResponse = await axios.get(queryThreadUrl, {
             httpsAgent: agent,
         });
-        const { poll_attachment, ghost_post_status, ...rest } = queryResponse.data;
+        const { poll_attachment, ghost_post_status, ...rest } =
+            queryResponse.data;
         data = rest;
 
         if (poll_attachment) {
@@ -712,18 +734,65 @@ app.get('/threads/:threadId', loggedInUserChecker, async (req, res) => {
             is_ghost_post,
         };
     } catch (e) {
-        console.error(e?.response?.data?.error?.message ?? e.message);
+        error = e?.response?.data?.error?.message ?? e.message;
+        console.error(error);
+    }
+
+    if (DELETABLE_MEDIA_TYPES.includes(data.media_type)) {
+        try {
+            const userUrl = buildGraphAPIURL(
+                'me',
+                { [PARAMS__FIELDS]: FIELD__ID },
+                req.session.access_token
+            );
+            const userResponse = await axios.get(userUrl, {
+                httpsAgent: agent,
+            });
+            const ownerUrl = buildGraphAPIURL(
+                threadId,
+                {
+                    [PARAMS__FIELDS]: [
+                        FIELD__ID,
+                        FIELD__MEDIA_TYPE,
+                        FIELD__OWNER,
+                    ].join(','),
+                },
+                req.session.access_token
+            );
+            const ownerResponse = await axios.get(ownerUrl, {
+                httpsAgent: agent,
+            });
+            canDelete =
+                Boolean(userResponse.data.id) &&
+                ownerResponse.data.id === threadId &&
+                ownerResponse.data.owner?.id === userResponse.data.id &&
+                DELETABLE_MEDIA_TYPES.includes(ownerResponse.data.media_type);
+            if (canDelete && !req.session.deleteCsrfToken) {
+                req.session.deleteCsrfToken = crypto
+                    .randomBytes(32)
+                    .toString('hex');
+            }
+        } catch (e) {
+            canDelete = false;
+            console.error(e?.response?.data?.error?.message ?? e.message);
+        }
     }
 
     res.render('thread', {
         threadId,
         ...data,
+        canDelete,
+        csrfToken: canDelete ? req.session.deleteCsrfToken : undefined,
+        error,
         title: 'Thread',
     });
 });
 
 app.get('/threads', loggedInUserChecker, async (req, res) => {
     const { before, after, limit } = req.query;
+    if (!req.session.deleteCsrfToken) {
+        req.session.deleteCsrfToken = crypto.randomBytes(32).toString('hex');
+    }
     const params = {
         [PARAMS__FIELDS]: [
             FIELD__TEXT,
@@ -778,9 +847,104 @@ app.get('/threads', loggedInUserChecker, async (req, res) => {
     res.render('threads', {
         paging,
         threads,
+        canDelete: true,
+        deletableMediaTypes: DELETABLE_MEDIA_TYPES,
+        csrfToken: req.session.deleteCsrfToken,
         title: 'Threads',
     });
 });
+
+app.post(
+    '/threads/:threadId/delete',
+    loggedInUserChecker,
+    upload.array(),
+    async (req, res) => {
+        const { threadId } = req.params;
+        const title = 'Delete Post';
+        if (!/^\d+$/.test(threadId)) {
+            return res.status(400).render('delete_post', {
+                title,
+                error: 'The post ID is invalid.',
+            });
+        }
+        if (
+            !req.session.deleteCsrfToken ||
+            typeof req.body.csrfToken !== 'string' ||
+            req.body.csrfToken !== req.session.deleteCsrfToken
+        ) {
+            return res.status(403).render('delete_post', {
+                title,
+                error: 'The request could not be verified. Open your posts and try again.',
+            });
+        }
+
+        try {
+            const userUrl = buildGraphAPIURL(
+                'me',
+                { [PARAMS__FIELDS]: FIELD__ID },
+                req.session.access_token
+            );
+            const userResponse = await axios.get(userUrl, {
+                httpsAgent: agent,
+            });
+            const postUrl = buildGraphAPIURL(
+                threadId,
+                {
+                    [PARAMS__FIELDS]: [
+                        FIELD__ID,
+                        FIELD__MEDIA_TYPE,
+                        FIELD__OWNER,
+                    ].join(','),
+                },
+                req.session.access_token
+            );
+            const postResponse = await axios.get(postUrl, {
+                httpsAgent: agent,
+            });
+            if (!DELETABLE_MEDIA_TYPES.includes(postResponse.data.media_type)) {
+                return res.status(403).render('delete_post', {
+                    title,
+                    error: 'This post type is not supported for deletion in this sample.',
+                });
+            }
+            if (
+                !userResponse.data.id ||
+                postResponse.data.id !== threadId ||
+                postResponse.data.owner?.id !== userResponse.data.id
+            ) {
+                return res.status(403).render('delete_post', {
+                    title,
+                    error: 'This post cannot be deleted. Choose one of your posts on the Threads page.',
+                });
+            }
+
+            const deleteUrl = buildGraphAPIURL(
+                threadId,
+                {},
+                req.session.access_token
+            );
+            const response = await axios.delete(deleteUrl, {
+                httpsAgent: agent,
+            });
+            if (
+                response.data.success !== true ||
+                response.data.deleted_id !== threadId
+            ) {
+                return res.status(502).render('delete_post', {
+                    title,
+                    error: 'Deletion was not confirmed. Refresh your posts before trying again.',
+                });
+            }
+            return res.redirect(303, '/threads');
+        } catch (e) {
+            const error =
+                e?.response?.data?.error?.message ??
+                'Unable to confirm deletion. Refresh your posts before trying again.';
+            console.error(error);
+            return res.status(502).render('delete_post', { title, error });
+        }
+    }
+);
 
 app.get('/replies', loggedInUserChecker, async (req, res) => {
     const { before, after, limit } = req.query;
@@ -1113,12 +1277,9 @@ app.get('/oEmbed', async (req, res) => {
         });
     }
 
-    const oEmbedUrl = buildGraphAPIURL(
-        `oembed`,
-        {
-            url,
-        }
-    );
+    const oEmbedUrl = buildGraphAPIURL(`oembed`, {
+        url,
+    });
 
     let html = '<p>Unable to embed</p>';
     try {
