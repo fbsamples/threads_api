@@ -7,17 +7,23 @@ You can use this Sample App to test the [Threads API](https://developers.faceboo
 1. Make sure that you are using the APP ID and Secret defined for the Threads API of your app. These ARE not the same as the regular app ID and app secret.
 2. Make sure you add your application's redirect URL e.g. https://threads-sample.meta:8000/callback, to your app's redirect callback URLs in the app dashboard.
 
-## Delete Your Posts
+## Features
 
-On the Threads page, use the trash button beside one of your posts to delete it. Eligible post detail pages also show Delete after Quote and Repost. Confirm the warning to continue, or cancel to leave the post unchanged. Deletion cannot be undone.
-
-The app checks the authenticated user and post owner before requesting deletion. It returns to your posts only after the API confirms success. Delete controls are shown on your posts list and eligible post detail pages, not the replies list. Reposts are not supported.
-
-Deletion requires `threads_delete`. See [Delete Posts](https://developers.facebook.com/documentation/threads/posts/delete-posts) for permissions and limits. Use a test app and test user when trying this feature.
-
-The deletion route uses `express-rate-limit` to allow 10 requests per minute per IPv4 address or IPv6 subnet. Limits apply within one running app process. Excess requests show a retry message without calling the API.
-
-Run `npm test` to check deletion safeguards with mocked API responses. These tests do not call the Threads API.
+-   **Login and Account:** Sign in through the Threads oAuth flow and exchange short-lived tokens for long-lived tokens. View your profile details and sign out.
+-   **Publishing:** Publish text, image, video, and carousel posts. Check container status before publishing. You can also publish text posts automatically during the container creation phase.
+-   **Publishing Options:** Add topic tags, link attachments, alt text, and polls. Mark text or media as spoilers. Create temporary ghost posts that automatically expire. Choose who can reply by setting the reply audience.
+-   **Replies, Quotes, and Reposts:** Create replies and quote posts, or repost an existing post.
+-   **Post Browsing:** View your posts, your replies, and posts that mention you. Open individual post details, direct replies, and full conversations. Browse available result pages.
+-   **Reply Management:** The direct-replies view includes controls to Hide and Unhide replies.
+-   **Search:** Search by keyword or topic tag with Top or Recent results. Filter by date, media type, and author username. Set the page size. Search state is retained through paging and errors. Results show returned topic tags and readable UTC dates. Read the [Search Guide](https://developers.facebook.com/documentation/threads/keyword-search) for parameters and limits.
+-   **Public Profiles:** Look up a public profile, view its details, and browse its posts.
+-   **Post Insights:** See post metrics for views, likes, replies, reposts, quotes, and shares.
+-   **User Insights:** See account metrics for views, likes, replies, reposts, quotes, clicks, and follower count. The page includes date range filters.
+-   **Quotas:** View API usage for publishing, replies, deletion, and location search.
+-   **Token Debugging:** Inspect the access token's application name, granted permissions, app-scoped user ID, issued timestamp, and expiration date.
+-   **Post Embeds:** Try the oEmbed API with a Threads post URL without an access token.
+-   **Deletion:** Use the trash button on your posts list or post details page to delete a post you own. Confirm the warning to continue. The sample app checks that you own the post. You return to your remaining posts only after the API confirms success. This action cannot be undone, and reposts are unsupported. The route allows 10 requests per minute per IPv4 address or IPv6 subnet within one app process. Use a test app and test user. View [Delete Posts](https://developers.facebook.com/documentation/threads/posts/delete-posts) for permissions and limits.
+-   **Postman Collection:** Use the public [Threads Postman Collection](https://www.postman.com/meta/threads/overview) or import `postman/threads-api.postman_collection.json` into Postman.
 
 ## Required software
 
@@ -63,23 +69,9 @@ Note: If you are using devcontainers, ensure that containers are enabled and sup
     - Once the Sample App starts running, go to https://threads-sample.meta:8000 to test the workflow.
     - If you are using a different domain or port then replace those values accordingly.
 
-## Keyword and Topic Tag Search
-
-Choose Keyword or Topic Tag under Search Mode. Enter your query and select Top or Recent under Results Order.
-
-Use Previous or Next to browse results. Your query and search mode stay unchanged between pages. If a search fails, the page shows an error without clearing your selections.
-
-The results table shows each post's returned topic tag. A missing tag leaves the cell blank. Creation dates are shown in UTC. If a date cannot be parsed, the table keeps its original text.
-
-Use Since and Until to filter by date or Unix timestamp. Page Size accepts a whole number from 0 to 100. Leave optional filters blank to use the API defaults. The form keeps your filters when a request returns an error.
-
-Media Type filters by Text, Image or Video. Choose All Media Types to leave that filter off. Enter the exact Author Username without @ to show only that profile's matching posts.
-
-See [Keyword and Topic Tag Search](https://developers.facebook.com/documentation/threads/keyword-search) for permissions and limits.
-
 ## Tests
 
-Run `npm test` to check search modes, filters and pagination with mocked API responses. These tests do not call the Threads API.
+Run `npm test` to check search modes, filters, and pagination with mocked API responses. These tests do not call the Threads API.
 
 ## License
 
