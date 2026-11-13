@@ -183,3 +183,171 @@ test('the paging helper still preserves profile usernames and strips stale curso
     assert.equal(next.searchParams.has('before'), false);
     assert.equal(next.searchParams.has('access_token'), false);
 });
+
+test('topic tag mode is forwarded and retained across next and previous pages', async (t) => {
+    const calls = [];
+    const request = await startApp(t, async (url, options) => {
+        const apiUrl = new URL(url);
+        calls.push(apiUrl);
+        assert.ok(options.httpsAgent);
+        return {
+            data: {
+                data: [
+                    {
+                        id: '123',
+                        username: 'test-profile',
+                        text: 'Topic Tag Result',
+                        media_type: 'TEXT_POST',
+                    },
+                ],
+                paging: apiUrl.searchParams.has('after')
+                    ? {
+                          previous:
+                              'https://graph.threads.com/keyword_search?limit=2&before=back&access_token=private-api-token',
+                      }
+                    : {
+                          next: 'https://graph.threads.com/keyword_search?limit=2&after=next&access_token=private-api-token',
+                      },
+            },
+        };
+    });
+    const query = 'Música y cine';
+    const html = await (
+        await request(
+            `/keywordSearch?${new URLSearchParams({
+                keyword: query,
+                searchMode: 'TAG',
+                searchType: 'RECENT',
+            })}`
+        )
+    ).text();
+    assert.equal(calls[0].searchParams.get('search_mode'), 'TAG');
+    assert.equal(calls[0].searchParams.get('q'), query);
+    assert.match(html, /<option value="TAG" selected/);
+    assert.match(html, /Recent Topic Tag Results/);
+    assert.match(html, /Topic Tag Result/);
+    const next = pagingLink(html, 'Next');
+    assert.equal(next.searchParams.get('searchMode'), 'TAG');
+    assert.equal(next.searchParams.get('keyword'), query);
+    assert.equal(next.searchParams.has('access_token'), false);
+    const nextHtml = await (await request(next)).text();
+    assert.equal(calls[1].searchParams.get('search_mode'), 'TAG');
+    assert.equal(calls[1].searchParams.get('after'), 'next');
+    const previous = pagingLink(nextHtml, 'Previous');
+    assert.equal(previous.searchParams.get('searchMode'), 'TAG');
+    await request(previous);
+    assert.equal(calls[2].searchParams.get('search_mode'), 'TAG');
+    assert.equal(calls[2].searchParams.get('before'), 'back');
+});
+
+test('keyword mode is the default and invalid modes do not reach the API', async (t) => {
+    const calls = [];
+    const request = await startApp(t, async (url) => {
+        calls.push(new URL(url));
+        return { data: { data: [] } };
+    });
+    for (const route of [
+        '/keywordSearch?keyword=music',
+        '/keywordSearch?keyword=music&searchMode=KEYWORD',
+    ]) {
+        const html = await (await request(route)).text();
+        assert.match(html, /<option value="KEYWORD" selected/);
+        assert.equal(calls.at(-1).searchParams.get('search_mode'), 'KEYWORD');
+        assert.equal(calls.at(-1).searchParams.get('search_type'), 'TOP');
+    }
+    const count = calls.length;
+    const response = await request(
+        '/keywordSearch?keyword=music&searchMode=INVALID'
+    );
+    assert.equal(response.status, 400);
+    assert.equal(calls.length, count);
+    assert.match(await response.text(), /Choose Keyword or Topic Tag/);
+});
+
+test('topic tag search errors preserve the mode and render escaped error text', async (t) => {
+    const request = await startApp(t, async () => {
+        throw {
+            response: {
+                data: {
+                    error: { message: '(#100) Unsupported field <topic_tag>.' },
+                },
+            },
+        };
+    });
+    const html = await (
+        await request(
+            '/keywordSearch?keyword=music&searchMode=TAG&searchType=RECENT'
+        )
+    ).text();
+    assert.match(html, /<option value="TAG" selected/);
+    assert.match(html, /<option value="RECENT" selected/);
+    assert.match(html, /<textarea[^>]*>music<\/textarea>/);
+    assert.match(html, /\(#100\) Unsupported field &lt;topic_tag&gt;\./);
+    assert.doesNotMatch(html, /Unsupported field <topic_tag>/);
+    assert.doesNotMatch(html, />Next<|>Previous</);
+});
+
+test('search results request and display the returned topic tag without inventing a missing tag', async (t) => {
+    const request = await startApp(t, async (url) => {
+        assert.ok(
+            new URL(url).searchParams
+                .get('fields')
+                .split(',')
+                .includes('topic_tag')
+        );
+        return {
+            data: {
+                data: [
+                    {
+                        id: '123',
+                        username: 'example-author',
+                        text: 'Example tagged post',
+                        timestamp: '2026-01-02T14:30:00+0200',
+                        topic_tag: 'Returned NBA & News',
+                        permalink: 'https://example.com/tagged',
+                        media_url: 'https://example.com/media',
+                    },
+                    {
+                        id: '456',
+                        username: 'example-author',
+                        text: 'Example untagged post',
+                        timestamp: '<script>invalid timestamp</script>',
+                        topic_tag: null,
+                        permalink: 'https://example.com/untagged',
+                    },
+                    {
+                        id: '789',
+                        username: 'example-author',
+                        text: 'Example post with an omitted tag',
+                    },
+                ],
+            },
+        };
+    });
+    const html = await (
+        await request('/keywordSearch?keyword=Requested+Topic&searchMode=TAG')
+    ).text();
+    const table = html.match(
+        /<table class="threads-list">[\s\S]*?<\/table>/
+    )[0];
+    assert.match(table, /<th scope="col">Topic Tag<\/th>/);
+    for (const label of ['Post ID', 'Creation Date and Time', 'Post Link']) {
+        assert.ok(table.includes(`<th scope="col">${label}</th>`));
+    }
+    assert.doesNotMatch(table, /<th[^>]*>(?:ID|Created On|Permalink)<\/th>/);
+    assert.match(table, /January 2, 2026 at 12:30 PM UTC/);
+    assert.match(table, /&lt;script&gt;invalid timestamp&lt;\/script&gt;/);
+    assert.doesNotMatch(table, /<script>invalid timestamp/);
+    assert.match(table, /<td class="thread-timestamp"><\/td>/);
+    assert.match(table, /Returned NBA &amp; News/);
+    assert.equal(
+        (table.match(/<td class="thread-topic-tag"><\/td>/g) || []).length,
+        2
+    );
+    assert.doesNotMatch(table, /Not Provided|Requested Topic/);
+    assert.match(table, />View Media File<\/a>/);
+    assert.match(
+        html,
+        /role="region" aria-label="Search Results" tabindex="0"/
+    );
+});

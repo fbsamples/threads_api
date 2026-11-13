@@ -165,3 +165,106 @@ th {
 .verified img {
     position: relative;
 }
+
+.keyword-search {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.keyword-search-form {
+    display: grid;
+    gap: 24px;
+    align-items: stretch;
+    text-align: left;
+    margin: 32px 0 48px;
+}
+
+.search-basic-controls,
+.search-filter-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+}
+
+.keyword-search .search-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.keyword-search label {
+    text-align: left;
+    line-height: 1.4;
+}
+
+.keyword-search input,
+.keyword-search select,
+.keyword-search textarea {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 44px;
+    height: auto;
+    padding: 10px 12px;
+    font-size: 1rem;
+}
+
+.keyword-search textarea {
+    min-height: 88px;
+    resize: vertical;
+    overflow: auto;
+}
+
+.keyword-search input[type='submit'] {
+    width: 180px;
+    max-width: 100%;
+    margin: 0;
+}
+
+.keyword-search .search-results-heading {
+    margin: 0 0 16px;
+    overflow-wrap: anywhere;
+}
+
+.keyword-search .search-table-hint {
+    text-align: left;
+    margin: 0 0 12px;
+}
+
+.keyword-search .search-table-region {
+    overflow-x: auto;
+}
+
+.keyword-search .threads-list {
+    table-layout: fixed;
+    border-collapse: collapse;
+    min-width: 1000px;
+}
+
+.keyword-search th,
+.keyword-search td {
+    vertical-align: top;
+    overflow-wrap: anywhere;
+}
+
+.keyword-search .threads-list th:nth-child(6) {
+    width: 22%;
+}
+
+.keyword-search .thread-text {
+    white-space: pre-wrap;
+}
+
+.keyword-search .paging {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    margin-top: 24px;
+}
+
+@media (max-width: 640px) {
+    .search-basic-controls,
+    .search-filter-controls {
+        grid-template-columns: 1fr;
+    }
+}
