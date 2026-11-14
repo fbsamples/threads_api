@@ -472,3 +472,87 @@ test('API paging date bounds override request dates when supplied', async (t) =>
     assert.equal(calls[1].searchParams.get('limit'), '2');
     assert.equal(calls[1].searchParams.get('until'), '1767571200');
 });
+
+test('documented media types and author filters are forwarded and retained in page links', async (t) => {
+    const calls = [];
+    const request = await startApp(t, async (url) => {
+        calls.push(new URL(url));
+        return {
+            data: {
+                data: [],
+                paging: {
+                    next: 'https://graph.threads.com/keyword_search?after=next',
+                },
+            },
+        };
+    });
+    let html;
+    for (const mediaType of ['TEXT', 'IMAGE', 'VIDEO']) {
+        html = await (
+            await request(
+                `/keywordSearch?keyword=music&mediaType=${mediaType}&authorUsername=test_author`
+            )
+        ).text();
+        assert.equal(calls.at(-1).searchParams.get('media_type'), mediaType);
+        assert.equal(
+            calls.at(-1).searchParams.get('author_username'),
+            'test_author'
+        );
+        assert.match(html, new RegExp(`<option value="${mediaType}" selected`));
+        assert.match(html, /name="authorUsername" value="test_author"/);
+    }
+    const next = pagingLink(html, 'Next');
+    assert.equal(next.searchParams.get('mediaType'), 'VIDEO');
+    assert.equal(next.searchParams.get('authorUsername'), 'test_author');
+    await request(next);
+    assert.equal(calls.at(-1).searchParams.get('media_type'), 'VIDEO');
+    assert.equal(
+        calls.at(-1).searchParams.get('author_username'),
+        'test_author'
+    );
+});
+
+test('optional media and author filters are omitted and invalid inputs do not reach the API', async (t) => {
+    const calls = [];
+    const request = await startApp(t, async (url) => {
+        calls.push(new URL(url));
+        return { data: { data: [] } };
+    });
+    await request('/keywordSearch?keyword=music&mediaType=&authorUsername=');
+    assert.equal(calls[0].searchParams.has('media_type'), false);
+    assert.equal(calls[0].searchParams.has('author_username'), false);
+    const count = calls.length;
+    for (const query of [
+        'mediaType=TEXT_POST',
+        'mediaType=CAROUSEL',
+        'authorUsername=@test_author',
+        'authorUsername[toString]=bad',
+    ]) {
+        const response = await request(`/keywordSearch?keyword=music&${query}`);
+        assert.equal(response.status, 400);
+        assert.equal(calls.length, count);
+    }
+});
+
+test('media and author selections remain visible in API and local validation errors', async (t) => {
+    let calls = 0;
+    const request = await startApp(t, async () => {
+        calls++;
+        throw {
+            response: {
+                data: { error: { message: 'Search permission is required.' } },
+            },
+        };
+    });
+    const query = 'keyword=music&mediaType=IMAGE&authorUsername=test_author';
+    const apiHtml = await (await request(`/keywordSearch?${query}`)).text();
+    assert.match(apiHtml, /<option value="IMAGE" selected/);
+    assert.match(apiHtml, /name="authorUsername" value="test_author"/);
+    assert.match(apiHtml, /Search permission is required\./);
+    const localResponse = await request(`/keywordSearch?${query}&limit=101`);
+    assert.equal(localResponse.status, 400);
+    const localHtml = await localResponse.text();
+    assert.match(localHtml, /<option value="IMAGE" selected/);
+    assert.match(localHtml, /name="authorUsername" value="test_author"/);
+    assert.equal(calls, 1);
+});

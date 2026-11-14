@@ -85,8 +85,9 @@ const DELETABLE_MEDIA_TYPES = [
 
 const PARAMS__ACCESS_TOKEN = 'access_token';
 const PARAMS__AFTER = 'after';
-const PARAMS__AUTO_PUBLISH_TEXT = 'auto_publish_text';
 const PARAMS__ALT_TEXT = 'alt_text';
+const PARAMS__AUTHOR_USERNAME = 'author_username';
+const PARAMS__AUTO_PUBLISH_TEXT = 'auto_publish_text';
 const PARAMS__BEFORE = 'before';
 const PARAMS__CLIENT_ID = 'client_id';
 const PARAMS__CONFIG = 'config';
@@ -99,6 +100,7 @@ const PARAMS__LIMIT = 'limit';
 const PARAMS__LINK_ATTACHMENT = 'link_attachment';
 const PARAMS__LOCATION_SEARCH_CONFIG = 'location_search_config';
 const PARAMS__LOCATION_SEARCH_QUOTA_USAGE = 'location_search_quota_usage';
+const PARAMS__MEDIA_TYPE = 'media_type';
 const PARAMS__METRIC = 'metric';
 const PARAMS__POLL_ATTACHMENT = 'poll_attachment';
 const PARAMS__Q = 'q';
@@ -1233,15 +1235,43 @@ app.get('/debug', loggedInUserChecker, async (req, res) => {
 app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
     const { keyword, searchType = 'TOP', before, after, limit } = req.query;
     const { searchMode = 'KEYWORD', since, until } = req.query;
+    const { mediaType = '', authorUsername = '' } = req.query;
+    const author =
+        typeof authorUsername === 'string' ? authorUsername.trim() : '';
+    const mediaAuthorFilters = { mediaType, authorUsername: author };
     const hasLimit =
         limit !== undefined &&
         (typeof limit !== 'string' || limit.trim() !== '');
     const pageSize =
         hasLimit && typeof limit === 'string' ? Number(limit) : undefined;
+    let filterError;
+    if (
+        !['', MEDIA_TYPE__TEXT, MEDIA_TYPE__IMAGE, MEDIA_TYPE__VIDEO].includes(
+            mediaType
+        )
+    ) {
+        filterError = 'Choose All Media Types, Text, Image or Video.';
+    } else if (typeof authorUsername !== 'string' || author.includes('@')) {
+        filterError = 'Enter an author username without the @ symbol.';
+    }
+    if (filterError) {
+        return res.status(400).render('keyword_search', {
+            title: 'Search for Threads',
+            ...mediaAuthorFilters,
+            keyword,
+            searchType,
+            searchMode,
+            since: typeof since === 'string' ? since : undefined,
+            until: typeof until === 'string' ? until : undefined,
+            limit: typeof limit === 'string' ? limit : undefined,
+            error: filterError,
+        });
+    }
 
     if (!['KEYWORD', 'TAG'].includes(searchMode)) {
         return res.status(400).render('keyword_search', {
             title: 'Search for Threads',
+            ...mediaAuthorFilters,
             keyword,
             searchType,
             searchMode,
@@ -1260,6 +1290,7 @@ app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
     ) {
         return res.status(400).render('keyword_search', {
             title: 'Search for Threads',
+            ...mediaAuthorFilters,
             keyword,
             searchType,
             searchMode,
@@ -1275,6 +1306,7 @@ app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
     ) {
         return res.status(400).render('keyword_search', {
             title: 'Search for Threads',
+            ...mediaAuthorFilters,
             keyword,
             searchType,
             searchMode,
@@ -1286,6 +1318,7 @@ app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
     if (!keyword) {
         return res.render('keyword_search', {
             title: 'Search for Threads',
+            ...mediaAuthorFilters,
             searchMode,
             searchType,
             since,
@@ -1325,6 +1358,12 @@ app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
     if (until && until.trim()) {
         params[PARAMS__UNTIL] = until.trim();
     }
+    if (mediaType) {
+        params[PARAMS__MEDIA_TYPE] = mediaType;
+    }
+    if (author) {
+        params[PARAMS__AUTHOR_USERNAME] = author;
+    }
 
     const keywordSearchUrl = buildGraphAPIURL(
         `keyword_search`,
@@ -1358,6 +1397,7 @@ app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
         console.error(e?.response?.data?.error?.message ?? e.message);
         return res.render('keyword_search', {
             title: 'Search for Threads',
+            ...mediaAuthorFilters,
             keyword,
             searchType,
             searchMode,
@@ -1371,6 +1411,7 @@ app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
     const resultTypeLabel = searchType === 'RECENT' ? 'Recent' : 'Top';
     return res.render('keyword_search', {
         title: 'Search for Threads',
+        ...mediaAuthorFilters,
         keyword,
         searchType,
         searchMode,
@@ -1672,6 +1713,8 @@ function getCursorUrlFromGraphApiPagingUrl(req, graphApiPagingUrl) {
     setUrlParamIfPresent(requestUrl, cursorUrl, 'keyword');
     setUrlParamIfPresent(requestUrl, cursorUrl, 'searchMode');
     setUrlParamIfPresent(requestUrl, cursorUrl, 'searchType');
+    setUrlParamIfPresent(requestUrl, cursorUrl, 'mediaType');
+    setUrlParamIfPresent(requestUrl, cursorUrl, 'authorUsername');
     setUrlParamIfPresent(requestUrl, cursorUrl, PARAMS__SINCE);
     setUrlParamIfPresent(requestUrl, cursorUrl, PARAMS__UNTIL);
     setUrlParamIfPresent(requestUrl, cursorUrl, PARAMS__LIMIT);
