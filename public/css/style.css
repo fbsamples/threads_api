@@ -268,3 +268,33 @@ th {
         grid-template-columns: 1fr;
     }
 }
+
+.post-details {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.post-details-table {
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+.post-details-table > thead > tr > th:first-child,
+.post-details-table > tbody > tr > td:first-child {
+    width: 30%;
+}
+
+.post-details th,
+.post-details td {
+    vertical-align: top;
+    overflow-wrap: anywhere;
+}
+
+.post-details-text {
+    white-space: pre-wrap;
+}
+
+.post-details button {
+    box-sizing: border-box;
+    max-width: 100%;
+}

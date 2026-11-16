@@ -683,6 +683,18 @@ app.post('/publish', upload.array(), async (req, res) => {
     }
 });
 
+function hasDisplayValue(value) {
+    if (value === null || value === undefined) return false;
+    if (typeof value === 'string') return value.trim() !== '';
+    if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === 'object') return Object.keys(value).length > 0;
+    return true;
+}
+
+function isWebUrl(value) {
+    return typeof value === 'string' && /^https?:\/\//i.test(value);
+}
+
 function formatPostTimestamp(timestamp) {
     if (typeof timestamp !== 'string' || timestamp.trim() === '')
         return timestamp;
@@ -704,6 +716,7 @@ app.get('/threads/:threadId', loggedInUserChecker, async (req, res) => {
         });
     }
     let data = {};
+    let postLoaded = false;
     let canDelete = false;
     let error;
     const queryThreadUrl = buildGraphAPIURL(
@@ -738,6 +751,14 @@ app.get('/threads/:threadId', loggedInUserChecker, async (req, res) => {
         const queryResponse = await axios.get(queryThreadUrl, {
             httpsAgent: agent,
         });
+        if (
+            !queryResponse.data ||
+            typeof queryResponse.data !== 'object' ||
+            Array.isArray(queryResponse.data) ||
+            !hasDisplayValue(queryResponse.data)
+        ) {
+            throw new Error('The API returned an empty or invalid post.');
+        }
         const { poll_attachment, ghost_post_status, ...rest } =
             queryResponse.data;
         data = rest;
@@ -749,11 +770,14 @@ app.get('/threads/:threadId', loggedInUserChecker, async (req, res) => {
             };
         }
 
-        const is_ghost_post = ghost_post_status === 'ACTIVE';
+        const is_ghost_post = hasDisplayValue(ghost_post_status)
+            ? ghost_post_status === 'ACTIVE'
+            : undefined;
         data = {
             ...data,
             is_ghost_post,
         };
+        postLoaded = true;
     } catch (e) {
         error = e?.response?.data?.error?.message ?? e.message;
         console.error(error);
@@ -805,7 +829,11 @@ app.get('/threads/:threadId', loggedInUserChecker, async (req, res) => {
         canDelete,
         csrfToken: canDelete ? req.session.deleteCsrfToken : undefined,
         error,
-        title: 'Thread',
+        hasDisplayValue,
+        isWebUrl,
+        creationDateTime: formatPostTimestamp(data.timestamp),
+        postLoaded,
+        title: 'Post Details',
     });
 });
 
