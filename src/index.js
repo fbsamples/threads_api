@@ -707,6 +707,8 @@ function formatPostTimestamp(timestamp) {
         : timestamp;
 }
 
+app.locals.formatPostTimestamp = formatPostTimestamp;
+
 app.get('/threads/:threadId', loggedInUserChecker, async (req, res) => {
     const { threadId } = req.params;
     if (!/^\d+$/.test(threadId)) {

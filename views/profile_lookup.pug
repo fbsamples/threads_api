@@ -77,8 +77,8 @@ block content
         table.threads-list
             thead
                 tr
-                    th ID
-                    th Created On
+                    th Post ID
+                    th Creation Date and Time
                     th Media Type
                     th Text
                     th Permalink
@@ -88,7 +88,7 @@ block content
                     tr.threads-list-item
                         td.thread-id
                             a(href=`/threads/${thread.id}`)=thread.id
-                        td.thread-timestamp=thread.timestamp
+                        td.thread-timestamp=formatPostTimestamp(thread.timestamp)
                         td.thread-type=thread.media_type
                         td.thread-text=thread.text
                         td.thread-permalink
