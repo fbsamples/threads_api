@@ -1,9 +1,9 @@
 table.thread-replies
     thead
         tr
-            th ID
+            th Post ID
             th Username
-            th Created On
+            th Creation Date and Time
             th Media Type
             th Text
             th Permalink
@@ -16,7 +16,7 @@ table.thread-replies
                 td.reply-id
                     a(href=`/threads/${reply.id}`)=reply.id
                 td.reply-username=reply.username
-                td.reply-timestamp=reply.timestamp
+                td.reply-timestamp=formatPostTimestamp(reply.timestamp)
                 td.reply-type=reply.media_type
                 td.reply-text=reply.text
                 td.reply-permalink
