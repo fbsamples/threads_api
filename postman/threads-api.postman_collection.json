@@ -122,6 +122,53 @@
 							"cookie": [],
 							"body": "{\n    \"access_token\": \"string\",\n    \"user_id\": \"string\"\n}"
 						}
+					],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.collectionVariables.get(\"auto_save_variables\") === \"true\") {",
+									"    pm.collectionVariables.unset(\"user_id\");",
+									"    const JSON_TOKEN_PATTERN = /\"(?:[^\"\\\\]|\\\\.)*\"|-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?|[{}\\[\\]:,]/g;",
+									"",
+									"    function parseUserIdResponse(text) {",
+									"        const stack = [];",
+									"        let previous;",
+									"        let field;",
+									"        const preserved = text.replace(JSON_TOKEN_PATTERN, (token) => {",
+									"            const frame = stack[stack.length - 1];",
+									"            let result = token;",
+									"            if (token === '{' || token === '[') {",
+									"                stack.push({ object: token === '{', keys: new Set() });",
+									"            } else if (token === '}' || token === ']') {",
+									"                stack.pop();",
+									"            } else if (",
+									"                token[0] === '\"' && frame?.object &&",
+									"                (previous === '{' || previous === ',')",
+									"            ) {",
+									"                field = JSON.parse(token);",
+									"                if (frame.keys.has(field)) throw new Error('Duplicate response field.');",
+									"                frame.keys.add(field);",
+									"            } else if (previous === ':' && field === 'user_id' && /^-?\\d/.test(token)) {",
+									"                if (!/^[1-9]\\d*$/.test(token)) throw new Error('Invalid user ID.');",
+									"                result = JSON.stringify(token);",
+									"            }",
+									"            previous = token;",
+									"            return result;",
+									"        });",
+									"        return JSON.parse(preserved);",
+									"    }",
+									"    const data = parseUserIdResponse(pm.response.text());",
+									"    if (pm.response.code === 200 && typeof data.user_id === \"string\" && /^[1-9]\\d*$/.test(data.user_id)) {",
+									"        pm.collectionVariables.set(\"user_id\", data.user_id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
 					]
 				},
 				{
@@ -372,12 +419,12 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?text=This is a test post.&media_type=TEXT&auto_publish_text=true",
+									"raw": "{{api_host}}/{{user_id}}/threads?text=This is a test post.&media_type=TEXT&auto_publish_text=true",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"threads"
 									],
 									"query": [
@@ -455,7 +502,6 @@
 											"value": "true",
 											"description": "When this optional flag is passed, a ghost post is created which will expire after 24 hours.",
 											"disabled": true
-
 										},
 										{
 											"key": "enable_reply_approvals",
@@ -573,12 +619,12 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?text=This is an image.&media_type=IMAGE&image_url={{image_url}}&alt_text=An example image.",
+									"raw": "{{api_host}}/{{user_id}}/threads?text=This is an image.&media_type=IMAGE&image_url={{image_url}}&alt_text=An example image.",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"threads"
 									],
 									"query": [
@@ -742,12 +788,12 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?text=This is a video.&media_type=VIDEO&video_url={{video_url}}&alt_text=An example video.",
+									"raw": "{{api_host}}/{{user_id}}/threads?text=This is a video.&media_type=VIDEO&video_url={{video_url}}&alt_text=An example video.",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"threads"
 									],
 									"query": [
@@ -911,12 +957,12 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads_publish?creation_id={{container_id}}",
+									"raw": "{{api_host}}/{{user_id}}/threads_publish?creation_id={{container_id}}",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"threads_publish"
 									],
 									"query": [
@@ -1005,12 +1051,12 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?media_type=IMAGE&image_url={{image_url}}&is_carousel_item=true&alt_text=An example image.",
+									"raw": "{{api_host}}/{{user_id}}/threads?media_type=IMAGE&image_url={{image_url}}&is_carousel_item=true&alt_text=An example image.",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"threads"
 									],
 									"query": [
@@ -1123,12 +1169,12 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?media_type=VIDEO&video_url={{video_url}}&is_carousel_item=true&alt_text=An example video.",
+									"raw": "{{api_host}}/{{user_id}}/threads?media_type=VIDEO&video_url={{video_url}}&is_carousel_item=true&alt_text=An example video.",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"threads"
 									],
 									"query": [
@@ -1236,12 +1282,12 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?media_type=CAROUSEL&children={{carousel_children_ids}}&text=This is a carousel.",
+									"raw": "{{api_host}}/{{user_id}}/threads?media_type=CAROUSEL&children={{carousel_children_ids}}&text=This is a carousel.",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"threads"
 									],
 									"query": [
@@ -1395,12 +1441,12 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads_publish?creation_id={{container_id}}",
+									"raw": "{{api_host}}/{{user_id}}/threads_publish?creation_id={{container_id}}",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"threads_publish"
 									],
 									"query": [
@@ -1480,12 +1526,12 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?text=This is a quoted post.&media_type=TEXT&quote_post_id={{quote_post_id}}",
+									"raw": "{{api_host}}/{{user_id}}/threads?text=This is a quoted post.&media_type=TEXT&quote_post_id={{quote_post_id}}",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"threads"
 									],
 									"query": [
@@ -1615,12 +1661,12 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads_publish?creation_id={{container_id}}",
+									"raw": "{{api_host}}/{{user_id}}/threads_publish?creation_id={{container_id}}",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"threads_publish"
 									],
 									"query": [
@@ -1908,7 +1954,7 @@
 											"if (pm.collectionVariables.get(\"auto_save_variables\") === \"true\") {",
 											"    var jsonData = pm.response.json();",
 											"    ",
-											"    if (jsonData.id)",
+											"    if (typeof jsonData.id === \"string\" && /^[1-9]\\d*$/.test(jsonData.id))",
 											"        pm.collectionVariables.set(\"user_id\", jsonData.id);",
 											"}"
 										],
@@ -2099,12 +2145,12 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?fields={{fields_threads}}&limit=50",
+									"raw": "{{api_host}}/{{user_id}}/threads?fields={{fields_threads}}&limit=50",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"threads"
 									],
 									"query": [
@@ -2637,12 +2683,12 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?media_type=TEXT&text=Text&reply_to_id={{reply_thread_id}}",
+									"raw": "{{api_host}}/{{user_id}}/threads?media_type=TEXT&text=Text&reply_to_id={{reply_thread_id}}",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"threads"
 									],
 									"query": [
@@ -2719,12 +2765,12 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?media_type=TEXT&text=Text&reply_control={{reply_control}}",
+									"raw": "{{api_host}}/{{user_id}}/threads?media_type=TEXT&text=Text&reply_control={{reply_control}}",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"threads"
 									],
 									"query": [
@@ -2800,12 +2846,12 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/replies?fields={{fields_replies}}&limit=50",
+									"raw": "{{api_host}}/{{user_id}}/replies?fields={{fields_replies}}&limit=50",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"replies"
 									],
 									"query": [
@@ -3029,12 +3075,12 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{api_host}}/me/threads_insights?metric={{metrics_account}}",
+							"raw": "{{api_host}}/{{user_id}}/threads_insights?metric={{metrics_account}}",
 							"host": [
 								"{{api_host}}"
 							],
 							"path": [
-								"me",
+								"{{user_id}}",
 								"threads_insights"
 							],
 							"query": [
@@ -3234,12 +3280,12 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{api_host}}/me/mentions?fields={{fields_threads}}&limit=50",
+							"raw": "{{api_host}}/{{user_id}}/mentions?fields={{fields_threads}}&limit=50",
 							"host": [
 								"{{api_host}}"
 							],
 							"path": [
-								"me",
+								"{{user_id}}",
 								"mentions"
 							],
 							"query": [
@@ -3457,12 +3503,12 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{api_host}}/me/threads_publishing_limit?fields={{fields_quota}}",
+							"raw": "{{api_host}}/{{user_id}}/threads_publishing_limit?fields={{fields_quota}}",
 							"host": [
 								"{{api_host}}"
 							],
 							"path": [
-								"me",
+								"{{user_id}}",
 								"threads_publishing_limit"
 							],
 							"query": [

@@ -31,7 +31,8 @@ block content
                         td
                             if deletableMediaTypes.includes(thread.media_type)
                                 form(action=`/threads/${thread.id}/delete` method='POST' onsubmit="return confirm('Are you sure? This permanently deletes your post and cannot be undone.');")
-                                    input(type='hidden' name='csrfToken' value=csrfToken)
+                                    input(type='hidden' name='_csrf' value=csrfToken)
+                                    input(type='hidden' name='csrfToken' value=deleteCsrfToken)
                                     button(type='submit' aria-label='Delete Post' title='Delete Post') 🗑
 
     div.paging

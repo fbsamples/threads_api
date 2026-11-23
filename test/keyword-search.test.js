@@ -28,7 +28,7 @@ async function startApp(t, get, authenticated = true) {
                     SESSION_SECRET: 'test-session-secret',
                     ...(authenticated && {
                         INITIAL_ACCESS_TOKEN: 'test-access-token',
-                        INITIAL_USER_ID: 'test-user',
+                        INITIAL_USER_ID: '456',
                     }),
                 },
             },
