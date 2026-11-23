@@ -9,7 +9,7 @@ You can use this Sample App to test the [Threads API](https://developers.faceboo
 
 ## Features
 
--   **Login and Account:** Sign in through the Threads oAuth flow and exchange short-lived tokens for long-lived tokens. View your profile details and sign out.
+-   **Login and Account:** Sign in through the Threads oAuth flow and exchange short-lived tokens for long-lived tokens. Authenticated requests use the Threads app-scoped user ID returned during sign-in. View your profile details and sign out.
 -   **Publishing:** Publish text, image, video, and carousel posts. Check container status before publishing. You can also publish text posts automatically during the container creation phase.
 -   **Publishing Options:** Add topic tags, link attachments, alt text, and polls. Mark text or media as spoilers. Create temporary ghost posts that automatically expire. Choose who can reply by setting the reply audience.
 -   **Replies, Quotes, and Reposts:** Create replies and quote posts, or repost an existing post.
@@ -23,7 +23,7 @@ You can use this Sample App to test the [Threads API](https://developers.faceboo
 -   **Token Debugging:** Inspect the access token's application name, granted permissions, app-scoped user ID, issued timestamp, and expiration date.
 -   **Post Embeds:** Try the oEmbed API with a Threads post URL without an access token.
 -   **Deletion:** Use the trash button on your posts list or post details page to delete a post you own. Confirm the warning to continue. The sample app checks that you own the post. You return to your remaining posts only after the API confirms success. This action cannot be undone, and reposts are unsupported. The route allows 10 requests per minute per IPv4 address or IPv6 subnet within one app process. Use a test app and test user. View [Delete Posts](https://developers.facebook.com/documentation/threads/posts/delete-posts) for permissions and limits.
--   **Postman Collection:** Use the public [Threads Postman Collection](https://www.postman.com/meta/threads/overview) or import `postman/threads-api.postman_collection.json` into Postman.
+-   **Postman Collection:** Use the public [Threads Postman Collection](https://www.postman.com/meta/threads/overview) or import `postman/threads-api.postman_collection.json` into Postman. Set `user_id` to the app-scoped ID for your access token, using the profile request to look it up if needed. The token exchange and profile lookup save it when `auto_save_variables` is enabled.
 
 ## Required software
 

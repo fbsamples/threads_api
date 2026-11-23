@@ -82,7 +82,7 @@ async function startApp(t, post, owner = '456') {
                 env: {
                     SESSION_SECRET: 'test-secret',
                     INITIAL_ACCESS_TOKEN: 'test-token',
-                    INITIAL_USER_ID: 'test-user',
+                    INITIAL_USER_ID: '456',
                 },
             },
             console: { log() {}, error() {} },
@@ -92,7 +92,16 @@ async function startApp(t, post, owner = '456') {
                         get: async (url) => {
                             const parsed = new URL(url);
                             reads.push(parsed);
-                            if (parsed.pathname === '/me')
+                            if (parsed.pathname === '/debug_token')
+                                return {
+                                    data: {
+                                        data: {
+                                            is_valid: true,
+                                            user_id: '456',
+                                        },
+                                    },
+                                };
+                            if (parsed.pathname === '/456')
                                 return { data: { id: '456' } };
                             if (
                                 parsed.searchParams.get('fields') ===

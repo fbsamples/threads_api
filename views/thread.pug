@@ -131,6 +131,7 @@ block content
                         td Repost
                         td
                             form(action='/repost' method='post')
+                                input(type='hidden' name='_csrf' value=csrfToken)
                                 input(type='hidden' name='repostId' value=threadId)
                                 button(type='submit') Repost
                     if canDelete
@@ -138,5 +139,6 @@ block content
                             td Delete
                             td
                                 form(action=`/threads/${threadId}/delete` method='POST' onsubmit="return confirm('Are you sure? This permanently deletes your post and cannot be undone.');")
-                                    input(type='hidden' name='csrfToken' value=csrfToken)
+                                    input(type='hidden' name='_csrf' value=csrfToken)
+                                    input(type='hidden' name='csrfToken' value=deleteCsrfToken)
                                     button(type='submit' aria-label='Delete Post' title='Delete Post') 🗑

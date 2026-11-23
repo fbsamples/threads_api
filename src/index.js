@@ -10,6 +10,7 @@ const { rateLimit } = require('express-rate-limit');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const axios = require('axios');
+const { Buffer } = require('node:buffer');
 const crypto = require('crypto');
 const https = require('https');
 const path = require('path');
@@ -17,6 +18,7 @@ const fs = require('fs');
 const { URLSearchParams, URL } = require('url');
 const multer = require('multer');
 const { DateTime } = require('luxon');
+const { setTimeout, clearTimeout } = require('node:timers');
 const textParser = require('../public/scripts/text-parser.js');
 
 const spoilerMarker = '**spoiler**';
@@ -117,6 +119,7 @@ const PARAMS__SCOPE = 'scope';
 const PARAMS__SEARCH_MODE = 'search_mode';
 const PARAMS__SEARCH_TYPE = 'search_type';
 const PARAMS__SINCE = 'since';
+const PARAMS__STATE = 'state';
 const PARAMS__TEXT = 'text';
 const PARAMS__TOPIC_TAG = 'topic_tag';
 const PARAMS__UNTIL = 'until';
@@ -177,25 +180,155 @@ app.use(
         saveUninitialized: true,
         cookie: {
             maxAge: 6000000,
+            sameSite: 'lax',
         },
     })
 );
 
-// Middleware to ensure the user is logged in
-const loggedInUserChecker = (req, res, next) => {
-    if (req.session.access_token) {
-        next();
-    } else if (initial_access_token && initial_user_id) {
-        useInitialAuthenticationValues(req);
-        next();
-    } else {
-        const returnUrl = encodeURIComponent(req.originalUrl);
-        res.redirect(`/?${PARAMS__RETURN_URL}=${returnUrl}`);
+function matchesSessionToken(expected, received) {
+    return (
+        typeof expected === 'string' &&
+        typeof received === 'string' &&
+        /^[a-f0-9]{64}$/.test(expected) &&
+        /^[a-f0-9]{64}$/.test(received) &&
+        crypto.timingSafeEqual(
+            Buffer.from(expected, 'hex'),
+            Buffer.from(received, 'hex')
+        )
+    );
+}
+
+app.use(function protectAgainstCsrf(req, res, next) {
+    if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+        req.session.csrfToken ??= crypto.randomBytes(32).toString('hex');
+        res.locals.csrfToken = req.session.csrfToken;
+        res.set('Cache-Control', 'no-store');
+        return next();
     }
+
+    const headerToken = req.get('X-CSRF-Token');
+    const csrfToken =
+        headerToken ??
+        (req.is('application/x-www-form-urlencoded')
+            ? req.body?._csrf
+            : undefined);
+    if (!matchesSessionToken(req.session.csrfToken, csrfToken)) {
+        return res.status(403).json({
+            error: true,
+            message:
+                'The request could not be verified. Reload the page and try again.',
+        });
+    }
+    res.locals.csrfToken = req.session.csrfToken;
+    res.set('Cache-Control', 'no-store');
+    next();
+});
+
+const JSON_TOKEN_PATTERN =
+    /"(?:[^"\\]|\\.)*"|-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?|[{}\[\]:,]/g;
+
+function parseUserIdResponse(text) {
+    const stack = [];
+    let previous;
+    let field;
+    const preserved = text.replace(JSON_TOKEN_PATTERN, (token) => {
+        const frame = stack[stack.length - 1];
+        let result = token;
+        if (token === '{' || token === '[') {
+            stack.push({ object: token === '{', keys: new Set() });
+        } else if (token === '}' || token === ']') {
+            stack.pop();
+        } else if (
+            token[0] === '"' &&
+            frame?.object &&
+            (previous === '{' || previous === ',')
+        ) {
+            field = JSON.parse(token);
+            if (frame.keys.has(field))
+                throw new Error('Duplicate response field.');
+            frame.keys.add(field);
+        } else if (
+            previous === ':' &&
+            field === 'user_id' &&
+            /^-?\d/.test(token)
+        ) {
+            if (!/^[1-9]\d*$/.test(token)) throw new Error('Invalid user ID.');
+            result = JSON.stringify(token);
+        }
+        previous = token;
+        return result;
+    });
+    return JSON.parse(preserved);
+}
+
+function isAppScopedUserId(userId) {
+    return typeof userId === 'string' && /^[1-9]\d*$/.test(userId);
+}
+
+async function verifySessionUserId(req) {
+    const binding = req.session.user_id_binding;
+    if (
+        binding?.access_token === req.session.access_token &&
+        binding?.user_id === req.session.user_id
+    )
+        return true;
+    try {
+        const response = await axios.get(
+            buildGraphAPIURL(
+                'debug_token',
+                { [PARAMS__INPUT_TOKEN]: req.session.access_token },
+                req.session.access_token
+            ),
+            { httpsAgent: agent, transformResponse: [parseUserIdResponse] }
+        );
+        const data = response.data?.data;
+        if (data?.is_valid !== true || data.user_id !== req.session.user_id)
+            return false;
+        req.session.user_id_binding = {
+            access_token: req.session.access_token,
+            user_id: req.session.user_id,
+        };
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+// Middleware to ensure the user is logged in with an app-scoped user ID.
+const loggedInUserChecker = (req, res, next) => {
+    if (
+        !req.session.access_token &&
+        initial_access_token &&
+        isAppScopedUserId(initial_user_id)
+    ) {
+        useInitialAuthenticationValues(req);
+    }
+    if (req.session.access_token && isAppScopedUserId(req.session.user_id)) {
+        return next();
+    }
+    if (req.method !== 'GET') {
+        return res.status(401).json({
+            error: true,
+            message: 'Sign in again to load your Threads app-scoped user ID.',
+        });
+    }
+    if (req.session.access_token) {
+        return res.status(401).render('index', {
+            title: 'Sign In',
+            error: 'Sign in again to load your Threads app-scoped user ID.',
+            returnUrl: req.originalUrl,
+        });
+    }
+    const returnUrl = encodeURIComponent(req.originalUrl);
+    return res.redirect(`/?${PARAMS__RETURN_URL}=${returnUrl}`);
 };
 
 app.get('/', async (req, res) => {
-    if (!req.session.access_token && initial_access_token && initial_user_id) {
+    if (
+        !req.session.access_token &&
+        initial_access_token &&
+        isAppScopedUserId(initial_user_id)
+    ) {
         useInitialAuthenticationValues(req);
         res.redirect('/account');
     } else {
@@ -206,8 +339,60 @@ app.get('/', async (req, res) => {
     }
 });
 
-// Login route using OAuth
-app.get('/login', (req, res) => {
+// Store single-use OAuth state outside snapshots saved by concurrent requests.
+const oauthStates = new Map();
+const OAUTH_STATE_LIFETIME_MS = 10 * 60 * 1000;
+
+function clearOAuthState(sessionID) {
+    const record = oauthStates.get(sessionID);
+    if (record) clearTimeout(record.timer);
+    oauthStates.delete(sessionID);
+}
+
+function createOAuthState(sessionID) {
+    clearOAuthState(sessionID);
+    const record = {
+        value: crypto.randomBytes(32).toString('hex'),
+        expiresAt: Date.now() + OAUTH_STATE_LIFETIME_MS,
+    };
+    record.timer = setTimeout(() => {
+        if (oauthStates.get(sessionID) === record)
+            oauthStates.delete(sessionID);
+    }, OAUTH_STATE_LIFETIME_MS);
+    record.timer.unref();
+    oauthStates.set(sessionID, record);
+    return record.value;
+}
+
+function consumeOAuthState(req, state) {
+    const record = oauthStates.get(req.sessionID);
+    if (
+        !record ||
+        record.expiresAt <= Date.now() ||
+        !matchesSessionToken(record.value, state)
+    )
+        return false;
+    clearOAuthState(req.sessionID);
+    return true;
+}
+
+const signInRateLimit = rateLimit({
+    windowMs: 60 * 1000,
+    limit: 20,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    handler: (_req, res, _next, options) => {
+        return res.status(options.statusCode).render('index', {
+            title: 'Sign In',
+            error: 'Too many sign-in requests. Wait a minute and try again.',
+        });
+    },
+});
+
+// Start OAuth with a state value bound to this browser session.
+app.get('/login', signInRateLimit, (req, res) => {
+    if (req.method !== 'GET') return res.sendStatus(405);
+    const state = createOAuthState(req.sessionID);
     const url = buildGraphAPIURL(
         'oauth/authorize',
         {
@@ -215,16 +400,17 @@ app.get('/login', (req, res) => {
             [PARAMS__CLIENT_ID]: APP_ID,
             [PARAMS__REDIRECT_URI]: REDIRECT_URI,
             [PARAMS__RESPONSE_TYPE]: 'code',
+            [PARAMS__STATE]: state,
         },
         null,
         AUTHORIZATION_BASE_URL
     );
-
     res.redirect(url);
 });
 
-// Callback route for OAuth user token And reroute to '/pages'
-app.get('/callback', async (req, res) => {
+// Verify the OAuth callback before exchanging the authorization code.
+app.get('/callback', signInRateLimit, async (req, res) => {
+    if (req.method !== 'GET') return res.sendStatus(405);
     const code = req.query.code;
     const uri = buildGraphAPIURL(
         'oauth/access_token',
@@ -234,6 +420,18 @@ app.get('/callback', async (req, res) => {
     );
 
     try {
+        if (!consumeOAuthState(req, req.query[PARAMS__STATE])) {
+            return res.status(403).render('index', {
+                title: 'Sign In',
+                error: 'The sign-in request could not be verified. Start sign-in again.',
+            });
+        }
+        if (typeof code !== 'string' || !code) {
+            return res.status(400).render('index', {
+                title: 'Sign In',
+                error: 'No authorization code was returned. Start sign-in again.',
+            });
+        }
         const response = await axios.post(
             uri,
             new URLSearchParams({
@@ -248,9 +446,25 @@ app.get('/callback', async (req, res) => {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
                 httpsAgent: agent,
+                transformResponse: [parseUserIdResponse],
             }
         );
+        if (
+            typeof response.data?.access_token !== 'string' ||
+            !response.data.access_token ||
+            !isAppScopedUserId(response.data.user_id)
+        ) {
+            return res.status(502).render('index', {
+                title: 'Sign In',
+                error: 'The sign-in response did not include a Threads app-scoped user ID. Try signing in again.',
+            });
+        }
         req.session.access_token = response.data.access_token;
+        req.session.user_id = response.data.user_id;
+        req.session.user_id_binding = {
+            access_token: req.session.access_token,
+            user_id: req.session.user_id,
+        };
         const extendAccessTokenUrl = buildGraphAPIURL(
             `access_token`,
             {
@@ -263,22 +477,30 @@ app.get('/callback', async (req, res) => {
             const extendTokenResponse = await axios.get(extendAccessTokenUrl, {
                 httpsAgent: agent,
             });
-            req.session.access_token = extendTokenResponse.data.access_token;
+            const extendedToken = extendTokenResponse.data?.access_token;
+            if (typeof extendedToken === 'string' && extendedToken) {
+                req.session.access_token = extendedToken;
+            }
         } catch (e) {
             console.error(e?.response?.data?.error?.message ?? e.message);
         }
+        req.session.user_id_binding = {
+            access_token: req.session.access_token,
+            user_id: req.session.user_id,
+        };
         res.redirect('/account');
     } catch (err) {
-        console.error(err?.response?.data);
-        res.render('index', {
-            error: `There was an error with the request: ${err}`,
+        console.error('Unable to complete Threads sign-in.');
+        res.status(502).render('index', {
+            title: 'Sign In',
+            error: 'Unable to complete Threads sign-in. Try again.',
         });
     }
 });
 
 app.get('/account', loggedInUserChecker, async (req, res) => {
     const getUserDetailsUrl = buildGraphAPIURL(
-        'me',
+        req.session.user_id,
         {
             [PARAMS__FIELDS]: [
                 FIELD__USERNAME,
@@ -297,9 +519,6 @@ app.get('/account', loggedInUserChecker, async (req, res) => {
             httpsAgent: agent,
         });
         userDetails = response.data;
-
-        // This value is not currently used but it may come handy in the future
-        if (!req.session.user_id) req.session.user_id = response.data.id;
 
         userDetails.user_profile_url = `https://www.threads.net/@${userDetails.username}`;
     } catch (e) {
@@ -334,7 +553,7 @@ app.get('/userInsights', loggedInUserChecker, async (req, res) => {
     }
 
     const queryThreadUrl = buildGraphAPIURL(
-        `me/threads_insights`,
+        `${req.session.user_id}/threads_insights`,
         params,
         req.session.access_token
     );
@@ -386,7 +605,7 @@ app.get('/publishingLimit', loggedInUserChecker, async (req, res) => {
     };
 
     const publishingLimitUrl = buildGraphAPIURL(
-        `me/threads_publishing_limit`,
+        `${req.session.user_id}/threads_publishing_limit`,
         params,
         req.session.access_token
     );
@@ -456,167 +675,194 @@ app.post('/repost', upload.array(), async (req, res) => {
     }
 });
 
-app.post('/upload', upload.array(), async (req, res) => {
-    const {
-        text,
-        attachmentType,
-        attachmentUrl,
-        attachmentAltText,
-        replyControl,
-        replyToId,
-        topicTag,
-        linkAttachment,
-        autoPublishText,
-        pollOptionA,
-        pollOptionB,
-        pollOptionC,
-        pollOptionD,
-        quotePostId,
-        spoilerMedia,
-        ghostPostMedia,
-    } = req.body;
-
-    const params = {
-        [PARAMS__REPLY_CONTROL]: replyControl,
-        [PARAMS__REPLY_TO_ID]: replyToId,
-        [PARAMS__LINK_ATTACHMENT]: linkAttachment,
-    };
-
-    if (text.includes(spoilerMarker)) {
-        parsedInput = textParser.extractSpoilerInfo(text);
-        processedText = parsedInput.text;
-        textEntites = parsedInput.textEntities;
-        params[PARAMS__TEXT] = processedText;
-        params[PARAMS_TEXT_ENTITES] = JSON.stringify(textEntites);
-    } else {
-        params[PARAMS__TEXT] = text;
-    }
-    if (
-        topicTag.length >= 1 &&
-        topicTag.length <= 50 &&
-        !topicTag.includes('.') &&
-        !topicTag.includes('&')
-    ) {
-        params[PARAMS__TOPIC_TAG] = topicTag;
-    }
-
-    if (spoilerMedia) {
-        params[PARAMS_IS_SPOILER_MEDIA] = true;
-    }
-
-    if (ghostPostMedia) {
-        params[PARAMS_IS_GHOST_POST] = true;
-    }
-
-    if (pollOptionA && pollOptionB) {
-        const pollAttachment = JSON.stringify({
-            option_a: pollOptionA,
-            option_b: pollOptionB,
-            option_c: pollOptionC,
-            option_d: pollOptionD,
+const publishingRateLimit = rateLimit({
+    windowMs: 60 * 1000,
+    limit: 20,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    handler: (_req, res, _next, options) => {
+        res.status(options.statusCode).json({
+            error: true,
+            message:
+                'Too many publishing requests. Wait a minute and try again.',
         });
-        params[PARAMS__POLL_ATTACHMENT] = pollAttachment;
-    }
+    },
+});
 
-    if (quotePostId) {
-        params[PARAMS__QUOTE_POST_ID] = quotePostId;
-    }
+app.post(
+    '/upload',
+    publishingRateLimit,
+    loggedInUserChecker,
+    upload.array(),
+    async (req, res) => {
+        const {
+            text,
+            attachmentType,
+            attachmentUrl,
+            attachmentAltText,
+            replyControl,
+            replyToId,
+            topicTag,
+            linkAttachment,
+            autoPublishText,
+            pollOptionA,
+            pollOptionB,
+            pollOptionC,
+            pollOptionD,
+            quotePostId,
+            spoilerMedia,
+            ghostPostMedia,
+        } = req.body;
 
-    // No attachments
-    if (!attachmentType?.length) {
-        params.media_type = MEDIA_TYPE__TEXT;
-    }
-    // Single attachment
-    else if (attachmentType?.length === 1) {
-        addAttachmentFields(
-            params,
-            attachmentType[0],
-            attachmentUrl[0],
-            attachmentAltText[0]
-        );
-    }
-    // Multiple attachments
-    else {
-        params.media_type = MEDIA_TYPE__CAROUSEL;
-        params.children = [];
-        attachmentType.forEach((type, i) => {
-            const child = {
-                is_carousel_item: true,
-            };
-            addAttachmentFields(
-                child,
-                type,
-                attachmentUrl[i],
-                attachmentAltText[i]
-            );
-            params.children.push(child);
-        });
-    }
+        const params = {
+            [PARAMS__REPLY_CONTROL]: replyControl,
+            [PARAMS__REPLY_TO_ID]: replyToId,
+            [PARAMS__LINK_ATTACHMENT]: linkAttachment,
+        };
 
-    if (autoPublishText === 'on' && params.media_type === MEDIA_TYPE__TEXT) {
-        params[PARAMS__AUTO_PUBLISH_TEXT] = true;
-    }
-
-    if (params.media_type === MEDIA_TYPE__CAROUSEL) {
-        const createChildPromises = params.children.map((child) =>
-            axios.post(
-                buildGraphAPIURL(`me/threads`, child, req.session.access_token),
-                {}
-            )
-        );
-        try {
-            const createCarouselItemResponse = await Promise.all(
-                createChildPromises
-            );
-            // Replace children with the IDs
-            params.children = createCarouselItemResponse
-                .filter((response) => response.status === 200)
-                .map((response) => response.data.id)
-                .join(',');
-        } catch (e) {
-            console.error(e.message);
-            res.json({
-                error: true,
-                message: `Error creating child elements: ${e}`,
-            });
-            return;
+        if (text.includes(spoilerMarker)) {
+            parsedInput = textParser.extractSpoilerInfo(text);
+            processedText = parsedInput.text;
+            textEntites = parsedInput.textEntities;
+            params[PARAMS__TEXT] = processedText;
+            params[PARAMS_TEXT_ENTITES] = JSON.stringify(textEntites);
+        } else {
+            params[PARAMS__TEXT] = text;
         }
-    }
+        if (
+            topicTag.length >= 1 &&
+            topicTag.length <= 50 &&
+            !topicTag.includes('.') &&
+            !topicTag.includes('&')
+        ) {
+            params[PARAMS__TOPIC_TAG] = topicTag;
+        }
 
-    const postThreadsUrl = buildGraphAPIURL(
-        `me/threads`,
-        params,
-        req.session.access_token
-    );
-    try {
-        const postResponse = await axios.post(
-            postThreadsUrl,
-            {},
-            { httpsAgent: agent }
-        );
-        const id = postResponse.data.id;
+        if (spoilerMedia) {
+            params[PARAMS_IS_SPOILER_MEDIA] = true;
+        }
+
+        if (ghostPostMedia) {
+            params[PARAMS_IS_GHOST_POST] = true;
+        }
+
+        if (pollOptionA && pollOptionB) {
+            const pollAttachment = JSON.stringify({
+                option_a: pollOptionA,
+                option_b: pollOptionB,
+                option_c: pollOptionC,
+                option_d: pollOptionD,
+            });
+            params[PARAMS__POLL_ATTACHMENT] = pollAttachment;
+        }
+
+        if (quotePostId) {
+            params[PARAMS__QUOTE_POST_ID] = quotePostId;
+        }
+
+        // No attachments
+        if (!attachmentType?.length) {
+            params.media_type = MEDIA_TYPE__TEXT;
+        }
+        // Single attachment
+        else if (attachmentType?.length === 1) {
+            addAttachmentFields(
+                params,
+                attachmentType[0],
+                attachmentUrl[0],
+                attachmentAltText[0]
+            );
+        }
+        // Multiple attachments
+        else {
+            params.media_type = MEDIA_TYPE__CAROUSEL;
+            params.children = [];
+            attachmentType.forEach((type, i) => {
+                const child = {
+                    is_carousel_item: true,
+                };
+                addAttachmentFields(
+                    child,
+                    type,
+                    attachmentUrl[i],
+                    attachmentAltText[i]
+                );
+                params.children.push(child);
+            });
+        }
+
         if (
             autoPublishText === 'on' &&
             params.media_type === MEDIA_TYPE__TEXT
         ) {
-            // If auto_publish_text is on, the returned ID is the published Threads ID.
-            return res.json({
-                redirectUrl: `/threads/${id}`,
-            });
-        } else {
-            // Otherwise, the returned ID is the container ID.
-            return res.json({
-                id: id,
+            params[PARAMS__AUTO_PUBLISH_TEXT] = true;
+        }
+
+        if (params.media_type === MEDIA_TYPE__CAROUSEL) {
+            const createChildPromises = params.children.map((child) =>
+                axios.post(
+                    buildGraphAPIURL(
+                        `${req.session.user_id}/threads`,
+                        child,
+                        req.session.access_token
+                    ),
+                    {}
+                )
+            );
+            try {
+                const createCarouselItemResponse = await Promise.all(
+                    createChildPromises
+                );
+                // Replace children with the IDs
+                params.children = createCarouselItemResponse
+                    .filter((response) => response.status === 200)
+                    .map((response) => response.data.id)
+                    .join(',');
+            } catch (e) {
+                console.error(e.message);
+                res.json({
+                    error: true,
+                    message: `Error creating child elements: ${e}`,
+                });
+                return;
+            }
+        }
+
+        const postThreadsUrl = buildGraphAPIURL(
+            `${req.session.user_id}/threads`,
+            params,
+            req.session.access_token
+        );
+        try {
+            const postResponse = await axios.post(
+                postThreadsUrl,
+                {},
+                { httpsAgent: agent }
+            );
+            const id = postResponse.data.id;
+            if (
+                autoPublishText === 'on' &&
+                params.media_type === MEDIA_TYPE__TEXT
+            ) {
+                // If auto_publish_text is on, the returned ID is the published Threads ID.
+                return res.json({
+                    redirectUrl: `/threads/${id}`,
+                });
+            } else {
+                // Otherwise, the returned ID is the container ID.
+                return res.json({
+                    id: id,
+                });
+            }
+        } catch (e) {
+            console.error(e.message);
+            res.json({
+                error: true,
+                message: `Error during upload: ${e}`,
             });
         }
-    } catch (e) {
-        console.error(e.message);
-        res.json({
-            error: true,
-            message: `Error during upload: ${e}`,
-        });
     }
-});
+);
 
 app.get('/publish/:containerId', loggedInUserChecker, async (req, res) => {
     const containerId = req.params.containerId;
@@ -656,32 +902,38 @@ app.get(
     }
 );
 
-app.post('/publish', upload.array(), async (req, res) => {
-    const { containerId } = req.body;
-    const publishThreadsUrl = buildGraphAPIURL(
-        `me/threads_publish`,
-        {
-            creation_id: containerId,
-        },
-        req.session.access_token
-    );
+app.post(
+    '/publish',
+    publishingRateLimit,
+    loggedInUserChecker,
+    upload.array(),
+    async (req, res) => {
+        const { containerId } = req.body;
+        const publishThreadsUrl = buildGraphAPIURL(
+            `${req.session.user_id}/threads_publish`,
+            {
+                creation_id: containerId,
+            },
+            req.session.access_token
+        );
 
-    try {
-        const postResponse = await axios.post(publishThreadsUrl, {
-            httpsAgent: agent,
-        });
-        const threadId = postResponse.data.id;
-        res.json({
-            id: threadId,
-        });
-    } catch (e) {
-        console.error(e.message);
-        res.json({
-            error: true,
-            message: `Error during publishing: ${e}`,
-        });
+        try {
+            const postResponse = await axios.post(publishThreadsUrl, {
+                httpsAgent: agent,
+            });
+            const threadId = postResponse.data.id;
+            res.json({
+                id: threadId,
+            });
+        } catch (e) {
+            console.error(e.message);
+            res.json({
+                error: true,
+                message: `Error during publishing: ${e}`,
+            });
+        }
     }
-});
+);
 
 function hasDisplayValue(value) {
     if (value === null || value === undefined) return false;
@@ -709,135 +961,162 @@ function formatPostTimestamp(timestamp) {
 
 app.locals.formatPostTimestamp = formatPostTimestamp;
 
-app.get('/threads/:threadId', loggedInUserChecker, async (req, res) => {
-    const { threadId } = req.params;
-    if (!/^\d+$/.test(threadId)) {
-        return res.status(400).render('error', {
-            title: 'Thread',
-            error: 'The post ID is invalid.',
+const postDetailsRateLimit = rateLimit({
+    windowMs: 60 * 1000,
+    limit: 60,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    handler: (_req, res, _next, options) => {
+        res.status(options.statusCode).render('error', {
+            title: 'Post Details',
+            error: 'Too many post detail requests. Wait a minute and try again.',
         });
-    }
-    let data = {};
-    let postLoaded = false;
-    let canDelete = false;
-    let error;
-    const queryThreadUrl = buildGraphAPIURL(
-        `${threadId}`,
-        {
-            [PARAMS__FIELDS]: [
-                FIELD__TEXT,
-                FIELD__MEDIA_TYPE,
-                FIELD__MEDIA_URL,
-                FIELD__GIF_URL,
-                FIELD__PERMALINK,
-                FIELD__TIMESTAMP,
-                FIELD__IS_REPLY,
-                FIELD__USERNAME,
-                FIELD__REPLY_AUDIENCE,
-                FIELD__ALT_TEXT,
-                FIELD__LINK_ATTACHMENT_URL,
-                FIELD__TOPIC_TAG,
-                FIELD__POLL_ATTACHMENT,
-                FIELD__IS_QUOTE_POST,
-                FIELD__QUOTED_POST,
-                FIELD__REPOSTED_POST,
-                FIELD_IS_SPOILER_MEDIA,
-                FIELD_TEXT_ENTITES,
-                FIELD_GHOST_POST_STATUS,
-            ].join(','),
-        },
-        req.session.access_token
-    );
+    },
+});
 
-    try {
-        const queryResponse = await axios.get(queryThreadUrl, {
-            httpsAgent: agent,
-        });
-        if (
-            !queryResponse.data ||
-            typeof queryResponse.data !== 'object' ||
-            Array.isArray(queryResponse.data) ||
-            !hasDisplayValue(queryResponse.data)
-        ) {
-            throw new Error('The API returned an empty or invalid post.');
+app.get(
+    '/threads/:threadId',
+    postDetailsRateLimit,
+    loggedInUserChecker,
+    async (req, res) => {
+        const { threadId } = req.params;
+        if (!/^\d+$/.test(threadId)) {
+            return res.status(400).render('error', {
+                title: 'Thread',
+                error: 'The post ID is invalid.',
+            });
         }
-        const { poll_attachment, ghost_post_status, ...rest } =
-            queryResponse.data;
-        data = rest;
+        let data = {};
+        let postLoaded = false;
+        let canDelete = false;
+        let error;
+        const queryThreadUrl = buildGraphAPIURL(
+            `${threadId}`,
+            {
+                [PARAMS__FIELDS]: [
+                    FIELD__TEXT,
+                    FIELD__MEDIA_TYPE,
+                    FIELD__MEDIA_URL,
+                    FIELD__GIF_URL,
+                    FIELD__PERMALINK,
+                    FIELD__TIMESTAMP,
+                    FIELD__IS_REPLY,
+                    FIELD__USERNAME,
+                    FIELD__REPLY_AUDIENCE,
+                    FIELD__ALT_TEXT,
+                    FIELD__LINK_ATTACHMENT_URL,
+                    FIELD__TOPIC_TAG,
+                    FIELD__POLL_ATTACHMENT,
+                    FIELD__IS_QUOTE_POST,
+                    FIELD__QUOTED_POST,
+                    FIELD__REPOSTED_POST,
+                    FIELD_IS_SPOILER_MEDIA,
+                    FIELD_TEXT_ENTITES,
+                    FIELD_GHOST_POST_STATUS,
+                ].join(','),
+            },
+            req.session.access_token
+        );
 
-        if (poll_attachment) {
+        try {
+            const queryResponse = await axios.get(queryThreadUrl, {
+                httpsAgent: agent,
+            });
+            if (
+                !queryResponse.data ||
+                typeof queryResponse.data !== 'object' ||
+                Array.isArray(queryResponse.data) ||
+                !hasDisplayValue(queryResponse.data)
+            ) {
+                throw new Error('The API returned an empty or invalid post.');
+            }
+            const { poll_attachment, ghost_post_status, ...rest } =
+                queryResponse.data;
+            data = rest;
+
+            if (poll_attachment) {
+                data = {
+                    ...data,
+                    ...poll_attachment,
+                };
+            }
+
+            const is_ghost_post = hasDisplayValue(ghost_post_status)
+                ? ghost_post_status === 'ACTIVE'
+                : undefined;
             data = {
                 ...data,
-                ...poll_attachment,
+                is_ghost_post,
             };
-        }
-
-        const is_ghost_post = hasDisplayValue(ghost_post_status)
-            ? ghost_post_status === 'ACTIVE'
-            : undefined;
-        data = {
-            ...data,
-            is_ghost_post,
-        };
-        postLoaded = true;
-    } catch (e) {
-        error = e?.response?.data?.error?.message ?? e.message;
-        console.error(error);
-    }
-
-    if (DELETABLE_MEDIA_TYPES.includes(data.media_type)) {
-        try {
-            const userUrl = buildGraphAPIURL(
-                'me',
-                { [PARAMS__FIELDS]: FIELD__ID },
-                req.session.access_token
-            );
-            const userResponse = await axios.get(userUrl, {
-                httpsAgent: agent,
-            });
-            const ownerUrl = buildGraphAPIURL(
-                threadId,
-                {
-                    [PARAMS__FIELDS]: [
-                        FIELD__ID,
-                        FIELD__MEDIA_TYPE,
-                        FIELD__OWNER,
-                    ].join(','),
-                },
-                req.session.access_token
-            );
-            const ownerResponse = await axios.get(ownerUrl, {
-                httpsAgent: agent,
-            });
-            canDelete =
-                Boolean(userResponse.data.id) &&
-                ownerResponse.data.id === threadId &&
-                ownerResponse.data.owner?.id === userResponse.data.id &&
-                DELETABLE_MEDIA_TYPES.includes(ownerResponse.data.media_type);
-            if (canDelete && !req.session.deleteCsrfToken) {
-                req.session.deleteCsrfToken = crypto
-                    .randomBytes(32)
-                    .toString('hex');
-            }
+            postLoaded = true;
         } catch (e) {
-            canDelete = false;
-            console.error(e?.response?.data?.error?.message ?? e.message);
+            error = e?.response?.data?.error?.message ?? e.message;
+            console.error(error);
         }
-    }
 
-    res.render('thread', {
-        threadId,
-        ...data,
-        canDelete,
-        csrfToken: canDelete ? req.session.deleteCsrfToken : undefined,
-        error,
-        hasDisplayValue,
-        isWebUrl,
-        creationDateTime: formatPostTimestamp(data.timestamp),
-        postLoaded,
-        title: 'Post Details',
-    });
-});
+        if (DELETABLE_MEDIA_TYPES.includes(data.media_type)) {
+            try {
+                if (!(await verifySessionUserId(req))) {
+                    throw new Error(
+                        'The access token does not match the app-scoped user ID.'
+                    );
+                }
+                const userUrl = buildGraphAPIURL(
+                    req.session.user_id,
+                    { [PARAMS__FIELDS]: FIELD__ID },
+                    req.session.access_token
+                );
+                const userResponse = await axios.get(userUrl, {
+                    httpsAgent: agent,
+                });
+                const ownerUrl = buildGraphAPIURL(
+                    threadId,
+                    {
+                        [PARAMS__FIELDS]: [
+                            FIELD__ID,
+                            FIELD__MEDIA_TYPE,
+                            FIELD__OWNER,
+                        ].join(','),
+                    },
+                    req.session.access_token
+                );
+                const ownerResponse = await axios.get(ownerUrl, {
+                    httpsAgent: agent,
+                });
+                canDelete =
+                    userResponse.data.id === req.session.user_id &&
+                    ownerResponse.data.id === threadId &&
+                    ownerResponse.data.owner?.id === userResponse.data.id &&
+                    DELETABLE_MEDIA_TYPES.includes(
+                        ownerResponse.data.media_type
+                    );
+                if (canDelete && !req.session.deleteCsrfToken) {
+                    req.session.deleteCsrfToken = crypto
+                        .randomBytes(32)
+                        .toString('hex');
+                }
+            } catch (e) {
+                canDelete = false;
+                console.error(e?.response?.data?.error?.message ?? e.message);
+            }
+        }
+
+        res.render('thread', {
+            threadId,
+            ...data,
+            canDelete,
+            deleteCsrfToken: canDelete
+                ? req.session.deleteCsrfToken
+                : undefined,
+            error,
+            hasDisplayValue,
+            isWebUrl,
+            creationDateTime: formatPostTimestamp(data.timestamp),
+            postLoaded,
+            title: 'Post Details',
+        });
+    }
+);
 
 app.get('/threads', loggedInUserChecker, async (req, res) => {
     const { before, after, limit } = req.query;
@@ -866,7 +1145,7 @@ app.get('/threads', loggedInUserChecker, async (req, res) => {
     let paging = {};
 
     const queryThreadsUrl = buildGraphAPIURL(
-        `me/threads`,
+        `${req.session.user_id}/threads`,
         params,
         req.session.access_token
     );
@@ -900,7 +1179,7 @@ app.get('/threads', loggedInUserChecker, async (req, res) => {
         threads,
         canDelete: true,
         deletableMediaTypes: DELETABLE_MEDIA_TYPES,
-        csrfToken: req.session.deleteCsrfToken,
+        deleteCsrfToken: req.session.deleteCsrfToken,
         title: 'Threads',
     });
 });
@@ -944,8 +1223,14 @@ app.post(
         }
 
         try {
+            if (!(await verifySessionUserId(req))) {
+                return res.status(403).render('error', {
+                    title,
+                    error: 'The access token does not match the app-scoped user ID. Sign in again.',
+                });
+            }
             const userUrl = buildGraphAPIURL(
-                'me',
+                req.session.user_id,
                 { [PARAMS__FIELDS]: FIELD__ID },
                 req.session.access_token
             );
@@ -973,7 +1258,7 @@ app.post(
                 });
             }
             if (
-                !userResponse.data.id ||
+                userResponse.data.id !== req.session.user_id ||
                 postResponse.data.id !== threadId ||
                 postResponse.data.owner?.id !== userResponse.data.id
             ) {
@@ -1035,7 +1320,7 @@ app.get('/replies', loggedInUserChecker, async (req, res) => {
     let paging = {};
 
     const queryRepliesUrl = buildGraphAPIURL(
-        `me/replies`,
+        `${req.session.user_id}/replies`,
         params,
         req.session.access_token
     );
@@ -1186,7 +1471,7 @@ app.get('/mentions', loggedInUserChecker, async (req, res) => {
     }
 
     const queryMentionsUrl = buildGraphAPIURL(
-        `me/mentions`,
+        `${req.session.user_id}/mentions`,
         params,
         req.session.access_token
     );
@@ -1236,30 +1521,35 @@ app.get('/debug', loggedInUserChecker, async (req, res) => {
         req.session.access_token
     );
 
-    let data = {};
     try {
         const response = await axios.get(debugAccessTokenUrl, {
             httpsAgent: agent,
+            transformResponse: [parseUserIdResponse],
         });
-        data = response.data.data;
-    } catch (e) {
-        console.error(e?.response?.data?.error?.message ?? e.message);
+        const data = response.data?.data;
+        if (
+            !isAppScopedUserId(data?.[FIELD__APP_SCOPED_USER_ID]) ||
+            !Array.isArray(data[FIELD__SCOPES]) ||
+            !data[FIELD__SCOPES].every((scope) => typeof scope === 'string') ||
+            !Number.isFinite(data[FIELD__EXPIRES_AT]) ||
+            !Number.isFinite(data[FIELD__ISSUED_AT])
+        ) {
+            throw new Error('Invalid token metadata.');
+        }
+        return res.render('debug', {
+            title: 'Inspect Access Token',
+            applicationName: data[FIELD__APPLICATION],
+            expiresAt: formatTimestamp(data[FIELD__EXPIRES_AT]),
+            issuedAt: formatTimestamp(data[FIELD__ISSUED_AT]),
+            scopes: data[FIELD__SCOPES].join(', '),
+            appScopedUserId: data[FIELD__APP_SCOPED_USER_ID],
+        });
+    } catch {
+        return res.status(502).render('debug', {
+            title: 'Inspect Access Token',
+            error: 'Unable to inspect the access token. Try again.',
+        });
     }
-
-    const applicationName = data[FIELD__APPLICATION];
-    const expiresAt = formatTimestamp(data[FIELD__EXPIRES_AT]);
-    const issuedAt = formatTimestamp(data[FIELD__ISSUED_AT]);
-    const scopes = data[FIELD__SCOPES].join(', ');
-    const appScopedUserId = data[FIELD__APP_SCOPED_USER_ID];
-
-    return res.render('debug', {
-        title: 'Inspect Access Token',
-        applicationName,
-        expiresAt,
-        issuedAt,
-        scopes,
-        appScopedUserId,
-    });
 });
 
 app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
@@ -1457,19 +1747,32 @@ app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
     });
 });
 
-// Logout route to kill the session
-app.get('/logout', (req, res) => {
-    if (req.session) {
-        req.session.destroy((err) => {
-            if (err) {
-                res.render('index', { error: 'Unable to log out' });
-            } else {
-                res.render('index', { response: 'Logout successful!' });
-            }
+const logoutRateLimit = rateLimit({
+    windowMs: 60 * 1000,
+    limit: 20,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    handler: (_req, res, _next, options) => {
+        return res.status(options.statusCode).json({
+            error: true,
+            message: 'Too many sign-out requests. Wait a minute and try again.',
         });
-    } else {
-        res.render('index', { response: 'Token not stored in session' });
-    }
+    },
+});
+
+// Logout route to destroy the authenticated session.
+app.post('/logout', logoutRateLimit, (req, res) => {
+    clearOAuthState(req.sessionID);
+    req.session.destroy((err) => {
+        if (err) {
+            return res
+                .status(500)
+                .render('index', { error: 'Unable to log out.' });
+        }
+        res.clearCookie('connect.sid', { sameSite: 'lax' });
+        delete res.locals.csrfToken;
+        res.render('index', { message: 'Logged out.' });
+    });
 });
 
 app.get('/oEmbed', async (req, res) => {
@@ -1648,6 +1951,7 @@ function useInitialAuthenticationValues(req) {
     // Use initial values
     req.session.access_token = initial_access_token;
     req.session.user_id = initial_user_id;
+    req.session.user_id_binding = undefined;
     // Clear initial values to enable signing out
     initial_access_token = undefined;
     initial_user_id = undefined;

@@ -7,6 +7,9 @@ block content
     }
   .button-group
     button(onclick="location.href='/login'") Log In
-    button(onclick="location.href='/logout'") Log Out
+    if csrfToken
+      form(action='/logout' method='POST')
+        input(type='hidden' name='_csrf' value=csrfToken)
+        button(type='submit') Log Out
 
     button#oembed(onclick="location.href='/oEmbed'") Embed Threads

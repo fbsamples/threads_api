@@ -34,7 +34,7 @@ async function startApp(t, api, authenticated = true, onApp) {
                     SESSION_SECRET: 'test-session-secret',
                     ...(authenticated && {
                         INITIAL_ACCESS_TOKEN: 'test-access-token',
-                        INITIAL_USER_ID: 'untrusted-initial-user',
+                        INITIAL_USER_ID: '456',
                     }),
                 },
             },
@@ -57,16 +57,31 @@ async function startApp(t, api, authenticated = true, onApp) {
     t.after(() => new Promise((resolve) => server.close(resolve)));
     const baseUrl = `http://127.0.0.1:${server.address().port}`;
     let cookie;
-    return async (route, options = {}) => {
+    let requestCsrfToken;
+    const request = async (route, options = {}) => {
+        if (options.method === 'POST' && !requestCsrfToken) {
+            const home = await request('/');
+            const page = home.status === 302 ? await request('/oEmbed') : home;
+            requestCsrfToken = (await page.text()).match(
+                /name="csrf-token" content="([a-f0-9]{64})"/
+            )[1];
+        }
         const response = await fetch(new URL(route, baseUrl), {
             ...options,
             redirect: 'manual',
             signal: AbortSignal.timeout(10000),
-            headers: { ...(cookie && { cookie }), ...options.headers },
+            headers: {
+                ...(cookie && { cookie }),
+                ...(options.method === 'POST' && {
+                    'X-CSRF-Token': requestCsrfToken,
+                }),
+                ...options.headers,
+            },
         });
         cookie = response.headers.get('set-cookie')?.split(';')[0] ?? cookie;
         return response;
     };
+    return request;
 }
 
 function apiForPost(
@@ -76,7 +91,9 @@ function apiForPost(
     return {
         async get(url) {
             const apiUrl = new URL(url);
-            if (apiUrl.pathname === '/me') return { data: { id: '456' } };
+            if (apiUrl.pathname === '/debug_token')
+                return { data: { data: { is_valid: true, user_id: '456' } } };
+            if (apiUrl.pathname === '/456') return { data: { id: '456' } };
             if (apiUrl.pathname === '/123') return { data: post };
             return { data: { data: [ownPost] } };
         },
@@ -103,7 +120,7 @@ test('only eligible rows in the own-post list show controls and cancellation pre
     const api = apiForPost();
     const get = api.get;
     api.get = async (url) =>
-        new URL(url).pathname === '/me/threads'
+        new URL(url).pathname === '/456/threads'
             ? {
                   data: {
                       data: [
@@ -152,7 +169,7 @@ test('authentication, forged tokens, and cross-session tokens cannot trigger del
         delete: () => assert.fail('Unexpected deletion'),
     };
     const signedOut = await startApp(t, api, false);
-    assert.equal((await deleteRequest(signedOut, 'forged')).status, 302);
+    assert.equal((await deleteRequest(signedOut, 'forged')).status, 401);
     assert.equal(calls, 0);
     const request = await startApp(t, api);
     assert.equal((await deleteRequest(request, 'forged')).status, 403);
@@ -205,7 +222,7 @@ test('ownership comes from the authenticated API identity, not submitted or init
     });
     const get = api.get;
     api.get = async (url) =>
-        new URL(url).pathname === '/me/threads' && removed
+        new URL(url).pathname === '/456/threads' && removed
             ? { data: { data: [] } }
             : get(url);
     const request = await startApp(t, api);
@@ -397,15 +414,19 @@ test('delete limits block API work and keep independent client IP budgets', asyn
         await once(server, 'listening');
         t.after(() => new Promise((resolve) => server.close(resolve)));
         const address = host.includes(':') ? `[${host}]` : host;
+        const base = `http://${address}:${server.address().port}`;
+        const home = await fetch(base, { signal: AbortSignal.timeout(10000) });
+        const cookie = home.headers.get('set-cookie').split(';')[0];
+        const csrf = (await home.text()).match(
+            /name="csrf-token" content="([a-f0-9]{64})"/
+        )[1];
         return () =>
-            fetch(
-                `http://${address}:${server.address().port}/threads/123/delete`,
-                {
-                    method: 'POST',
-                    redirect: 'manual',
-                    signal: AbortSignal.timeout(10000),
-                }
-            );
+            fetch(`${base}/threads/123/delete`, {
+                method: 'POST',
+                redirect: 'manual',
+                signal: AbortSignal.timeout(10000),
+                headers: { cookie, 'X-CSRF-Token': csrf },
+            });
     }
     const sameIp = await signedOutClient('127.0.0.1');
     const sameIpResponse = await sameIp();
@@ -414,7 +435,7 @@ test('delete limits block API work and keep independent client IP budgets', asyn
     const otherIp = await signedOutClient('::1');
     for (let i = 0; i < 10; i++) {
         const response = await otherIp();
-        assert.equal(response.status, 302);
+        assert.equal(response.status, 401);
         await response.text();
     }
     const otherIpBlocked = await otherIp();

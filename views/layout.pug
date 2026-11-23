@@ -3,6 +3,8 @@ html
   head
     title Threads API Sample App - #{title}
     link(rel='stylesheet' href='/css/style.css')
+    if csrfToken
+      meta(name='csrf-token' content=csrfToken)
     block head
   body
     header

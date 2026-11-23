@@ -18,11 +18,11 @@ const { test } = require('node:test');
 const entry = path.join(__dirname, '../src/index.js');
 const appRequire = createRequire(entry);
 const resultRoutes = [
-    ['/threads', '/me/threads'],
-    ['/replies', '/me/replies'],
+    ['/threads', '/456/threads'],
+    ['/replies', '/456/replies'],
     ['/threads/123/replies', '/123/replies'],
     ['/threads/123/conversation', '/123/conversation'],
-    ['/mentions', '/me/mentions'],
+    ['/mentions', '/456/mentions'],
     ['/profileLookup', '/profile_posts'],
 ];
 
@@ -33,7 +33,7 @@ async function startApp(t, get) {
             env: {
                 SESSION_SECRET: 'test-session-secret',
                 INITIAL_ACCESS_TOKEN: 'test-access-token',
-                INITIAL_USER_ID: 'test-user',
+                INITIAL_USER_ID: '456',
             },
         },
         console: { log() {}, error() {} },

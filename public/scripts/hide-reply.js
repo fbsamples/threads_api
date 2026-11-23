@@ -17,6 +17,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             try {
                 let response = await fetch(e.target.getAttribute('action'), {
                     method: 'POST',
+                    mode: 'same-origin',
+                    headers: {
+                        'X-CSRF-Token':
+                            document.querySelector('meta[name="csrf-token"]')
+                                ?.content ?? '',
+                    },
                     body: formData,
                 });
 

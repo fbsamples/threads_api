@@ -102,6 +102,12 @@ async function processFormAsync(urlGenerator) {
         try {
             let response = await fetch(e.target.getAttribute('action'), {
                 method: 'POST',
+                mode: 'same-origin',
+                headers: {
+                    'X-CSRF-Token':
+                        document.querySelector('meta[name="csrf-token"]')
+                            ?.content ?? '',
+                },
                 body: formData,
             });
 
@@ -110,11 +116,25 @@ async function processFormAsync(urlGenerator) {
                 id = jsonResponse.id;
                 redirectUrl = jsonResponse.redirectUrl;
             } else {
-                resultElem.textContent = 'Error submitting form';
+                const fallback =
+                    'Unable to submit the form. Reload the page and try again.';
+                let message = fallback;
+                try {
+                    const errorResponse = await response.json();
+                    if (
+                        typeof errorResponse?.message === 'string' &&
+                        errorResponse.message.trim()
+                    ) {
+                        message = errorResponse.message;
+                    }
+                } catch {
+                    // Non-JSON error responses use the generic message.
+                }
+                alert(message);
             }
         } catch (error) {
             console.error('There was an error:', error);
-            resultElem.textContent = 'Error submitting form';
+            alert('Unable to submit the form.');
         } finally {
             onAsyncRequestEnded();
         }
