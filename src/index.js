@@ -959,7 +959,15 @@ function formatPostTimestamp(timestamp) {
         : timestamp;
 }
 
+function getPostTimestampISO(timestamp) {
+    if (typeof timestamp !== 'string' || timestamp.trim() === '')
+        return undefined;
+    const date = DateTime.fromISO(timestamp, { zone: 'utc', setZone: true });
+    return date.isValid ? date.toUTC().toISO() : undefined;
+}
+
 app.locals.formatPostTimestamp = formatPostTimestamp;
+app.locals.getPostTimestampISO = getPostTimestampISO;
 
 const postDetailsRateLimit = rateLimit({
     windowMs: 60 * 1000,
@@ -1540,7 +1548,13 @@ app.get('/debug', loggedInUserChecker, async (req, res) => {
             title: 'Inspect Access Token',
             applicationName: data[FIELD__APPLICATION],
             expiresAt: formatTimestamp(data[FIELD__EXPIRES_AT]),
+            expiresAtISO: DateTime.fromSeconds(data[FIELD__EXPIRES_AT], {
+                zone: 'utc',
+            }).toISO(),
             issuedAt: formatTimestamp(data[FIELD__ISSUED_AT]),
+            issuedAtISO: DateTime.fromSeconds(data[FIELD__ISSUED_AT], {
+                zone: 'utc',
+            }).toISO(),
             scopes: data[FIELD__SCOPES].join(', '),
             appScopedUserId: data[FIELD__APP_SCOPED_USER_ID],
         });

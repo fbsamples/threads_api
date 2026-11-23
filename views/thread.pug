@@ -23,7 +23,11 @@ block content
                     if hasDisplayValue(creationDateTime)
                         tr
                             td Creation Date and Time
-                            td=creationDateTime
+                            td
+                                if getPostTimestampISO(timestamp)
+                                    time(datetime=getPostTimestampISO(timestamp) data-local-timestamp='')=creationDateTime
+                                else
+                                    =creationDateTime
                     if hasDisplayValue(permalink)
                         tr
                             td Post Link

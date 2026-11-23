@@ -68,14 +68,16 @@ function timestampCells(html) {
         html.matchAll(
             /<td class="(?:thread|reply)-timestamp">([\s\S]*?)<\/td>/g
         ),
-        (match) => match[1]
+        (match) => match[1].replace(/^<time[^>]*>([\s\S]*)<\/time>$/, '$1')
     );
 }
 
-test('result tables format UTC dates without changing API values, paging, or controls', async (t) => {
+test('result tables expose validated local-time instants without changing API values, paging, or controls', async (t) => {
     const timestamps = [
         '2026-11-17T10:15:00+0000',
         '2026-11-17T01:15:00+02:00',
+        '2026-11-17T10:15:00',
+        '2026-02-30T10:15:00Z',
         '<script>invalid date</script>',
         null,
         undefined,
@@ -113,6 +115,8 @@ test('result tables format UTC dates without changing API values, paging, or con
     const expected = [
         'November 17, 2026 at 10:15 AM UTC',
         'November 16, 2026 at 11:15 PM UTC',
+        'November 17, 2026 at 10:15 AM UTC',
+        '2026-02-30T10:15:00Z',
         '&lt;script&gt;invalid date&lt;/script&gt;',
         '',
         '',
@@ -126,6 +130,20 @@ test('result tables format UTC dates without changing API values, paging, or con
         assert.equal(response.status, 200, route);
         const html = await response.text();
         assert.deepEqual(timestampCells(html), expected, route);
+        assert.deepEqual(
+            [
+                ...html.matchAll(
+                    /<time datetime="([^"]+)" data-local-timestamp="">/g
+                ),
+            ].map((match) => match[1]),
+            [
+                '2026-11-17T10:15:00.000Z',
+                '2026-11-16T23:15:00.000Z',
+                '2026-11-17T10:15:00.000Z',
+            ],
+            'Only valid timestamps expose normalized instants for browser conversion.'
+        );
+        assert.match(html, /src="\/scripts\/local-timestamps.js" defer/);
         assert.match(html, /<th>Post ID<\/th>/);
         assert.doesNotMatch(html, /<th>ID<\/th>/);
         assert.match(html, /href="\/threads\/123"/);
@@ -162,6 +180,58 @@ test('result tables format UTC dates without changing API values, paging, or con
             'Formatting does not mutate API data.'
         );
     }
+});
+
+test('token dates expose valid epoch instants, including zero, without marking invalid fallbacks', async (t) => {
+    let metadata;
+    let calls = 0;
+    const request = await startApp(t, async (url) => {
+        assert.equal(new URL(url).pathname, '/debug_token');
+        calls++;
+        return { data: { data: metadata } };
+    });
+    const base = {
+        user_id: '456',
+        scopes: ['threads_basic'],
+        application: 'Synthetic Test App',
+    };
+    for (const scenario of [
+        {
+            data: {
+                ...base,
+                issued_at: 0,
+                expires_at: Date.parse('2026-11-23T22:00:00Z') / 1000,
+            },
+            status: 200,
+            instants: ['1970-01-01T00:00:00.000Z', '2026-11-23T22:00:00.000Z'],
+        },
+        {
+            data: { ...base, issued_at: 1e100, expires_at: 1e100 },
+            status: 200,
+            instants: [],
+        },
+        { data: undefined, status: 502, instants: [] },
+    ]) {
+        metadata = scenario.data;
+        const response = await request('/debug');
+        assert.equal(response.status, scenario.status);
+        const html = await response.text();
+        assert.deepEqual(
+            [
+                ...html.matchAll(
+                    /<time datetime="([^"]+)" data-local-timestamp="">/g
+                ),
+            ].map((match) => match[1]),
+            scenario.instants,
+            'Only valid epoch seconds expose a browser-local instant, and zero is retained.'
+        );
+        if (scenario.instants.length === 0) {
+            assert.doesNotMatch(html, /<time\b[^>]*data-local-timestamp/);
+        }
+        assert.match(html, /src="\/scripts\/local-timestamps.js" defer/);
+        assert.doesNotMatch(html, /test-access-token/);
+    }
+    assert.equal(calls, 3);
 });
 
 test('empty and failed result loads still render without timestamp errors', async (t) => {

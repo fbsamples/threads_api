@@ -150,7 +150,7 @@ async function startApp(t, post, owner = '456') {
     };
 }
 
-test('post details follow the exact field order with an encoded author link, UTC time and guarded Delete', async (t) => {
+test('post details follow the exact field order with an encoded author link, local-time instant, and guarded Delete', async (t) => {
     const { request, reads } = await startApp(t, examplePost);
     const html = await (await request('/threads/123')).text();
     let previous = -1;
@@ -167,6 +167,11 @@ test('post details follow the exact field order with an encoded author link, UTC
         /href="https:\/\/www\.threads\.com\/@example%20%26%20author%2B" target="_blank" rel="noopener noreferrer"/
     );
     assert.match(html, /October 17, 2023 at 5:42 AM UTC/);
+    assert.match(
+        html,
+        /<time datetime="2023-10-17T05:42:03.000Z" data-local-timestamp="">/
+    );
+    assert.match(html, /src="\/scripts\/local-timestamps.js" defer/);
     assert.match(html, /&lt;b&gt;Example post&lt;\/b&gt;/);
     assert.match(html, /&lt;i&gt;Example alternative text&lt;\/i&gt;/);
     for (const [field, url, label] of [
