@@ -499,6 +499,23 @@ test('Postman preserves exact OAuth IDs and permits only the profile bootstrap a
         }
     }
     visit(collection.item);
+    const hosts = new Map(
+        collection.variable.map(({ key, value }) => [key, value])
+    );
+    assert.equal(hosts.get('authorization_host'), 'https://www.threads.com');
+    assert.equal(hosts.get('api_host'), 'https://graph.threads.com');
+    assert.ok(items.length > 0);
+    for (const { request } of items) {
+        assert.ok(request.url.raw.startsWith('{{api_host}}/'));
+        const url = new URL(
+            request.url.raw.replace('{{api_host}}', hosts.get('api_host'))
+        );
+        assert.equal(url.origin, 'https://graph.threads.com');
+    }
+    assert.ok(
+        !/\bthreads\.net\b/.test(JSON.stringify(collection)),
+        'No legacy Threads hostnames remain.'
+    );
     const bootstrap = items.find(
         (item) => item.name === "Get App-Scoped User's Profile Information"
     );
