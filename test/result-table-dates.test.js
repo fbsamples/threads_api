@@ -265,10 +265,19 @@ test('empty and failed result loads still render without timestamp errors', asyn
         });
         for (const [route] of resultRoutes) {
             const response = await request(`${route}?username=example-owner`);
-            assert.equal(response.status, 200, route);
+            const unavailableProfile = fails && route === '/profileLookup';
+            assert.equal(
+                response.status,
+                unavailableProfile ? 502 : 200,
+                route
+            );
             const html = await response.text();
             assert.deepEqual(timestampCells(html), [], route);
-            assert.match(html, /<th>Creation Date and Time<\/th>/);
+            if (unavailableProfile) {
+                assert.doesNotMatch(html, /<table/);
+            } else {
+                assert.match(html, /<th>Creation Date and Time<\/th>/);
+            }
             assert.doesNotMatch(
                 html,
                 /TypeError|ReferenceError|Invalid DateTime/

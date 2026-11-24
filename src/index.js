@@ -1852,14 +1852,62 @@ app.get('/oEmbed', async (req, res) => {
     });
 });
 
+function getProfileUsername(input) {
+    if (typeof input !== 'string') return undefined;
+    let username = input.trim();
+    if (!username) return '';
+    if (/^https?:\/\//i.test(username)) {
+        try {
+            if (/[\\\s]/.test(username)) return undefined;
+            const rawURL = username.match(/^https?:\/\/([^/?#]+)(\/[^?#]*)/i);
+            if (!rawURL || !/^(?:www\.)?threads\.(?:com|net)$/i.test(rawURL[1]))
+                return undefined;
+            const profileURL = new URL(username);
+            if (
+                !['http:', 'https:'].includes(profileURL.protocol) ||
+                ![
+                    'threads.com',
+                    'www.threads.com',
+                    'threads.net',
+                    'www.threads.net',
+                ].includes(profileURL.hostname) ||
+                profileURL.username ||
+                profileURL.password ||
+                profileURL.port
+            )
+                return undefined;
+            const profilePath = rawURL[2].match(/^\/@([^/]+)\/?$/);
+            if (!profilePath) return undefined;
+            username = decodeURIComponent(profilePath[1]);
+        } catch {
+            return undefined;
+        }
+    } else if (username.startsWith('@')) {
+        username = username.slice(1);
+    }
+    return username && !/[\s/@?#\\:<>&]/.test(username) ? username : undefined;
+}
+
 app.get('/profileLookup', async (req, res) => {
-    const { username, before, after, limit } = req.query;
-    if (!username) {
+    const { username: usernameInput, before, after, limit } = req.query;
+    const username = getProfileUsername(usernameInput);
+    if (usernameInput === undefined || username === '') {
         return res.render('profile_lookup', {
             title: 'Profile Lookup',
+            usernameInput,
+        });
+    }
+    if (username === undefined) {
+        return res.status(400).render('profile_lookup', {
+            title: 'Profile Lookup',
+            usernameInput:
+                typeof usernameInput === 'string' ? usernameInput : undefined,
+            error: 'Enter a username or a Threads profile URL.',
         });
     }
 
+    const profileUnavailableMessage =
+        'This profile is unavailable or cannot be accessed. Try another username or check your access.';
     const params = {
         [PARAMS__USERNAME]: username,
     };
@@ -1870,11 +1918,53 @@ app.get('/profileLookup', async (req, res) => {
         req.session.access_token
     );
 
-    let response = {};
+    let response;
     try {
         response = await axios.get(profileLookupUrl, { httpsAgent: agent });
-    } catch (e) {
-        console.error(e?.response?.data?.error?.message ?? e.message);
+        if (
+            !response.data ||
+            typeof response.data !== 'object' ||
+            Array.isArray(response.data) ||
+            Object.prototype.hasOwnProperty.call(response.data, 'error')
+        ) {
+            throw new Error(profileUnavailableMessage);
+        }
+        const hasProfileText = [
+            'name',
+            'biography',
+            'profile_picture_url',
+        ].some(
+            (field) =>
+                typeof response.data[field] === 'string' &&
+                response.data[field].trim() !== ''
+        );
+        const hasProfileCount = [
+            'follower_count',
+            'likes_count',
+            'quotes_count',
+            'replies_count',
+            'reposts_count',
+            'views_count',
+        ].some(
+            (field) =>
+                typeof response.data[field] === 'number' &&
+                Number.isFinite(response.data[field]) &&
+                response.data[field] >= 0
+        );
+        if (
+            !hasProfileText &&
+            !hasProfileCount &&
+            typeof response.data.is_verified !== 'boolean'
+        ) {
+            throw new Error(profileUnavailableMessage);
+        }
+    } catch {
+        console.error(profileUnavailableMessage);
+        return res.status(502).render('profile_lookup', {
+            title: 'Profile Lookup',
+            usernameInput,
+            error: profileUnavailableMessage,
+        });
     }
 
     const displayName = response.data?.name;
@@ -1910,6 +2000,8 @@ app.get('/profileLookup', async (req, res) => {
 
     let threads = [];
     let paging = {};
+    let postsLoaded = false;
+    let error;
 
     const queryThreadsUrl = buildGraphAPIURL(
         `profile_posts`,
@@ -1921,6 +2013,24 @@ app.get('/profileLookup', async (req, res) => {
         const queryResponse = await axios.get(queryThreadsUrl, {
             httpsAgent: agent,
         });
+        if (
+            !queryResponse.data ||
+            typeof queryResponse.data !== 'object' ||
+            Array.isArray(queryResponse.data) ||
+            Object.prototype.hasOwnProperty.call(queryResponse.data, 'error') ||
+            !Array.isArray(queryResponse.data.data) ||
+            queryResponse.data.data.some(
+                (thread) =>
+                    !thread ||
+                    typeof thread !== 'object' ||
+                    Array.isArray(thread) ||
+                    typeof thread.id !== 'string' ||
+                    !/^[1-9]\d*$/.test(thread.id) ||
+                    thread.id.trim() !== thread.id
+            )
+        ) {
+            throw new Error('Profile posts could not be retrieved.');
+        }
         threads = queryResponse.data.data;
 
         if (queryResponse.data.paging) {
@@ -1937,13 +2047,23 @@ app.get('/profileLookup', async (req, res) => {
                 );
             }
         }
-    } catch (e) {
-        console.error(e?.response?.data?.error?.message ?? e.message);
+        postsLoaded = true;
+    } catch {
+        threads = [];
+        paging = {};
+        error =
+            'The profile loaded, but its posts could not be retrieved. Try again.';
+        console.error(error);
+        res.status(502);
     }
 
     return res.render('profile_lookup', {
         title: 'Profile Lookup for @'.concat(username),
         username,
+        usernameInput,
+        profileLoaded: true,
+        postsLoaded,
+        error,
         displayName,
         profilePictureUrl,
         isVerified,
