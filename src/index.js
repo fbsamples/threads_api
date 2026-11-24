@@ -520,7 +520,7 @@ app.get('/account', loggedInUserChecker, async (req, res) => {
         });
         userDetails = response.data;
 
-        userDetails.user_profile_url = `https://www.threads.net/@${userDetails.username}`;
+        userDetails.user_profile_url = `https://www.threads.com/@${userDetails.username}`;
     } catch (e) {
         console.error(e);
     }
