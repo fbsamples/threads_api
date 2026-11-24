@@ -792,13 +792,13 @@ app.post(
     upload.array(),
     async (req, res) => {
         const {
-            text,
-            attachmentType,
-            attachmentUrl,
-            attachmentAltText,
+            text = '',
+            attachmentType = [],
+            attachmentUrl = [],
+            attachmentAltText = [],
             replyControl,
             replyToId,
-            topicTag,
+            topicTag = '',
             linkAttachment,
             autoPublishText,
             pollOptionA,
@@ -809,6 +809,61 @@ app.post(
             spoilerMedia,
             ghostPostMedia,
         } = req.body;
+
+        const pollOptions = [
+            pollOptionA,
+            pollOptionB,
+            pollOptionC,
+            pollOptionD,
+        ];
+        const pollAttached = pollOptions.some(Boolean);
+        const hasMediaAttachment =
+            Array.isArray(attachmentType) && attachmentType.length > 0;
+        const invalidInputTypes =
+            typeof text !== 'string' ||
+            typeof topicTag !== 'string' ||
+            (linkAttachment !== undefined &&
+                typeof linkAttachment !== 'string') ||
+            !Array.isArray(attachmentType) ||
+            !Array.isArray(attachmentUrl) ||
+            !Array.isArray(attachmentAltText);
+
+        const invalidMediaAttachments =
+            !invalidInputTypes &&
+            (attachmentType.length !== attachmentUrl.length ||
+                attachmentType.some(
+                    (type, i) =>
+                        !['Image', 'Video'].includes(type) ||
+                        typeof attachmentUrl[i] !== 'string' ||
+                        !attachmentUrl[i].trim()
+                ));
+
+        const invalidPollOptions =
+            (pollAttached &&
+                (!pollOptionA ||
+                    !pollOptionB ||
+                    (pollOptionD && !pollOptionC))) ||
+            pollOptions.some(
+                (option) => option !== undefined && typeof option !== 'string'
+            );
+
+        const incompatibleAttachments =
+            (pollAttached && linkAttachment) ||
+            (hasMediaAttachment &&
+                (linkAttachment || pollAttached || autoPublishText === 'on'));
+
+        if (
+            invalidInputTypes ||
+            invalidMediaAttachments ||
+            invalidPollOptions ||
+            incompatibleAttachments
+        ) {
+            return res.status(400).json({
+                error: true,
+                message:
+                    'Check the post options and attachments, then try again.',
+            });
+        }
 
         const params = {
             [PARAMS__REPLY_CONTROL]: replyControl,
