@@ -39,6 +39,7 @@ const fieldOrder = [
     'Text Entities',
     'Is Ghost Post',
     'Insights',
+    'Reply',
     'Quote',
     'Repost',
     'Delete',
@@ -197,6 +198,10 @@ test('post details follow the exact field order with an encoded author link, loc
     );
     assert.match(html, /name="csrfToken" value="[a-f0-9]{64}"/);
     assert.match(html, /action="\/threads\/123\/delete" method="POST"/);
+    assert.ok(html.includes("location.href='/upload?replyToId=123'"));
+    const replyForm = await (await request('/upload?replyToId=123')).text();
+    assert.match(replyForm, /Replying to 123/);
+    assert.match(replyForm, /name="replyToId" value="123"/);
     assert.match(html, /cannot be undone/);
     assert.equal(reads[0].searchParams.get('fields').includes('owner'), false);
     assert.equal(
@@ -295,7 +300,7 @@ test('failed, empty or invalid primary loads do not show post actions or run own
         assert.match(html, /Error:/);
         assert.doesNotMatch(
             html,
-            /action="\/repost"|quotePostId=|\/insights|\/replies|name="csrfToken"|<script>Example failure/
+            /action="\/repost"|quotePostId=|replyToId=|\/insights|\/replies|name="csrfToken"|<script>Example failure/
         );
     }
 });
