@@ -533,6 +533,36 @@ app.get('/account', loggedInUserChecker, async (req, res) => {
 
 app.get('/userInsights', loggedInUserChecker, async (req, res) => {
     const { since, until } = req.query;
+    const minDate = DateTime.utc().minus({ years: 2 }).toISODate();
+    let filterError;
+    for (const value of [since, until]) {
+        if (value === undefined || value === '') continue;
+        if (
+            typeof value !== 'string' ||
+            !/^\d{4}-\d{2}-\d{2}$/.test(value) ||
+            !DateTime.fromISO(value, { zone: 'utc' }).isValid
+        ) {
+            filterError = 'Enter valid dates in YYYY-MM-DD format.';
+            break;
+        }
+        if (value < minDate) {
+            filterError = `Choose dates on or after ${minDate}.`;
+            break;
+        }
+    }
+    if (!filterError && since && until && since > until) {
+        filterError = 'Since must be on or before Until.';
+    }
+    if (filterError) {
+        return res.status(400).render('user_insights', {
+            title: 'User Insights',
+            metrics: [],
+            since: typeof since === 'string' ? since : undefined,
+            until: typeof until === 'string' ? until : undefined,
+            minDate,
+            error: filterError,
+        });
+    }
 
     const params = {
         [PARAMS__METRIC]: [
@@ -587,6 +617,7 @@ app.get('/userInsights', loggedInUserChecker, async (req, res) => {
         metrics,
         since,
         until,
+        minDate,
     });
 });
 

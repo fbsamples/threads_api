@@ -20,12 +20,13 @@ const metrics = [
     },
 ];
 
-test('user insights preserves zero values, escaped metrics and date-filter semantics', () => {
+test('user insights preserves zero values, escaped metrics, and date-filter semantics', () => {
     const html = pug.renderFile(path.join(views, 'user_insights.pug'), {
         title: 'User Insights',
         metrics,
         since: '2026-01-01',
         until: '2026-01-31',
+        minDate: '2024-11-24',
     });
     assert.match(html, /<th scope="col">ID<\/th>/);
     assert.doesNotMatch(
@@ -44,7 +45,7 @@ test('user insights preserves zero values, escaped metrics and date-filter seman
         assert.ok(html.includes(`for="${id}"`));
         assert.ok(
             html.includes(
-                `id="${id}" type="date" name="${id}" value="${value}"`
+                `id="${id}" type="date" name="${id}" value="${value}" min="2024-11-24"`
             )
         );
     }
