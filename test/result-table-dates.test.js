@@ -192,7 +192,11 @@ test('token dates expose valid epoch instants, including zero, without marking i
     });
     const base = {
         user_id: '456',
-        scopes: ['threads_basic'],
+        scopes: [
+            'threads_basic',
+            'threads_content_publish',
+            '<script>synthetic permission</script>',
+        ],
         application: 'Synthetic Test App',
     };
     for (const scenario of [
@@ -228,6 +232,23 @@ test('token dates expose valid epoch instants, including zero, without marking i
         if (scenario.instants.length === 0) {
             assert.doesNotMatch(html, /<time\b[^>]*data-local-timestamp/);
         }
+        assert.match(html, /<th colspan="2">Permissions<\/th>/);
+        assert.doesNotMatch(html, /<th colspan="2">Scopes<\/th>/);
+        if (metadata) {
+            assert.ok(
+                html.includes(
+                    '<ul><li>threads_basic</li><li>threads_content_publish</li><li>&lt;script&gt;synthetic permission&lt;/script&gt;</li></ul>'
+                )
+            );
+            assert.deepEqual(
+                metadata.scopes,
+                base.scopes,
+                'Rendering preserves permissions and their order.'
+            );
+        } else {
+            assert.doesNotMatch(html, /<ul>/);
+        }
+        assert.doesNotMatch(html, /<script>synthetic permission/);
         assert.match(html, /src="\/scripts\/local-timestamps.js" defer/);
         assert.doesNotMatch(html, /test-access-token/);
     }

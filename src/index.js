@@ -1555,7 +1555,7 @@ app.get('/debug', loggedInUserChecker, async (req, res) => {
             issuedAtISO: DateTime.fromSeconds(data[FIELD__ISSUED_AT], {
                 zone: 'utc',
             }).toISO(),
-            scopes: data[FIELD__SCOPES].join(', '),
+            permissions: data[FIELD__SCOPES],
             appScopedUserId: data[FIELD__APP_SCOPED_USER_ID],
         });
     } catch {

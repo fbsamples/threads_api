@@ -21,8 +21,12 @@ block content
                     else
                         =expiresAt
             tr
-                th(colspan=2) Scopes
-                td(colspan=2)=scopes
+                th(colspan=2) Permissions
+                td(colspan=2)
+                    if permissions && permissions.length
+                        ul
+                            each permission in permissions
+                                li=permission
             tr
                 th(colspan=2) User ID
                 td(colspan=2)=appScopedUserId
