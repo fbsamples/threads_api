@@ -19,7 +19,7 @@ You can use this Sample App to test the [Threads API](https://developers.faceboo
 -   **Public Profiles:** Look up a public profile, view its details, and browse its posts.
 -   **Post Insights:** See post metrics for views, likes, replies, reposts, quotes, and shares.
 -   **User Insights:** See account metrics for views, likes, replies, reposts, quotes, clicks, and follower count. The page includes date range filters.
--   **Quotas:** View API usage for publishing, replies, deletion, and location search.
+-   **Quotas:** View API usage for publishing, replies, deletion, and location search. Use Refresh Counts to reload the reported usage. The page also reloads when you return to its tab or restore it from browser history.
 -   **Token Debugging:** Inspect the access token's application name, granted permissions, app-scoped user ID, issued timestamp, and expiration date.
 -   **Post and Profile Embeds:** Preview a public Threads post or profile without an access token. Choose Light, Dark, or Auto for the embed theme. Auto follows the viewer's display settings.
 -   **Deletion:** Use the trash button on your posts list or post details page to delete a post you own. Confirm the warning to continue. The sample app checks that you own the post. You return to your remaining posts only after the API confirms success. This action cannot be undone, and reposts are unsupported. The route allows 10 requests per minute per IPv4 address or IPv6 subnet within one app process. Use a test app and test user. View [Delete Posts](https://developers.facebook.com/documentation/threads/posts/delete-posts) for permissions and limits.
