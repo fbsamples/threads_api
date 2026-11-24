@@ -26,3 +26,7 @@ block content
     button(onclick="location.href='/userInsights'") My Insights
     button(onclick="location.href='/publishingLimit'") Publishing Limit
     button(onclick="location.href='/debug'") Debug Access Token
+    if csrfToken
+      form(action='/logout' method='POST')
+        input(type='hidden' name='_csrf' value=csrfToken)
+        button(type='submit') Log Out

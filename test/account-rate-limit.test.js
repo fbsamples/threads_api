@@ -49,6 +49,14 @@ async function startApp(t) {
                         };
                     },
                     async get(url) {
+                        if (new URL(url).pathname === '/456') {
+                            return {
+                                data: {
+                                    username: 'synthetic-user',
+                                    name: 'Synthetic Account',
+                                },
+                            };
+                        }
                         assert.equal(new URL(url).pathname, '/access_token');
                         return {
                             data: { access_token: 'synthetic-long-token' },
@@ -179,6 +187,23 @@ test('login and callback share a budget without consuming blocked state or preve
     );
     assert.equal((await client('/upload')).status, 302);
     assert.equal(app.exchanges(), 1);
+});
+
+test('the account page exposes a native CSRF-protected Log Out button', async (t) => {
+    const app = await startApp(t);
+    const client = app.client();
+    const csrf = await token(client);
+    const home = await client('/');
+    assert.match(home.body, /<h1>Home<\/h1>/);
+    const account = await client('/account');
+    assert.equal(account.status, 200);
+    assert.match(account.body, /action="\/logout" method="POST"/);
+    assert.ok(account.body.includes(`name="_csrf" value="${csrf}"`));
+    assert.match(account.body, /type="submit">Log Out<\/button>/);
+    assert.doesNotMatch(
+        account.body,
+        /href="\/logout"|location\.href='\/logout'/
+    );
 });
 
 test('logout has a separate budget and rejected logout preserves the authenticated session', async (t) => {

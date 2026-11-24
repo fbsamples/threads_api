@@ -25,6 +25,15 @@ body {
     text-align: center;
 }
 
+.menu-link {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+}
+
 input[type='submit'] {
     justify-content: center;
     width: 100px;
