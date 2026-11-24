@@ -8,6 +8,11 @@ html
       meta(name='csrf-token' content=csrfToken)
     block head
   body
+    block navigation
+      if title !== 'Home'
+        a.menu-link(href='/')
+          span(aria-hidden='true') 🏠
+          | Home
     header
       h1= title
 

@@ -333,7 +333,7 @@ app.get('/', async (req, res) => {
         res.redirect('/account');
     } else {
         res.render('index', {
-            title: 'Index',
+            title: 'Home',
             returnUrl: req.query[PARAMS__RETURN_URL],
         });
     }
@@ -1779,13 +1779,14 @@ app.post('/logout', logoutRateLimit, (req, res) => {
     clearOAuthState(req.sessionID);
     req.session.destroy((err) => {
         if (err) {
-            return res
-                .status(500)
-                .render('index', { error: 'Unable to log out.' });
+            return res.status(500).render('index', {
+                title: 'Home',
+                error: 'Unable to log out.',
+            });
         }
         res.clearCookie('connect.sid', { sameSite: 'lax' });
         delete res.locals.csrfToken;
-        res.render('index', { message: 'Logged out.' });
+        res.render('index', { title: 'Home', message: 'Logged out.' });
     });
 });
 

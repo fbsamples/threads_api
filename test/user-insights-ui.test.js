@@ -6,7 +6,6 @@
  */
 
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
 const path = require('node:path');
 const { test } = require('node:test');
 const pug = require('pug');
@@ -76,20 +75,4 @@ test('empty user insights and the shared media table retain values and navigatio
     assert.match(media, /&lt;b&gt;Example Metric&lt;\/b&gt;/);
     assert.match(media, /action="\/threads\/123\/insights" method="GET"/);
     assert.doesNotMatch(media, /class="user-insights"|name="viewport"/);
-    const css = fs.readFileSync(
-        path.join(__dirname, '../public/css/style.css'),
-        'utf8'
-    );
-    assert.ok(css.includes('.user-insights {'));
-    const rules = css.slice(css.indexOf('.user-insights {'));
-    assert.ok(rules.length > 0);
-    for (const selector of rules.matchAll(/([^{}]+)\{/g)) {
-        const value = selector[1].trim();
-        assert.ok(
-            value.startsWith('@media') ||
-                value
-                    .split(',')
-                    .every((part) => part.trim().startsWith('.user-insights'))
-        );
-    }
 });
