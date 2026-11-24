@@ -8,10 +8,18 @@ block content
                 td(colspan=2)=applicationName
             tr
                 th(colspan=2) Issued At
-                td(colspan=2)=issuedAt
+                td(colspan=2)
+                    if issuedAtISO
+                        time(datetime=issuedAtISO data-local-timestamp='')=issuedAt
+                    else
+                        =issuedAt
             tr
                 th(colspan=2) Expires At
-                td(colspan=2)=expiresAt
+                td(colspan=2)
+                    if expiresAtISO
+                        time(datetime=expiresAtISO data-local-timestamp='')=expiresAt
+                    else
+                        =expiresAt
             tr
                 th(colspan=2) Scopes
                 td(colspan=2)=scopes

@@ -16,7 +16,11 @@ table.thread-replies
                 td.reply-id
                     a(href=`/threads/${reply.id}`)=reply.id
                 td.reply-username=reply.username
-                td.reply-timestamp=formatPostTimestamp(reply.timestamp)
+                td.reply-timestamp
+                    if getPostTimestampISO(reply.timestamp)
+                        time(datetime=getPostTimestampISO(reply.timestamp) data-local-timestamp='')=formatPostTimestamp(reply.timestamp)
+                    else
+                        =formatPostTimestamp(reply.timestamp)
                 td.reply-type=reply.media_type
                 td.reply-text=reply.text
                 td.reply-permalink

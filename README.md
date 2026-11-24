@@ -15,7 +15,7 @@ You can use this Sample App to test the [Threads API](https://developers.faceboo
 -   **Replies, Quotes, and Reposts:** Create replies and quote posts, or repost an existing post.
 -   **Post Browsing:** View your posts, your replies, and posts that mention you. Open individual post details, direct replies, and full conversations. Browse available result pages.
 -   **Reply Management:** The direct-replies view includes controls to Hide and Unhide replies.
--   **Search:** Search by keyword or topic tag with Top or Recent results. Filter by date, media type, and author username. Set the page size. Search state is retained through paging and errors. Results show returned topic tags and readable UTC dates. Read the [Search Guide](https://developers.facebook.com/documentation/threads/keyword-search) for parameters and limits.
+-   **Search:** Search by keyword or topic tag with Top or Recent results. Filter by date, media type, and author username. Set the page size. Search state is retained through paging and errors. Results show returned topic tags and dates in your browser’s local timezone. Read the [Search Guide](https://developers.facebook.com/documentation/threads/keyword-search) for parameters and limits.
 -   **Public Profiles:** Look up a public profile, view its details, and browse its posts.
 -   **Post Insights:** See post metrics for views, likes, replies, reposts, quotes, and shares.
 -   **User Insights:** See account metrics for views, likes, replies, reposts, quotes, clicks, and follower count. The page includes date range filters.
