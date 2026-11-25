@@ -87,6 +87,20 @@ test('media hides and disables text attachments, restores drafts, and preserves 
     assertTextAttachments(true);
     await pollButton.events.click({ preventDefault() {} });
     assert.equal(pollOptions.style.display, 'block');
+    assert.equal(pollButton.textContent, 'Remove Poll 🗳️');
+    await pollButton.events.click({ preventDefault() {} });
+    assert.equal(pollOptions.style.display, 'none');
+    assert.equal(pollButton.textContent, 'Attach Poll 🗳️');
+    assert.deepEqual(
+        pollInputs.map((input) => input.value),
+        ['', '', '', '']
+    );
+    pollInputs.forEach((input, index) => {
+        input.value = ['A', 'B', 'C', 'D'][index];
+    });
+    await pollButton.events.click({ preventDefault() {} });
+    assert.equal(pollOptions.style.display, 'block');
+    assert.equal(pollButton.textContent, 'Remove Poll 🗳️');
     for (const [count, type, label] of [
         [1, 'Image', 'Image 🖼️'],
         [1, 'Video', 'Video 🎬'],
@@ -119,6 +133,7 @@ test('media hides and disables text attachments, restores drafts, and preserves 
         ['', '', '', '']
     );
     assert.equal(pollOptions.style.display, 'none');
+    assert.equal(pollButton.textContent, 'Attach Poll 🗳️');
     ghost.checked = false;
     await ghost.events.change();
     assertTextAttachments(true);

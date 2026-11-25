@@ -120,8 +120,15 @@ document.addEventListener('DOMContentLoaded', async () => {
             ghostPostMediaControl.style.display = 'none';
         } else {
             pollAttachmentOptions.style.display = 'none';
+            pollAttachmentOptions
+                .querySelectorAll('input[type="text"]')
+                .forEach((input) => (input.value = ''));
             ghostPostMediaControl.style.display = 'block';
         }
+        attachPollButton.textContent =
+            pollAttachmentOptions.style.display === 'none'
+                ? 'Attach Poll 🗳️'
+                : 'Remove Poll 🗳️';
     });
 
     const ghostPostCheckbox = document.querySelector(
@@ -164,6 +171,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (attachmentsList) attachmentsList.innerHTML = '';
                 if (pollAttachmentOptions) {
                     pollAttachmentOptions.style.display = 'none';
+                    attachPollButton.textContent = 'Attach Poll 🗳️';
                     const pollInputs =
                         pollAttachmentOptions.querySelectorAll(
                             'input[type="text"]'
