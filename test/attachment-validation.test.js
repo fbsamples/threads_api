@@ -31,7 +31,13 @@ async function startApp(t, api) {
         },
         console: { log() {}, warn() {}, error: (...args) => logs.push(args) },
         require(name) {
-            if (name === 'axios') return api;
+            if (name === 'axios')
+                return {
+                    get: () => assert.fail('Unexpected API read.'),
+                    post: () => assert.fail('Unexpected API write.'),
+                    delete: () => assert.fail('Unexpected API deletion.'),
+                    ...api,
+                };
             if (name === 'dotenv') return { config() {} };
             if (name === 'fs') return { readFileSync: () => '' };
             if (name === 'https')
@@ -97,7 +103,7 @@ test('upload rejects incompatible attachments before creating any containers', a
     const { request } = await startApp(t, {
         post: async (url) => {
             calls.push(new URL(url));
-            return { data: { id: '123' } };
+            return { status: 200, data: { id: String(calls.length + 100) } };
         },
     });
     const media = {
@@ -154,6 +160,64 @@ test('upload rejects incompatible attachments before creating any containers', a
         'A'
     );
     assert.equal(calls[2].searchParams.get('auto_publish_text'), 'true');
+    const mediaSet = (count, mode) => ({
+        attachmentType: Array.from({ length: count }, (_, index) =>
+            mode === 'mixed' ? (index % 2 ? 'Video' : 'Image') : mode
+        ),
+        attachmentUrl: Array.from(
+            { length: count },
+            (_, index) => `https://example.invalid/media-${index}`
+        ),
+        attachmentAltText: Array.from(
+            { length: count },
+            (_, index) => `Media ${index}`
+        ),
+    });
+    for (const [count, mode] of [
+        [19, 'Image'],
+        [20, 'Video'],
+        [20, 'mixed'],
+    ]) {
+        const start = calls.length;
+        const response = await request(
+            '/upload',
+            uploadForm(mediaSet(count, mode))
+        );
+        assert.equal(response.status, 200);
+        await response.json();
+        const batch = calls.slice(start);
+        assert.equal(batch.length, count + 1);
+        const fields = mediaSet(count, mode);
+        for (const [index, child] of batch.slice(0, -1).entries()) {
+            assert.equal(child.searchParams.get('is_carousel_item'), 'true');
+            assert.equal(
+                child.searchParams.get('media_type'),
+                fields.attachmentType[index].toUpperCase()
+            );
+            assert.equal(
+                child.searchParams.get('alt_text'),
+                fields.attachmentAltText[index]
+            );
+        }
+        assert.equal(batch.at(-1).searchParams.get('media_type'), 'CAROUSEL');
+        assert.equal(
+            batch.at(-1).searchParams.get('children').split(',').length,
+            count
+        );
+    }
+    for (const mode of ['Image', 'Video', 'mixed']) {
+        const start = calls.length;
+        await checkError(
+            await request('/upload', uploadForm(mediaSet(21, mode))),
+            400,
+            'Attach no more than 20 images or videos.'
+        );
+        assert.equal(
+            calls.length,
+            start,
+            'No child or parent container request is made.'
+        );
+    }
 });
 
 test('browser rejects incompatible media attachments before submitting', () => {

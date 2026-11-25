@@ -10,7 +10,7 @@ You can use this Sample App to test the [Threads API](https://developers.faceboo
 ## Features
 
 -   **Login and Account:** Sign in through the Threads oAuth flow and exchange short-lived tokens for long-lived tokens. Authenticated requests use the Threads app-scoped user ID returned during sign-in. View your profile details and sign out.
--   **Publishing:** Publish text, image, video, and carousel posts. Check container status before publishing. You can also publish text posts automatically during the container creation phase.
+-   **Publishing:** Publish text, image, video, and carousel posts. This sample accepts up to 20 media attachments per post. Carousel items are numbered in their current order and renumbered when an item is removed. Check container status before publishing. You can also publish text posts automatically during the container creation phase.
 -   **Publishing Options:** Add topic tags, link attachments, alt text, and polls. Link and poll controls are hidden and disabled while media is attached. Removing the last media item restores them. Mark text or media as spoilers. Create temporary ghost posts that automatically expire. Choose who can reply by setting the reply audience.
 -   **Replies, Quotes, and Reposts:** Create replies and quote posts, or repost an existing post.
 -   **Post Browsing:** View your posts, your replies, and posts that mention you. Open individual post details, direct replies, and full conversations. Browse available result pages.

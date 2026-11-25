@@ -26,6 +26,7 @@ const app = express();
 const upload = multer();
 
 const DEFAULT_THREADS_QUERY_LIMIT = 10;
+const MAX_MEDIA_ATTACHMENTS = 20;
 
 const FIELD__ALT_TEXT = 'alt_text';
 const FIELD__APPLICATION = 'application';
@@ -827,6 +828,16 @@ app.post(
             !Array.isArray(attachmentType) ||
             !Array.isArray(attachmentUrl) ||
             !Array.isArray(attachmentAltText);
+
+        if (
+            !invalidInputTypes &&
+            attachmentType.length > MAX_MEDIA_ATTACHMENTS
+        ) {
+            return res.status(400).json({
+                error: true,
+                message: 'Attach no more than 20 images or videos.',
+            });
+        }
 
         const invalidMediaAttachments =
             !invalidInputTypes &&

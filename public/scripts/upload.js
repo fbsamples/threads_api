@@ -5,7 +5,22 @@
  * LICENSE file in the root directory of this source tree.
  */
 
+const MAX_MEDIA_ATTACHMENTS = 20;
+
 async function updateMediaType(attachmentsCount, attachmentListElem) {
+    const attachmentsButton = document.getElementById('attachments-button');
+    const atLimit = attachmentsCount >= MAX_MEDIA_ATTACHMENTS;
+    attachmentsButton.setAttribute('aria-disabled', String(atLimit));
+    attachmentsButton.style.opacity = atLimit ? '0.5' : '1';
+    attachmentsButton.style.cursor = atLimit ? 'not-allowed' : 'pointer';
+    if (attachmentListElem) {
+        attachmentListElem
+            .querySelectorAll('.attachment-number')
+            .forEach((label, index) => {
+                label.textContent = `Attachment ${index + 1}`;
+                label.hidden = attachmentsCount < 2;
+            });
+    }
     const mediaTypeElem = document.getElementById('media-type');
     const linkAttachmentControl = document.querySelector(
         '.link-attachment-media-control'
@@ -75,6 +90,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         e.preventDefault();
 
         const attachmentsList = document.getElementById('attachments-list');
+        if (attachmentsList.children.length >= MAX_MEDIA_ATTACHMENTS) return;
         const template = document.getElementById('attachment-template');
 
         const div = document.createElement('div');
