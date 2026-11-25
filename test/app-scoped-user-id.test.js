@@ -275,8 +275,15 @@ test('reads, paging, carousel creation, and publishing use only the session ID',
         '/publishingLimit',
         '/replies',
         '/mentions',
-    ])
-        assert.equal((await request(`${route}?user_id=999`)).status, 200);
+    ]) {
+        const response = await request(`${route}?user_id=999`);
+        assert.equal(response.status, 200);
+        if (route === '/account')
+            assert.match(
+                await response.text(),
+                /href="https:\/\/www\.threads\.com\/@example"/
+            );
+    }
     const html = await (await request('/threads?user_id=999')).text();
     const href = html
         .match(/<a href="([^"]+)">Next<\/a>/)[1]
