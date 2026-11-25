@@ -645,12 +645,14 @@ app.get('/publishingLimit', loggedInUserChecker, async (req, res) => {
 });
 
 app.get('/upload', loggedInUserChecker, (req, res) => {
-    const { replyToId, quotePostId } = req.query;
-    const title = replyToId === undefined ? 'Upload' : 'Upload (Reply)';
+    const { replyToId: replyToID, quotePostId: quotePostID } = req.query;
+    let title = 'Upload';
+    if (replyToID !== undefined) title = 'Upload (Reply)';
+    else if (quotePostID) title = 'Upload (Quote)';
     res.render('upload', {
         title,
-        replyToId,
-        quotePostId,
+        replyToId: replyToID,
+        quotePostId: quotePostID,
     });
 });
 
