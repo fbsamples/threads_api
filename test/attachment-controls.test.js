@@ -143,7 +143,7 @@ test('media hides and disables text attachments, restores drafts, and preserves 
     });
     assert.match(
         html,
-        /<div class="poll-attachment-media-control"><button id="poll-attachment-button"/
+        /<div class="poll-attachment-media-control(?: [^"]+)?"><button id="poll-attachment-button"/
     );
     for (const field of [
         'linkAttachment',

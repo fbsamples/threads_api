@@ -24,7 +24,11 @@ test('reply and quote targets appear above the form with matching links and unch
         const html = render({ [field]: postID });
         const context = `${label} <a href="/threads/${postID}">post ${postID}</a>`;
         assert.ok(html.includes(context));
-        const formStart = html.indexOf('<form action="/upload"');
+        const formTag = html.match(
+            /<form\b[^>]*action="\/upload"[^>]*id="form"[^>]*method="POST"[^>]*>/
+        );
+        assert.ok(formTag);
+        const formStart = formTag.index;
         assert.ok(html.indexOf(context) < formStart);
         const form = html.slice(formStart, html.indexOf('</form>', formStart));
         assert.ok(form.includes(`name="${field}" value="${postID}"`));
