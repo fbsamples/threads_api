@@ -868,8 +868,10 @@ app.post(
         const params = {
             [PARAMS__REPLY_CONTROL]: replyControl,
             [PARAMS__REPLY_TO_ID]: replyToId,
-            [PARAMS__LINK_ATTACHMENT]: linkAttachment,
         };
+        if (linkAttachment) {
+            params[PARAMS__LINK_ATTACHMENT] = linkAttachment;
+        }
 
         if (text.includes(spoilerMarker)) {
             parsedInput = textParser.extractSpoilerInfo(text);

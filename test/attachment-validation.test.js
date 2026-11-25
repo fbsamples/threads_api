@@ -123,13 +123,27 @@ test('upload rejects incompatible attachments before creating any containers', a
         );
     }
     assert.equal(calls.length, 0);
-    for (const values of [media, poll, { ...link, autoPublishText: 'on' }]) {
+    for (const values of [
+        media,
+        poll,
+        { ...link, autoPublishText: 'on' },
+        { ghostPostMedia: 'true' },
+        { linkAttachment: '' },
+    ]) {
         assert.equal(
             (await request('/upload', uploadForm(values))).status,
             200
         );
     }
-    assert.equal(calls.length, 3);
+    assert.equal(calls.length, 5);
+    for (const index of [0, 1, 3, 4]) {
+        assert.equal(calls[index].searchParams.has('link_attachment'), false);
+    }
+    assert.equal(
+        calls[2].searchParams.get('link_attachment'),
+        link.linkAttachment
+    );
+    assert.equal(calls[3].searchParams.get('is_ghost_post'), 'true');
     assert.equal(calls[0].searchParams.get('media_type'), 'IMAGE');
     assert.equal(
         calls[0].searchParams.get('image_url'),
