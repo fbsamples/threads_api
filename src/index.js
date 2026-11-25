@@ -121,8 +121,10 @@ const PARAMS__SEARCH_TYPE = 'search_type';
 const PARAMS__SINCE = 'since';
 const PARAMS__STATE = 'state';
 const PARAMS__TEXT = 'text';
+const PARAMS__THEME = 'theme';
 const PARAMS__TOPIC_TAG = 'topic_tag';
 const PARAMS__UNTIL = 'until';
+const PARAMS__URL = 'url';
 const PARAMS__USERNAME = 'username';
 const PARAMS_IS_SPOILER_MEDIA = 'is_spoiler_media';
 const PARAMS_TEXT_ENTITES = 'text_entities';
@@ -1824,32 +1826,51 @@ app.post('/logout', logoutRateLimit, (req, res) => {
 });
 
 app.get('/oEmbed', async (req, res) => {
-    const { url } = req.query;
-    if (!url) {
-        return res.render('oembed', {
-            title: 'Embed Threads',
+    const { url, theme = 'light' } = req.query;
+    const values = {
+        title: 'Embed Threads',
+        url: typeof url === 'string' ? url : undefined,
+        theme: ['light', 'dark', 'auto'].includes(theme) ? theme : 'light',
+    };
+    if (!['light', 'dark', 'auto'].includes(theme)) {
+        return res.status(400).render('oembed', {
+            ...values,
+            error: 'Choose Light, Dark, or Auto for the embed theme.',
+        });
+    }
+    if (url === undefined || url === '') {
+        return res.render('oembed', values);
+    }
+    if (typeof url !== 'string') {
+        return res.status(400).render('oembed', {
+            ...values,
+            error: 'Enter a Threads post or profile URL.',
         });
     }
 
-    const oEmbedUrl = buildGraphAPIURL(`oembed`, {
-        url,
+    const oEmbedURL = buildGraphAPIURL('oembed', {
+        [PARAMS__URL]: url,
+        [PARAMS__THEME]: theme,
     });
-
-    let html = '<p>Unable to embed</p>';
     try {
-        const response = await axios.get(oEmbedUrl, { httpsAgent: agent });
-        if (response.data?.html) {
-            html = response.data.html;
+        const response = await axios.get(oEmbedURL, {
+            httpsAgent: agent,
+            maxRedirects: 0,
+        });
+        if (
+            typeof response.data?.html !== 'string' ||
+            !response.data.html.trim() ||
+            Object.prototype.hasOwnProperty.call(response.data, 'error')
+        ) {
+            throw new Error('Invalid embed response.');
         }
-    } catch (e) {
-        console.error(e?.response?.data?.error?.message ?? e.message);
+        return res.render('oembed', { ...values, html: response.data.html });
+    } catch {
+        return res.status(502).render('oembed', {
+            ...values,
+            error: 'Unable to load this embed. Check the URL and try again.',
+        });
     }
-
-    return res.render('oembed', {
-        title: 'Embed Threads',
-        html,
-        url,
-    });
 });
 
 function getProfileUsername(input) {

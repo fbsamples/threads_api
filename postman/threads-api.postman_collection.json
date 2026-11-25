@@ -3382,7 +3382,7 @@
 			"name": "Display Threads",
 			"item": [
 				{
-					"name": "Embed a Threads Post",
+					"name": "Embed a Threads Post or Profile",
 					"request": {
 						"auth": {
 							"type": "noauth"
@@ -3401,7 +3401,13 @@
 								{
 									"key": "url",
 									"value": "https://www.threads.com/@threads/post/DCkkKl_OGb1",
-									"description": "This is the URL of the Threads post to be embedded. With standard access, you may embed posts from the @meta, @threads, @instagram, and @facebook accounts."
+									"description": "A Threads post or profile URL. To embed a profile, use that profile's URL. With standard access, you may embed posts from the @meta, @threads, @instagram, and @facebook accounts."
+								},
+								{
+									"key": "theme",
+									"value": "dark",
+									"disabled": true,
+									"description": "Choose light, dark, or auto. Light is the default. Auto follows the viewer's display settings."
 								}
 							]
 						}
