@@ -70,7 +70,11 @@ block content
         }
 
     if (replyToId !== undefined)
-        p(style='color: gray') Replying to #{replyToId}
+        p(style='color: gray')
+            if typeof replyToId === 'string' && /^[1-9]\d*$/.test(replyToId)
+                | Replying to #[a(href=`/threads/${replyToId}`) post #{replyToId}]
+            else
+                | Replying to #{replyToId}
 
     form(action='/upload' id='form' method='POST')
         label(for='text')
