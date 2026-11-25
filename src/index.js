@@ -623,18 +623,64 @@ app.get('/userInsights', loggedInUserChecker, async (req, res) => {
     });
 });
 
+function formatQuotaWindow(seconds) {
+    if (!Number.isSafeInteger(seconds) || seconds <= 0) return undefined;
+
+    const parts = [];
+    // Show the standard window as 24 hours, not as a calendar day.
+    for (const [unit, size] of [
+        ['day', 86400],
+        ['hour', 3600],
+        ['minute', 60],
+        ['second', 1],
+    ]) {
+        if (unit === 'day' && seconds === size) continue;
+        const count = Math.floor(seconds / size);
+        seconds %= size;
+        if (count) parts.push(`${count} ${unit}${count === 1 ? '' : 's'}`);
+    }
+    return parts.join(' ');
+}
+
 app.get('/publishingLimit', loggedInUserChecker, async (req, res) => {
-    const params = {
-        [PARAMS__FIELDS]: [
+    const families = [
+        [
+            'Publishing',
+            'published',
+            'post',
+            'posts',
             PARAMS__QUOTA_USAGE,
             PARAMS__CONFIG,
+        ],
+        [
+            'Replies',
+            'posted',
+            'reply',
+            'replies',
             PARAMS__REPLY_QUOTA_USAGE,
             PARAMS__REPLY_CONFIG,
+        ],
+        [
+            'Deletion',
+            'deleted',
+            'post',
+            'posts',
             PARAMS__DELETE_QUOTA_USAGE,
             PARAMS__DELETE_CONFIG,
+        ],
+        [
+            'Location Search',
+            'made',
+            'location search request',
+            'location search requests',
             PARAMS__LOCATION_SEARCH_QUOTA_USAGE,
             PARAMS__LOCATION_SEARCH_CONFIG,
-        ].join(','),
+        ],
+    ];
+    const params = {
+        [PARAMS__FIELDS]: families
+            .flatMap(([, , , , usage, config]) => [usage, config])
+            .join(','),
     };
 
     const publishingLimitUrl = buildGraphAPIURL(
@@ -643,37 +689,52 @@ app.get('/publishingLimit', loggedInUserChecker, async (req, res) => {
         req.session.access_token
     );
 
-    let data = [];
+    let data;
+    let error;
     try {
         const queryResponse = await axios.get(publishingLimitUrl, {
             httpsAgent: agent,
         });
-        data = queryResponse.data;
-    } catch (e) {
-        console.error(e?.response?.data?.error?.message ?? e.message);
+        const rows = queryResponse.data?.data;
+        if (!Array.isArray(rows)) throw new Error('Invalid quota response.');
+        data = rows[0];
+        if (
+            rows.length &&
+            (!data || typeof data !== 'object' || Array.isArray(data))
+        ) {
+            throw new Error('Invalid quota row.');
+        }
+    } catch {
+        data = undefined;
+        error = 'Unable to load quota information. Try again later.';
     }
 
-    data = data.data?.[0] ?? {};
+    const formatCount = new Intl.NumberFormat('en-US');
+    const quotas = families.map(
+        ([name, verb, singular, plural, usageField, configField]) => {
+            const used = data?.[usageField];
+            const config = data?.[configField];
+            const limit = config?.quota_total;
+            const window = formatQuotaWindow(config?.quota_duration);
+            const usage =
+                Number.isSafeInteger(used) &&
+                used >= 0 &&
+                Number.isSafeInteger(limit) &&
+                limit >= 0
+                    ? `You ${verb} ${formatCount.format(
+                          used
+                      )} out of ${formatCount.format(limit)} ${
+                          limit === 1 ? singular : plural
+                      }`
+                    : undefined;
+            return { name, usage, window };
+        }
+    );
 
-    const quotaUsage = data[PARAMS__QUOTA_USAGE];
-    const config = data[PARAMS__CONFIG];
-    const replyQuotaUsage = data[PARAMS__REPLY_QUOTA_USAGE];
-    const replyConfig = data[PARAMS__REPLY_CONFIG];
-    const deleteQuotaUsage = data[PARAMS__DELETE_QUOTA_USAGE];
-    const deleteConfig = data[PARAMS__DELETE_CONFIG];
-    const locationSearchQuotaUsage = data[PARAMS__LOCATION_SEARCH_QUOTA_USAGE];
-    const locationSearchConfig = data[PARAMS__LOCATION_SEARCH_CONFIG];
-
-    res.render('publishing_limit', {
+    return res.status(error ? 502 : 200).render('publishing_limit', {
         title: 'Publishing Limit',
-        quotaUsage,
-        config,
-        replyQuotaUsage,
-        replyConfig,
-        deleteQuotaUsage,
-        deleteConfig,
-        locationSearchQuotaUsage,
-        locationSearchConfig,
+        quotas,
+        error,
     });
 });
 
