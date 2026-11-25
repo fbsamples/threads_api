@@ -200,8 +200,16 @@ test('post details follow the exact field order with an encoded author link, loc
     assert.match(html, /action="\/threads\/123\/delete" method="POST"/);
     assert.ok(html.includes("location.href='/upload?replyToId=123'"));
     const replyForm = await (await request('/upload?replyToId=123')).text();
-    assert.match(replyForm, /Replying to 123/);
+    assert.ok(
+        replyForm.includes('Replying to <a href="/threads/123">post 123</a>')
+    );
     assert.match(replyForm, /name="replyToId" value="123"/);
+    assert.match(replyForm, /<h1>Upload \(Reply\)<\/h1>/);
+    assert.ok(html.includes("location.href='/upload?quotePostId=123'"));
+    const quoteForm = await (await request('/upload?quotePostId=123')).text();
+    assert.match(quoteForm, /<h1>Upload \(Quote\)<\/h1>/);
+    assert.match(quoteForm, /name="quotePostId" value="123"/);
+    assert.match(await (await request('/upload')).text(), /<h1>Upload<\/h1>/);
     assert.match(html, /cannot be undone/);
     assert.equal(reads[0].searchParams.get('fields').includes('owner'), false);
     assert.equal(

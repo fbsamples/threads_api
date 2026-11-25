@@ -76,6 +76,13 @@ block content
             else
                 | Replying to #{replyToId}
 
+    if quotePostId
+        p(style='color: gray')
+            if typeof quotePostId === 'string' && /^[1-9]\d*$/.test(quotePostId)
+                | Quoting #[a(href=`/threads/${quotePostId}`) post #{quotePostId}]
+            else
+                | Quoting #{quotePostId}
+
     form(action='/upload' id='form' method='POST')
         label(for='text')
         | Text:
@@ -154,7 +161,6 @@ block content
                 input(type='text' name='pollOptionD' autocomplete='off')
 
         if quotePostId
-            a(href=`/threads/${quotePostId}`) Quoting #{quotePostId}
             input#quote-post-id(type='hidden' name='quotePostId' value=quotePostId)
 
         input(type='hidden' name='replyToId' value=replyToId)
