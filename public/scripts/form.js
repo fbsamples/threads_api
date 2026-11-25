@@ -66,10 +66,12 @@ function isAttachmentsInputValid(data) {
 
     if (hasMediaAttachment && linkAttached) {
         alert('Link attachments can only be used with text posts.');
+        return false;
     }
 
     if (hasMediaAttachment && pollAttached) {
         alert('Poll attachments can only be used with text posts.');
+        return false;
     }
 
     return true;

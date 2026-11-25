@@ -7,15 +7,47 @@
 
 async function updateMediaType(attachmentsCount, attachmentListElem) {
     const mediaTypeElem = document.getElementById('media-type');
-    const spoilerMediaControl = document.querySelector('.spoiler-media-control');
-    const ghostPostMediaControl = document.querySelector('.ghost-post-media-control');
-    const autoPublishTextMediaControl = document.querySelector('.auto-publish-text-media-control');
+    const linkAttachmentControl = document.querySelector(
+        '.link-attachment-media-control'
+    );
+    const pollAttachmentControl = document.querySelector(
+        '.poll-attachment-media-control'
+    );
+    const textAttachmentsEnabled =
+        attachmentsCount === 0 &&
+        !document.querySelector('input[name="ghostPostMedia"]').checked;
+    linkAttachmentControl.style.display = textAttachmentsEnabled
+        ? 'block'
+        : 'none';
+    pollAttachmentControl.style.display = textAttachmentsEnabled
+        ? 'block'
+        : 'none';
+    document.getElementById('link-attachment').disabled =
+        !textAttachmentsEnabled;
+    pollAttachmentControl
+        .querySelectorAll('input, button')
+        .forEach((control) => {
+            control.disabled = !textAttachmentsEnabled;
+        });
+    const spoilerMediaControl = document.querySelector(
+        '.spoiler-media-control'
+    );
+    const ghostPostMediaControl = document.querySelector(
+        '.ghost-post-media-control'
+    );
+    const autoPublishTextMediaControl = document.querySelector(
+        '.auto-publish-text-media-control'
+    );
 
     let mediaTypeDesc;
     if (attachmentsCount === 0) {
         mediaTypeDesc = 'Text 📝';
         spoilerMediaControl.style.display = 'none';
-        ghostPostMediaControl.style.display = 'block';
+        ghostPostMediaControl.style.display =
+            document.getElementById('poll-attachment-options').style.display ===
+            'none'
+                ? 'block'
+                : 'none';
         autoPublishTextMediaControl.style.display = 'block';
     } else if (attachmentsCount === 1) {
         const singleAttachmentType =
@@ -80,27 +112,48 @@ document.addEventListener('DOMContentLoaded', async () => {
         const pollAttachmentOptions = document.getElementById(
             'poll-attachment-options'
         );
-        const ghostPostMediaControl = document.querySelector('.ghost-post-media-control');
+        const ghostPostMediaControl = document.querySelector(
+            '.ghost-post-media-control'
+        );
         if (pollAttachmentOptions.style.display === 'none') {
             pollAttachmentOptions.style.display = 'block';
             ghostPostMediaControl.style.display = 'none';
         } else {
             pollAttachmentOptions.style.display = 'none';
+            pollAttachmentOptions
+                .querySelectorAll('input[type="text"]')
+                .forEach((input) => (input.value = ''));
             ghostPostMediaControl.style.display = 'block';
         }
+        attachPollButton.textContent =
+            pollAttachmentOptions.style.display === 'none'
+                ? 'Attach Poll 🗳️'
+                : 'Remove Poll 🗳️';
     });
 
-    const ghostPostCheckbox = document.querySelector('input[name="ghostPostMedia"]');
-    const topicTagMediaControl = document.querySelector('.topic-tag-media-control');
-    const linkAttachmentMediaControl = document.querySelector('.link-attachment-media-control');
-    const attachImageMediaControl = document.querySelector('.attach-image-media-control');
-    const replyOptionsMediaControl = document.querySelector('.reply-options-media-control');
+    const ghostPostCheckbox = document.querySelector(
+        'input[name="ghostPostMedia"]'
+    );
+    const topicTagMediaControl = document.querySelector(
+        '.topic-tag-media-control'
+    );
+    const linkAttachmentMediaControl = document.querySelector(
+        '.link-attachment-media-control'
+    );
+    const attachImageMediaControl = document.querySelector(
+        '.attach-image-media-control'
+    );
+    const replyOptionsMediaControl = document.querySelector(
+        '.reply-options-media-control'
+    );
 
     const topicTagInput = document.getElementById('topic-tag');
     const linkAttachmentInput = document.getElementById('link-attachment');
     const replyControlSelect = document.getElementById('reply-control');
     const attachmentsList = document.getElementById('attachments-list');
-    const pollAttachmentOptions = document.getElementById('poll-attachment-options');
+    const pollAttachmentOptions = document.getElementById(
+        'poll-attachment-options'
+    );
 
     if (ghostPostCheckbox) {
         ghostPostCheckbox.addEventListener('change', async () => {
@@ -118,17 +171,26 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (attachmentsList) attachmentsList.innerHTML = '';
                 if (pollAttachmentOptions) {
                     pollAttachmentOptions.style.display = 'none';
-                    const pollInputs = pollAttachmentOptions.querySelectorAll('input[type="text"]');
-                    pollInputs.forEach(input => input.value = '');
+                    attachPollButton.textContent = 'Attach Poll 🗳️';
+                    const pollInputs =
+                        pollAttachmentOptions.querySelectorAll(
+                            'input[type="text"]'
+                        );
+                    pollInputs.forEach((input) => (input.value = ''));
                 }
 
                 await updateMediaType(0, null);
-            } else { // When the checkbox is unchecked, enable all fields
+            } else {
+                // When the checkbox is unchecked, enable all fields
                 topicTagMediaControl.style.display = 'block';
                 linkAttachmentMediaControl.style.display = 'block';
                 attachPollButton.style.display = 'block';
                 attachImageMediaControl.style.display = 'block';
                 replyOptionsMediaControl.style.display = 'block';
+                await updateMediaType(
+                    attachmentsList.children.length,
+                    attachmentsList
+                );
             }
         });
     }
