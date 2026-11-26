@@ -79,6 +79,11 @@
     border-radius: 0.5rem;
 }
 
+.upload-form .attachment-number {
+    grid-column: 1 / 3;
+    font-weight: bold;
+}
+
 .upload-form .upload-attachment-alt {
     grid-column: 1 / -1;
 }
@@ -131,6 +136,10 @@
 @media (max-width: 40rem) {
     .upload-form .attachment-item {
         grid-template-columns: minmax(0, 1fr);
+    }
+
+    .upload-form .attachment-number {
+        grid-column: 1;
     }
 
     .upload-form .attachment-item > .delete {

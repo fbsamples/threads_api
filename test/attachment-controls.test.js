@@ -19,6 +19,9 @@ test('media hides and disables text attachments, restores drafts, and preserves 
         disabled: false,
         style: { display: 'block' },
         events: {},
+        setAttribute(name, value) {
+            this[name] = value;
+        },
         addEventListener(name, callback) {
             this.events[name] = callback;
         },
@@ -37,6 +40,7 @@ test('media hides and disables text attachments, restores drafts, and preserves 
     const attachments = element();
     attachments.children = [];
     attachments.querySelector = () => ({ value: 'Image' });
+    attachments.querySelectorAll = () => [];
     const controls = {
         '.link-attachment-media-control': linkControl,
         '.poll-attachment-media-control': pollControl,

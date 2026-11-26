@@ -46,7 +46,7 @@ test('the Upload form preserves submission fields and the dynamic attachment str
     );
     assert.ok(template);
     const buttons = template[1].match(
-        /<div class="attachment-item">((?:<label\b[^>]*>[\s\S]*?<\/label>)+)<span class="delete"[^>]*>[^<]+<\/span><\/div>$/
+        /<div class="attachment-item"><span class="attachment-number" hidden><\/span>((?:<label\b[^>]*>[\s\S]*?<\/label>)+)<span class="delete"[^>]*>[^<]+<\/span><\/div>$/
     );
     // Upload removes the generated list child by walking up twice from span.delete.
     assert.ok(
@@ -86,6 +86,25 @@ test('the unchanged upload handlers remove rendered clones and restore text atta
         disabled: false,
         checked: false,
         value: '',
+        hidden: false,
+        setAttribute(name, value) {
+            this.attributes[name] = value;
+        },
+        querySelectorAll(selector) {
+            const found = [];
+            const collect = (node) => {
+                for (const child of node.children) {
+                    if (
+                        selector === '.attachment-number' &&
+                        child.attributes.class === 'attachment-number'
+                    )
+                        found.push(child);
+                    collect(child);
+                }
+            };
+            collect(this);
+            return found;
+        },
         addEventListener(name, handler) {
             this.events[name] = handler;
         },
@@ -202,6 +221,10 @@ test('the unchanged upload handlers remove rendered clones and restore text atta
     assert.equal(firstDelete.parentNode.parentNode, firstClone);
     assert.equal(list.children.length, 1);
     assert.equal(fields['media-type'].innerText, 'Image 🖼️');
+    assert.equal(
+        firstClone.querySelectorAll('.attachment-number')[0].hidden,
+        true
+    );
     const select = firstClone.querySelector('select');
     select.value = 'Video';
     await select.events.change({ target: select });
@@ -209,11 +232,28 @@ test('the unchanged upload handlers remove rendered clones and restore text atta
     await clickAttachment();
     const secondClone = list.children[1];
     assert.equal(fields['media-type'].innerText, 'Carousel 🎠');
+    assert.deepEqual(
+        list
+            .querySelectorAll('.attachment-number')
+            .map((label) => [label.textContent, label.hidden]),
+        [
+            ['Attachment 1', false],
+            ['Attachment 2', false],
+        ]
+    );
     assert.equal(fields['link-attachment'].disabled, true);
     assert.ok(pollInputs.every((input) => input.disabled));
     await firstDelete.events.click({ target: firstDelete });
     assert.equal(firstClone.parentNode, null);
     assert.deepEqual(list.children, [secondClone]);
+    assert.equal(
+        secondClone.querySelectorAll('.attachment-number')[0].textContent,
+        'Attachment 1'
+    );
+    assert.equal(
+        secondClone.querySelectorAll('.attachment-number')[0].hidden,
+        true
+    );
     assert.equal(fields['media-type'].innerText, 'Image 🖼️');
     const lastDelete = secondClone.querySelector('span.delete');
     await lastDelete.events.click({ target: lastDelete });
