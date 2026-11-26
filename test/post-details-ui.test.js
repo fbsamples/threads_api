@@ -72,7 +72,7 @@ const examplePost = {
     ghost_post_status: 'INACTIVE',
 };
 
-async function startApp(t, post, owner = '456') {
+async function startApp(t, post, owner = '456', probe = {}) {
     const reads = [];
     const runtime = vm.runInNewContext(
         fs.readFileSync(entry, 'utf8') +
@@ -90,29 +90,77 @@ async function startApp(t, post, owner = '456') {
             require(name) {
                 if (name === 'axios')
                     return {
-                        get: async (url) => {
+                        get: async (url, config) => {
                             const parsed = new URL(url);
+                            const stage =
+                                parsed.pathname === '/debug_token'
+                                    ? 'token'
+                                    : parsed.pathname === '/456'
+                                    ? 'user'
+                                    : parsed.searchParams.get('fields') ===
+                                      'id,media_type,owner'
+                                    ? 'owner'
+                                    : 'primary';
+                            assert.ok(config.httpsAgent);
+                            assert.equal(
+                                config.maxRedirects,
+                                stage === 'primary' ? undefined : 0
+                            );
+                            if (stage === 'token') {
+                                assert.deepEqual(
+                                    Array.from(
+                                        config.transformResponse,
+                                        (fn) => fn.name
+                                    ),
+                                    ['parseUserIdResponse']
+                                );
+                            }
                             reads.push(parsed);
-                            if (parsed.pathname === '/debug_token')
-                                return {
-                                    data: {
-                                        data: {
-                                            is_valid: true,
-                                            user_id: '456',
+                            if (probe.redirectStage === stage) {
+                                throw {
+                                    response: {
+                                        status: 302,
+                                        headers: {
+                                            location:
+                                                'https://example.invalid/redirect-target',
                                         },
                                     },
                                 };
+                            }
+                            if (parsed.pathname === '/debug_token') {
+                                if (probe.failToken)
+                                    throw new Error(
+                                        'Synthetic token probe failure.'
+                                    );
+                                return {
+                                    data: {
+                                        data: {
+                                            is_valid: probe.tokenValid ?? true,
+                                            user_id: probe.tokenUserID ?? '456',
+                                        },
+                                    },
+                                };
+                            }
                             if (parsed.pathname === '/456')
-                                return { data: { id: '456' } };
+                                return { data: { id: probe.userID ?? '456' } };
                             if (
                                 parsed.searchParams.get('fields') ===
                                 'id,media_type,owner'
                             ) {
+                                if (probe.failOwner)
+                                    throw new Error(
+                                        'Synthetic owner probe failure.'
+                                    );
                                 return {
                                     data: {
-                                        id: '123',
-                                        media_type: 'TEXT_POST',
-                                        owner: { id: owner },
+                                        id: probe.postID ?? '123',
+                                        media_type:
+                                            probe.mediaType ?? 'TEXT_POST',
+                                        owner:
+                                            owner === undefined
+                                                ? undefined
+                                                : { id: owner },
+                                        ...probe.ownerResponse,
                                     },
                                 };
                             }
@@ -130,9 +178,10 @@ async function startApp(t, post, owner = '456') {
         { filename: entry }
     );
     const server = http.createServer(runtime.app);
-    server.listen(0, '127.0.0.1');
-    await once(server, 'listening');
+    const listening = once(server, 'listening');
     t.after(() => new Promise((resolve) => server.close(resolve)));
+    server.listen(0, '127.0.0.1');
+    await listening;
     const base = `http://127.0.0.1:${server.address().port}`;
     let cookie;
     return {
@@ -270,6 +319,7 @@ test('empty fields are hidden without hiding false or zero, and malformed dates 
         'Reply Audience',
         'Text Entities',
         'Is Ghost Post',
+        'Insights',
         'Delete',
     ]) {
         assert.ok(!html.includes(`<td>${label}</td>`), `${label} is absent.`);
@@ -309,6 +359,164 @@ test('failed, empty or invalid primary loads do not show post actions or run own
         assert.doesNotMatch(
             html,
             /action="\/repost"|quotePostId=|replyToId=|\/insights|\/replies|name="csrfToken"|<script>Example failure/
+        );
+    }
+});
+
+test('Insights visibility requires verified ownership independently of deletion eligibility', async (t) => {
+    for (const scenario of [
+        {
+            post: { ...examplePost, media_type: 'REPOST_FACADE' },
+            owner: '456',
+            insights: true,
+            deletion: false,
+        },
+        {
+            post: { ...examplePost, media_type: 'UNSUPPORTED' },
+            owner: '456',
+            insights: true,
+            deletion: false,
+        },
+        {
+            post: { ...examplePost, canViewInsights: false },
+            owner: '456',
+            insights: true,
+            deletion: true,
+        },
+        {
+            post: {
+                ...examplePost,
+                username: 'same-author',
+                canViewInsights: true,
+            },
+            owner: '999',
+            insights: false,
+            deletion: false,
+        },
+        {
+            post: { ...examplePost, is_reply: true, canViewInsights: true },
+            probe: { ownerResponse: { owner: undefined } },
+            insights: false,
+            deletion: false,
+        },
+        {
+            post: examplePost,
+            probe: { postID: '999' },
+            insights: false,
+            deletion: false,
+        },
+        {
+            post: examplePost,
+            probe: { userID: '999' },
+            insights: false,
+            deletion: false,
+        },
+        {
+            post: examplePost,
+            probe: { tokenUserID: '999' },
+            insights: false,
+            deletion: false,
+        },
+        {
+            post: examplePost,
+            probe: { tokenValid: false },
+            insights: false,
+            deletion: false,
+        },
+        {
+            post: examplePost,
+            probe: { failToken: true },
+            insights: false,
+            deletion: false,
+        },
+        {
+            post: examplePost,
+            probe: { failOwner: true },
+            insights: false,
+            deletion: false,
+        },
+        {
+            post: examplePost,
+            probe: { redirectStage: 'token' },
+            insights: false,
+            deletion: false,
+            expectedReads: 2,
+            expectedOwnerReads: 0,
+        },
+        {
+            post: examplePost,
+            probe: { redirectStage: 'user' },
+            insights: false,
+            deletion: false,
+            expectedReads: 3,
+            expectedOwnerReads: 0,
+        },
+        {
+            post: examplePost,
+            probe: { redirectStage: 'owner' },
+            insights: false,
+            deletion: false,
+            expectedReads: 4,
+            expectedOwnerReads: 1,
+        },
+        {
+            post: examplePost,
+            probe: { mediaType: 'UNSUPPORTED' },
+            insights: true,
+            deletion: false,
+        },
+    ]) {
+        const { request, reads } = await startApp(
+            t,
+            scenario.post,
+            scenario.owner ?? '456',
+            scenario.probe
+        );
+        const response = await request('/threads/123?owner=456&user_id=456');
+        const html = await response.text();
+        assert.equal(response.status, 200);
+        assert.equal(html.includes('<td>Insights</td>'), scenario.insights);
+        assert.equal(
+            html.includes('href="/threads/123/insights"'),
+            scenario.insights
+        );
+        assert.equal(
+            html.includes('aria-label="Delete Post"'),
+            scenario.deletion
+        );
+        assert.ok(html.includes('<td>Reply</td>'));
+        assert.ok(html.includes('<td>Quote</td>'));
+        assert.ok(html.includes('<td>Repost</td>'));
+        assert.ok(html.includes('&lt;b&gt;Example post&lt;/b&gt;'));
+        assert.doesNotMatch(
+            html,
+            /Synthetic owner probe failure|redirect-target/
+        );
+        assert.equal(reads[0].pathname, '/123');
+        assert.equal(
+            reads[0].searchParams.get('fields').includes('owner'),
+            false
+        );
+        assert.equal(
+            reads.filter(
+                (url) =>
+                    url.searchParams.get('fields') === 'id,media_type,owner'
+            ).length,
+            scenario.expectedOwnerReads ??
+                (scenario.probe?.failToken ||
+                scenario.probe?.tokenUserID ||
+                scenario.probe?.tokenValid === false
+                    ? 0
+                    : 1)
+        );
+        assert.equal(
+            reads.length,
+            scenario.expectedReads ??
+                (scenario.probe?.failToken ||
+                scenario.probe?.tokenUserID ||
+                scenario.probe?.tokenValid === false
+                    ? 2
+                    : 4)
         );
     }
 });

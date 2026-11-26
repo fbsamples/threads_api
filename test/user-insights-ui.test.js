@@ -78,6 +78,8 @@ test('empty user insights and the shared media table retain values, date control
     assert.match(media, /<td>0<\/td>/);
     assert.match(media, /&lt;b&gt;Example Metric&lt;\/b&gt;/);
     assert.match(media, /action="\/threads\/123\/insights" method="GET"/);
+    assert.match(media, /<p><a href="\/threads\/123">Post 123<\/a><\/p>/);
+    assert.ok(media.indexOf('>Post 123</a>') < media.indexOf('<table>'));
     assert.match(media, /class="media-insights"/);
     assert.match(
         media,
@@ -118,7 +120,45 @@ test('empty user insights and the shared media table retain values, date control
         metrics: [],
     });
     assert.match(emptyMedia, /class="media-insights"/);
+    assert.match(emptyMedia, /<p><a href="\/threads\/123">Post 123<\/a><\/p>/);
+    assert.ok(
+        emptyMedia.indexOf('>Post 123</a>') < emptyMedia.indexOf('<table>')
+    );
     assert.match(emptyMedia, /value="Refine"/);
     assert.match(emptyMedia, /action="\/threads\/123\/insights" method="GET"/);
     assert.doesNotMatch(emptyMedia, /undefined|type="date"[^>]*min=/);
+    const failedMedia = pug.renderFile(
+        path.join(views, 'thread_insights.pug'),
+        {
+            title: 'Media Insights',
+            threadId: '123',
+            metrics: [],
+            error: 'Example failure.',
+        }
+    );
+    assert.match(failedMedia, /<p><a href="\/threads\/123">Post 123<\/a><\/p>/);
+    for (const threadId of [
+        undefined,
+        null,
+        0,
+        123,
+        '0',
+        '',
+        '123\n',
+        'https://example.invalid',
+        '../123',
+        '//example.invalid',
+        ['123'],
+    ]) {
+        const invalidMedia = pug.renderFile(
+            path.join(views, 'thread_insights.pug'),
+            {
+                title: 'Media Insights',
+                threadId,
+                metrics: [],
+            }
+        );
+        assert.doesNotMatch(invalidMedia, /<p><a[^>]*>Post /);
+        assert.match(invalidMedia, /value="Refine"/);
+    }
 });

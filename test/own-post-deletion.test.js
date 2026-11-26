@@ -274,12 +274,24 @@ test('owned detail shows Delete after Quote and Repost and reuses the existing g
     });
     const get = api.get;
     const reads = [];
-    api.get = async (url) => {
+    const readConfigs = [];
+    api.get = async (url, config) => {
         reads.push(new URL(url));
-        return get(url);
+        readConfigs.push(config);
+        return get(url, config);
+    };
+    const remove = api.delete;
+    api.delete = async (url, config) => {
+        assert.equal(config.maxRedirects, undefined);
+        assert.ok(config.httpsAgent);
+        return remove(url, config);
     };
     const request = await startApp(t, api);
     const html = await (await request('/threads/123')).text();
+    assert.deepEqual(
+        readConfigs.map((config) => config.maxRedirects),
+        [undefined, 0, 0, 0]
+    );
     const quotePosition = html.indexOf('<td>Quote</td>');
     const repostPosition = html.indexOf('<td>Repost</td>');
     const deletePosition = html.indexOf('<td>Delete</td>');
@@ -289,6 +301,7 @@ test('owned detail shows Delete after Quote and Repost and reuses the existing g
             deletePosition > repostPosition
     );
     assert.match(html, /aria-label="Delete Post" title="Delete Post"/);
+    assert.match(html, /href="\/threads\/123\/insights"/);
     const mainRead = reads.find((url) => url.pathname === '/123');
     assert.equal(
         mainRead.searchParams.get('fields').split(',').includes('owner'),
@@ -321,6 +334,11 @@ test('owned detail shows Delete after Quote and Repost and reuses the existing g
     assert.equal(response.status, 303);
     assert.equal(response.headers.get('location'), '/threads');
     assert.equal(deleted, 1);
+    assert.ok(
+        readConfigs
+            .slice(-2)
+            .every((config) => config.maxRedirects === undefined)
+    );
 });
 
 test('detail hides Delete for foreign or unsupported posts and preserves the page when the owner probe fails', async (t) => {
@@ -336,6 +354,11 @@ test('detail hides Delete for foreign or unsupported posts and preserves the pag
         ).text();
         assert.match(html, /Test post/);
         assert.doesNotMatch(html, /Delete Post|name="csrfToken"/);
+        if (post.owner?.id === '456') {
+            assert.match(html, /href="\/threads\/123\/insights"/);
+        } else {
+            assert.doesNotMatch(html, /<td>Insights<\/td>|View Insights/);
+        }
     }
     const api = apiForPost();
     const get = api.get;
@@ -357,7 +380,10 @@ test('detail hides Delete for foreign or unsupported posts and preserves the pag
     assert.match(html, /Test post/);
     assert.match(html, /<td>Quote<\/td>/);
     assert.match(html, /<td>Repost<\/td>/);
-    assert.doesNotMatch(html, /Delete Post|Owner field is unavailable/);
+    assert.doesNotMatch(
+        html,
+        /Delete Post|Owner field is unavailable|<td>Insights<\/td>|View Insights/
+    );
 });
 
 test('signed-out and nonnumeric detail requests do not call the API', async (t) => {

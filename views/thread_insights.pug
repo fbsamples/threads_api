@@ -5,6 +5,9 @@ block head
 
 block content
     .media-insights
+        if typeof threadId === 'string' && /^[1-9]\d*$/.test(threadId) && threadId.trim() === threadId
+            p
+                a(href=`/threads/${threadId}`) Post #{threadId}
         .insights-table-scroll(role='region' aria-label='Media Insights Metrics' tabindex='0')
             include insights
         form.insights.insights-date-controls(action=`/threads/${threadId}/insights` method='GET')
