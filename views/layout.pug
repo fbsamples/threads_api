@@ -2,11 +2,20 @@ doctype
 html
   head
     title Threads API Sample App - #{title}
-    link(rel='stylesheet', href='/css/style.css')
+    link(rel='stylesheet' href='/css/style.css')
+    script(src='/scripts/local-timestamps.js' defer)
+    if csrfToken
+      meta(name='csrf-token' content=csrfToken)
+    block head
   body
+    block navigation
+      if title !== 'Home'
+        a.menu-link(href='/')
+          span(aria-hidden='true') 🏠
+          | Home
     header
       h1= title
-    
+
     block content
 
     div#loadingOverlay(style='display: none; position: fixed; top: 0; left: 0; height: 100vh; width: 100%; background-color: rgba(255,255,255,0.8); z-index: 9999;')
@@ -18,10 +27,10 @@ html
       .alert
         span.closebtn(onclick="this.parentElement.style.display='none';") &times;
         |   #{message}
-    
+
     if(error)
       .alert-error
         span.closebtn(onclick="this.parentElement.style.display='none';") &times;
-        |   Error Occured - #{error}!
+        |   Error: #{error}
 
     block scripts

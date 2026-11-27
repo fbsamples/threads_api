@@ -1,133 +1,109 @@
 extends layout_with_account
 
+block head
+    meta(name='viewport' content='width=device-width, initial-scale=1')
+    link(rel='stylesheet' href='/css/upload.css')
+
 block content
-    style(type="text/css").
-        div.attachments-area {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-        div.attachment-controls {
-            height: 100%;
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-        }
-        div.attachment-item {
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            margin-bottom: 12px;
-        }
-        div.attachment-item-details {
-            display: flex;
-            flex-direction: column;
-        }
-        div.attachment-item-type-and-url {
-            display: flex;
-            flex-direction: row;
-        }
-        textarea::placeholder {
-            text-align: center;
-            line-height: 15px;
-        }
-        textarea {
-            text-align: center;
-            padding: 5px 0;
-        }
-        img {
-            margin-bottom: 15px;
-        }
-        #reply-control {
-            margin-bottom: 15px;
-        }
-        #link-attachment {
-            width: 200px;
-            margin-bottom: 15px;
-        }
-        #quote-post-id {
-            width: 200px;
-        }
-
     if (replyToId !== undefined)
-        p(style='color: gray') Replying to #{replyToId}
+        p.upload-reply-context
+            if typeof replyToId === 'string' && /^[1-9]\d*$/.test(replyToId)
+                | Replying to #[a(href=`/threads/${replyToId}`) post #{replyToId}]
+            else
+                | Replying to #{replyToId}
 
-    form(action='/upload' id='form' method='POST')
-        label(for='text')
-        | Text:
-        textarea(placeholder='Start a thread...' id='text' name='text' autocomplete='off')
-        br
-        | To attach an image or video, click the image below
-        div.attachments-area
-            img#attachments-button(src='/img/attachment.png')
-            div.attachment-controls
-                div#attachments-list.attachments
+    if quotePostId
+        p.upload-reply-context
+            if typeof quotePostId === 'string' && /^[1-9]\d*$/.test(quotePostId)
+                | Quoting #[a(href=`/threads/${quotePostId}`) post #{quotePostId}]
+            else
+                | Quoting #{quotePostId}
 
-        label(for="reply-control") Who Can Reply
-        select#reply-control(name='replyControl' hint="Reply Control")
-            option(value="" selected)
-            option(value="everyone") Everyone
-            option(value="accounts_you_follow") Accounts You Follow
-            option(value="mentioned_only") Mentioned Only
+    form(action='/upload' id='form' method='POST' class='upload-form')
+        div.upload-field
+            label(for='text') Text
+            textarea(placeholder='Start a thread...' id='text' name='text' autocomplete='off')
 
-        label(for='linkAttachment')
-        |   Link Attachment
-        input#link-attachment(type='text' name='linkAttachment' value='')
+        p#media-type-explanation Media Type: #[span#media-type]
+        div.attach-image-media-control
+            p.upload-attachment-hint To attach an image or video, click the icon below:
+            div.attachments-area
+                img#attachments-button(src='/img/attachment.png' alt='Attach an Image or Video')
+                div.attachment-controls
+                    div#attachments-list.attachments
+            div.spoiler-media-control
+                label.upload-checkbox
+                    input(type='checkbox' name='spoilerMedia' value='true')
+                    | Mark Media as Spoiler
 
-        button#poll-attachment-button(type='button' name='pollAttachment') Attach Poll 🗳️
-        div#poll-attachment-options(style='display:none')
-            div.poll-attachment-option
-                label(for='pollOptionA')
-                | Option A &nbsp;&nbsp;
-                input(type='text' name='pollOptionA' autocomplete='off')
+        div.reply-options-media-control.upload-field
+            label(for='reply-control') Who Can Reply
+            select#reply-control(name='replyControl' hint='Reply Control')
+                option(value='' selected)
+                option(value='everyone') Everyone
+                option(value='accounts_you_follow') Accounts You Follow
+                option(value='mentioned_only') Mentioned Only
+                option(value='parent_post_author_only') Parent Post Author Only
+                option(value='followers_only') Followers Only
 
-            div.poll-attachment-option
-                label(for='pollOptionB')
-                | Option B &nbsp;&nbsp;
-                input(type='text' name='pollOptionB' autocomplete='off')
+        div.topic-tag-media-control.upload-field
+            label(for='topic-tag') Topic Tag
+            input#topic-tag(type='text' name='topicTag' value='' maxlength='50')
 
-            div.poll-attachment-option
-                label(for='pollOptionC')
-                | Option C &nbsp;&nbsp;
-                input(type='text' name='pollOptionC' autocomplete='off')
+        div.link-attachment-media-control.upload-field
+            label(for='link-attachment') Link Attachment
+            input#link-attachment(type='text' name='linkAttachment' value='')
 
-            div.poll-attachment-option
-                label(for='pollOptionD')
-                | Option D &nbsp;&nbsp;
-                input(type='text' name='pollOptionD' autocomplete='off')
+        div.auto-publish-text-media-control
+            label.upload-checkbox(for='autoPublishText')
+                input(type='checkbox' name='autoPublishText' id='autoPublishText')
+                | Auto-Publish (only for text posts)
+
+        div.ghost-post-media-control
+            label.upload-checkbox
+                input(type='checkbox' name='ghostPostMedia' value='true')
+                | Publish as Ghost Post
+                img#ghost-post-img(src='/img/ghost_post.png' alt='')
+
+        div.poll-attachment-media-control.upload-poll
+            button#poll-attachment-button(type='button' name='pollAttachment') Attach Poll 🗳️
+            div#poll-attachment-options(style='display:none')
+                label.upload-field.poll-attachment-option
+                    | Option A
+                    input(type='text' name='pollOptionA' autocomplete='off')
+                label.upload-field.poll-attachment-option
+                    | Option B
+                    input(type='text' name='pollOptionB' autocomplete='off')
+                label.upload-field.poll-attachment-option
+                    | Option C
+                    input(type='text' name='pollOptionC' autocomplete='off')
+                label.upload-field.poll-attachment-option
+                    | Option D
+                    input(type='text' name='pollOptionD' autocomplete='off')
 
         if quotePostId
-            a(href=`/threads/${quotePostId}`) Quoting #{quotePostId}
             input#quote-post-id(type='hidden' name='quotePostId' value=quotePostId)
 
         input(type='hidden' name='replyToId' value=replyToId)
         input.threads-button(type='submit' id='submit' value='Post')
 
-        p#media-type-explanation Media Type:&nbsp;
-            span#media-type
-
     script#attachment-template(type='text/template')
         div.attachment-item
-            div.attachment-item-details
-                div.attachment-item-type-and-url
-                    label(for='attachmentType')
-                    | Type &nbsp;&nbsp;
-                    select(name='attachmentType[]')
-                        option(value='Image') Image
-                        option(value='Video') Video
-                    label(for='attachmentUrl')
-                    | URL &nbsp;&nbsp;
-                    input(type='text' name='attachmentUrl[]' autocomplete='off')
-                div.attachment-item-alt-text
-                    label(for='attachmentAltText')
-                    |   Alt Text &nbsp;&nbsp;
-                    input(type='text' name='attachmentAltText[]' value='')
-
-            // The parent of this node will be removed from the DOM
-            span.delete ❌
-            br
+            span.attachment-number(hidden)
+            label.upload-field
+                | Type
+                select(name='attachmentType[]')
+                    option(value='Image') Image
+                    option(value='Video') Video
+            label.upload-field
+                | URL
+                input(type='text' name='attachmentUrl[]' autocomplete='off')
+            label.upload-field.upload-attachment-alt
+                | Alt Text
+                input(type='text' name='attachmentAltText[]' value='')
+            //- Keep the remove control directly inside the cloned item.
+            span.delete(title='Remove Attachment') ❌
 
 block scripts
     script(src='/scripts/form.js' type='text/javascript')
-    script(src='/scripts/upload.js', type='text/javascript')
+    script(src='/scripts/upload.js' type='text/javascript')

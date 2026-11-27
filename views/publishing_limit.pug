@@ -1,25 +1,21 @@
 extends layout_with_account
 
 block content
+    form(action='/publishingLimit' method='GET')
+        input(type='submit' value='Refresh Counts')
     table
+        thead
+            tr
+                th(scope='col') Quota
+                th(scope='col') Summary
         tbody
-            tr
-                th(colspan=2) Quota Usage
-                td(colspan=2)=quotaUsage
-            tr
-                th(rowspan=2) Config
-                th Quota Total
-                td=config.quota_total
-            tr
-                th Quota Duration
-                td=config.quota_duration
-            tr
-                th(colspan=2) Reply Quota Usage
-                td(colspan=2)=replyQuotaUsage
-            tr
-                th(rowspan=2) Reply Config
-                th Reply Quota Total
-                td=replyConfig.quota_total
-            tr
-                th Reply Quota Duration
-                td=replyConfig.quota_duration
+            each quota in quotas
+                tr
+                    th(scope='row')=quota.name
+                    if quota.usage && quota.window
+                        td= `${quota.usage} in the last ${quota.window}.`
+                    else
+                        td Not Available
+
+block scripts
+    script(src='/scripts/publishing-limit.js' defer)

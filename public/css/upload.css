@@ -1,0 +1,150 @@
+/*
+//  Copyright (c) Meta Platforms, Inc. and affiliates.
+//  All rights reserved.
+//  This source code is licensed under the license found in the
+//  LICENSE file in the root directory of this source tree.
+*/
+.upload-form {
+    width: 100%;
+    max-width: 46rem;
+    margin: 1.5rem auto;
+    gap: 1rem;
+    align-items: stretch;
+    text-align: left;
+}
+
+.upload-reply-context {
+    color: #555;
+    overflow-wrap: anywhere;
+}
+
+.upload-form .upload-field,
+.upload-form .upload-field > label {
+    display: block;
+    text-align: left;
+}
+
+.upload-form .upload-field > input,
+.upload-form .upload-field > select,
+.upload-form .upload-field > textarea {
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 2.75rem;
+    height: auto;
+    margin-top: 0.375rem;
+    padding: 0.5rem;
+    font: inherit;
+}
+
+.upload-form .upload-field > textarea {
+    min-height: 7rem;
+    overflow: auto;
+    resize: vertical;
+}
+
+.upload-form .upload-attachment-hint {
+    margin: 0;
+}
+
+.upload-form #attachments-button {
+    display: block;
+    width: 2.75rem;
+    height: 2.75rem;
+    object-fit: contain;
+    cursor: pointer;
+}
+
+.upload-form .attachment-controls {
+    width: 100%;
+    height: auto;
+    margin-top: 0.75rem;
+    cursor: auto;
+}
+
+.upload-form #attachments-list {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.upload-form .attachment-item {
+    display: grid;
+    grid-template-columns: minmax(6rem, 1fr) minmax(0, 4fr) auto;
+    align-items: end;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid #bbb;
+    border-radius: 0.5rem;
+}
+
+.upload-form .attachment-number {
+    grid-column: 1 / 3;
+    font-weight: bold;
+}
+
+.upload-form .upload-attachment-alt {
+    grid-column: 1 / -1;
+}
+
+.upload-form .attachment-item > .delete {
+    grid-column: 3;
+    grid-row: 1;
+    display: grid;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    place-items: center;
+    cursor: pointer;
+}
+
+.upload-form .spoiler-media-control {
+    display: none;
+}
+
+.upload-form .upload-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-align: left;
+}
+
+.upload-form #ghost-post-img {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.upload-form .poll-attachment-option {
+    margin-top: 0.75rem;
+}
+
+.upload-form #poll-attachment-button,
+.upload-form #submit {
+    width: max-content;
+    max-width: 100%;
+    margin: 0;
+}
+
+.upload-form .upload-quote {
+    overflow-wrap: anywhere;
+}
+
+.upload-form #media-type-explanation {
+    margin: 0;
+}
+
+@media (max-width: 40rem) {
+    .upload-form .attachment-item {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .upload-form .attachment-number {
+        grid-column: 1;
+    }
+
+    .upload-form .attachment-item > .delete {
+        grid-column: 1;
+        grid-row: auto;
+        justify-self: end;
+    }
+}

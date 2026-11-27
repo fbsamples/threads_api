@@ -5,153 +5,384 @@
 //  LICENSE file in the root directory of this source tree.
 */
 * {
-	font-family: sans-serif;
+    font-family: sans-serif;
 }
 
 button {
-	background-color: #2196F3; /* Green */
-	border: none;
-	color: white;
-	padding: 10px 20px;
-	text-align: center;
-	font-size: 15px;
-	display: block;
-	margin: 10px auto;
-	width: 200px;
+    background-color: #2196f3; /* Green */
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    font-size: 15px;
+    display: block;
+    margin: 10px auto;
+    width: 200px;
 }
 
 body {
-	margin: 60px 40px;
-	text-align: center;
+    margin: 60px 40px;
+    text-align: center;
 }
 
-input[type='submit']{
-	justify-content: center;
-	width: 100px;
-	background-color: #2196F3; /* Green */
-	border: none;
-	color: white;
-	padding: 10px 20px;
-	text-align: center;
-	font-size: 15px;
-	display: block;
-	margin: 10px auto;
-	width: 200px;
+.menu-link {
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
 }
 
-input[type='submit']:disabled{
-	background-color: #cccccc;
+input[type='submit'] {
+    justify-content: center;
+    width: 100px;
+    background-color: #2196f3; /* Green */
+    border: none;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    font-size: 15px;
+    display: block;
+    margin: 10px auto;
+    width: 200px;
+}
+
+input[type='submit']:disabled {
+    background-color: #cccccc;
 }
 
 input[type='text'] {
-	width: 500px;
-	height: 20px;
+    width: 500px;
+    height: 20px;
 }
 
 textarea {
-	width: 500px;
-	overflow: hidden;
+    width: 500px;
+    overflow: hidden;
     resize: none;
     white-space: pre-wrap;
     word-wrap: break-word;
 }
 
 form {
-	flex-direction: column;
-	display: flex;
-	align-items: center;
+    flex-direction: column;
+    display: flex;
+    align-items: center;
 }
 
 label {
-	text-align: center;
+    text-align: center;
 }
 
 .btn-group {
-	margin: 20px auto;
-	width: 30%;
+    margin: 20px auto;
+    width: 30%;
 }
 
 .title {
-	display: inline-block;
-	padding-bottom: -10px;
-	text-align: center;
-	margin: 20px;
+    display: inline-block;
+    padding-bottom: -10px;
+    text-align: center;
+    margin: 20px;
 }
 
 .radio-group {
-	margin: 20px auto;
-	text-align: center;
-	width: 500px;
+    margin: 20px auto;
+    text-align: center;
+    width: 500px;
 }
 
 .radio-child {
-	text-align: left;
+    text-align: left;
 }
 
 .alert {
-	margin: 30px 10px;
-	padding: 10px;
-	background-color: #3b9610;
-	color: white;
+    margin: 30px 10px;
+    padding: 10px;
+    background-color: #3b9610;
+    color: white;
 }
 
 .alert-error {
-	margin: 30px 10px;
-	padding: 10px;
-	background-color: #a51414;
-	color: white;
+    margin: 30px 10px;
+    padding: 10px;
+    background-color: #a51414;
+    color: white;
 }
 
 .closebtn {
-	margin-left: 15px;
-	color: white;
-	font-weight: bold;
-	float: right;
-	font-size: 22px;
-	line-height: 20px;
-	cursor: pointer;
-	transition: 0.3s;
+    margin-left: 15px;
+    color: white;
+    font-weight: bold;
+    float: right;
+    font-size: 22px;
+    line-height: 20px;
+    cursor: pointer;
+    transition: 0.3s;
 }
 
 .closebtn:hover {
-	color: black;
+    color: black;
 }
 
 table {
-	margin-left: auto;
-	margin-right: auto;
-	border: 1px solid black;
-	table-layout: auto;
-	width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    border: 1px solid black;
+    table-layout: auto;
+    width: 100%;
 }
 
-th, td {
-	padding: 10px;
-	text-align: left;
-	border: 1px solid black;
+th,
+td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid black;
 }
 
 th {
-	padding-top: 12px;
-	padding-bottom: 12px;
-	text-align: left;
-	background-color: #2196F3;
-	color: white;
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #2196f3;
+    color: white;
 }
 
 .attachments-area {
-	width: 100%;
-	padding-top: 12px;
-	padding-bottom: 4px;
+    width: 100%;
+    padding-top: 12px;
+    padding-bottom: 4px;
 }
 
 .attachment-controls {
-	width: 42px;
-	height: 42px;
-	position: relative;
-	cursor: pointer;
+    width: 42px;
+    height: 42px;
+    position: relative;
+    cursor: pointer;
+}
+
+.pictures {
+    display: flex;
+    justify-content: center;
 }
 
 .profile-picture img {
-	border-radius: 50%;
+    border-radius: 50%;
+}
+
+.verified img {
+    position: relative;
+}
+
+.keyword-search {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.keyword-search-form {
+    display: grid;
+    gap: 24px;
+    align-items: stretch;
+    text-align: left;
+    margin: 32px 0 48px;
+}
+
+.search-basic-controls,
+.search-filter-controls {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 24px;
+}
+
+.keyword-search .search-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.keyword-search label {
+    text-align: left;
+    line-height: 1.4;
+}
+
+.keyword-search input,
+.keyword-search select,
+.keyword-search textarea {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 44px;
+    height: auto;
+    padding: 10px 12px;
+    font-size: 1rem;
+}
+
+.keyword-search textarea {
+    min-height: 88px;
+    resize: vertical;
+    overflow: auto;
+}
+
+.keyword-search input[type='submit'] {
+    width: 180px;
+    max-width: 100%;
+    margin: 0;
+}
+
+.keyword-search .search-results-heading {
+    margin: 0 0 16px;
+    overflow-wrap: anywhere;
+}
+
+.keyword-search .search-table-hint {
+    text-align: left;
+    margin: 0 0 12px;
+}
+
+.keyword-search .search-table-region {
+    overflow-x: auto;
+}
+
+.keyword-search .threads-list {
+    table-layout: fixed;
+    border-collapse: collapse;
+    min-width: 1000px;
+}
+
+.keyword-search th,
+.keyword-search td {
+    vertical-align: top;
+    overflow-wrap: anywhere;
+}
+
+.keyword-search .threads-list th:nth-child(6) {
+    width: 22%;
+}
+
+.keyword-search .thread-text {
+    white-space: pre-wrap;
+}
+
+.keyword-search .paging {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    margin-top: 24px;
+}
+
+@media (max-width: 640px) {
+    .search-basic-controls,
+    .search-filter-controls {
+        grid-template-columns: 1fr;
+    }
+}
+
+.post-details {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.post-details-table {
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+.post-details-table > thead > tr > th:first-child,
+.post-details-table > tbody > tr > td:first-child {
+    width: 30%;
+}
+
+.post-details th,
+.post-details td {
+    vertical-align: top;
+    overflow-wrap: anywhere;
+}
+
+.post-details-text {
+    white-space: pre-wrap;
+}
+
+.post-details button {
+    box-sizing: border-box;
+    max-width: 100%;
+}
+
+.user-insights {
+    max-width: 1100px;
+    margin: 0 auto;
+    min-width: 0;
+}
+
+.user-insights .insights-table-scroll {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.user-insights table {
+    border-collapse: collapse;
+    table-layout: fixed;
+    min-width: 640px;
+}
+
+.user-insights th,
+.user-insights td {
+    padding: 12px 16px;
+    vertical-align: top;
+    overflow-wrap: anywhere;
+}
+
+.user-insights th:nth-child(1) {
+    width: 16%;
+}
+
+.user-insights th:nth-child(2) {
+    width: 12%;
+}
+
+.user-insights th:nth-child(3) {
+    width: 40%;
+}
+
+.user-insights .insights-date-controls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 16px;
+    margin-top: 24px;
+    padding: 16px;
+    background: #f3f6f8;
+    border-radius: 8px;
+}
+
+.user-insights .insights-date-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.user-insights .insights-date-field label {
+    text-align: left;
+}
+
+.user-insights input[type='date'] {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 8px;
+}
+
+.user-insights .insights-date-controls input[type='submit'] {
+    box-sizing: border-box;
+    width: auto;
+    min-height: 44px;
+    margin: 0;
+}
+
+@media (max-width: 640px) {
+    .user-insights .insights-date-controls {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }

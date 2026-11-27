@@ -122,6 +122,53 @@
 							"cookie": [],
 							"body": "{\n    \"access_token\": \"string\",\n    \"user_id\": \"string\"\n}"
 						}
+					],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.collectionVariables.get(\"auto_save_variables\") === \"true\") {",
+									"    pm.collectionVariables.unset(\"user_id\");",
+									"    const JSON_TOKEN_PATTERN = /\"(?:[^\"\\\\]|\\\\.)*\"|-?(?:0|[1-9]\\d*)(?:\\.\\d+)?(?:[eE][+-]?\\d+)?|[{}\\[\\]:,]/g;",
+									"",
+									"    function parseUserIdResponse(text) {",
+									"        const stack = [];",
+									"        let previous;",
+									"        let field;",
+									"        const preserved = text.replace(JSON_TOKEN_PATTERN, (token) => {",
+									"            const frame = stack[stack.length - 1];",
+									"            let result = token;",
+									"            if (token === '{' || token === '[') {",
+									"                stack.push({ object: token === '{', keys: new Set() });",
+									"            } else if (token === '}' || token === ']') {",
+									"                stack.pop();",
+									"            } else if (",
+									"                token[0] === '\"' && frame?.object &&",
+									"                (previous === '{' || previous === ',')",
+									"            ) {",
+									"                field = JSON.parse(token);",
+									"                if (frame.keys.has(field)) throw new Error('Duplicate response field.');",
+									"                frame.keys.add(field);",
+									"            } else if (previous === ':' && field === 'user_id' && /^-?\\d/.test(token)) {",
+									"                if (!/^[1-9]\\d*$/.test(token)) throw new Error('Invalid user ID.');",
+									"                result = JSON.stringify(token);",
+									"            }",
+									"            previous = token;",
+									"            return result;",
+									"        });",
+									"        return JSON.parse(preserved);",
+									"    }",
+									"    const data = parseUserIdResponse(pm.response.text());",
+									"    if (pm.response.code === 200 && typeof data.user_id === \"string\" && /^[1-9]\\d*$/.test(data.user_id)) {",
+									"        pm.collectionVariables.set(\"user_id\", data.user_id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
 					]
 				},
 				{
@@ -191,6 +238,58 @@
 							],
 							"cookie": [],
 							"body": "{\n    \"access_token\": \"string\",\n    \"token_type\": \"bearer\",\n    \"expires_in\": 5184000\n}"
+						}
+					]
+				},
+				{
+					"name": "Refresh Access Token",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_host}}/refresh_access_token?grant_type=th_refresh_token",
+							"host": [
+								"{{api_host}}"
+							],
+							"path": [
+								"refresh_access_token"
+							],
+							"query": [
+								{
+									"key": "grant_type",
+									"value": "th_refresh_token",
+									"description": "Set this to th_refresh_token."
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Refresh Access Token",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/refresh_access_token?grant_type=th_refresh_token",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"refresh_access_token"
+									],
+									"query": [
+										{
+											"key": "grant_type",
+											"value": "th_refresh_token",
+											"description": "Set this to th_refresh_token."
+										}
+									]
+								}
+							},
+							"_postman_previewlanguage": "",
+							"header": [],
+							"cookie": [],
+							"body": ""
 						}
 					]
 				},
@@ -265,15 +364,18 @@
 									"query": [
 										{
 											"key": "grant_type",
-											"value": "client_credentials"
+											"value": "client_credentials",
+											"description": "This value is required. Set this value to client_credentials."
 										},
 										{
 											"key": "client_id",
-											"value": "{{app_id}}"
+											"value": "{{app_id}}",
+											"description": "Your Threads App ID displayed in App Dashboard > App settings > Basic > Threads App ID."
 										},
 										{
 											"key": "client_secret",
-											"value": "{{app_secret}}"
+											"value": "{{app_secret}}",
+											"description": "Your Threads App Secret displayed in App Dashboard > App settings > Basic > Threads App secret."
 										}
 									]
 								}
@@ -281,7 +383,7 @@
 							"_postman_previewlanguage": null,
 							"header": null,
 							"cookie": [],
-							"body": "{\n    \"access_token\": \"TH|1234567890|abcd1234\",\n    \"token_type\": \"bearer\"\n}"
+							"body": "{\n    \"access_token\": \"<ACCESS_TOKEN>\",\n    \"token_type\": \"bearer\"\n}"
 						}
 					]
 				}
@@ -317,12 +419,12 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?text=This is a test post.&media_type=TEXT",
+									"raw": "{{api_host}}/{{user_id}}/threads?text=This is a test post.&media_type=TEXT&auto_publish_text=true",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"threads"
 									],
 									"query": [
@@ -359,6 +461,52 @@
 											"value": "{\"option_a\":\"first\",\"option_b\":\"second\",\"option_c\":\"third\",\"option_d\":\"fourth\"}",
 											"description": "Attach a poll to your post (only available for text posts, and not compatible with link attachments).",
 											"disabled": true
+										},
+										{
+											"key": "topic_tag",
+											"value": "ThreadsAPI",
+											"description": "The topic to add to a post.",
+											"disabled": true
+										},
+										{
+											"key": "location_id",
+											"value": "{{location_id}}",
+											"description": "The ID of the location being tagged.",
+											"disabled": true
+										},
+										{
+											"key": "auto_publish_text",
+											"value": "true",
+											"description": "When this optional flag is passed, a Threads post is published automatically when a Threads media container is created without needing to go through the extra publish step."
+										},
+										{
+											"key": "text_entities",
+											"value": "[{\"entity_type\": \"SPOILER\",\"offset\": 0,\"length\": 4}]",
+											"description": "Optional field to specify spoilers present in the text field.",
+											"disabled": true
+										},
+										{
+											"key": "text_attachment",
+											"value": "{\"plaintext\":\"this is a text attachment\",\"link_attachment_url\":\"https://meta.com\",\"text_with_styling_info\":[{\"offset\":10,\"length\":4,\"styling_info\":[\"bold\",\"italic\"]}]}",
+											"description": "Attach a text attachment to your post (only available for text posts, and not compatible with poll attachments).",
+											"disabled": true
+										},
+										{
+											"key": "gif_attachment",
+											"value": "{\"gif_id\":\"16185153483944881729\",\"provider\":\"TENOR\"}",
+											"description": "Optional field to attach a GIF to your text posts.",
+											"disabled": true
+										},
+										{
+											"key": "is_ghost_post",
+											"value": "true",
+											"description": "When this optional flag is passed, a ghost post is created which will expire after 24 hours.",
+											"disabled": true
+										},
+										{
+											"key": "enable_reply_approvals",
+											"value": "true",
+											"description": "Optional field to enable reply approvals on Threads Posts"
 										}
 									]
 								},
@@ -371,7 +519,7 @@
 										"method": "POST",
 										"header": [],
 										"url": {
-											"raw": "{{api_host}}/me/threads?text=This is a test post.&media_type=TEXT",
+											"raw": "{{api_host}}/me/threads?text=This is a test post.&media_type=TEXT&auto_publish_text=true",
 											"host": [
 												"{{api_host}}"
 											],
@@ -407,6 +555,29 @@
 													"value": "https://developers.facebook.com/",
 													"description": "Attach a link to your post (only available for text posts).",
 													"disabled": true
+												},
+												{
+													"key": "poll_attachment",
+													"value": "{\"option_a\":\"first\",\"option_b\":\"second\",\"option_c\":\"third\",\"option_d\":\"fourth\"}",
+													"description": "Attach a poll to your post (only available for text posts, and not compatible with link attachments).",
+													"disabled": true
+												},
+												{
+													"key": "topic_tag",
+													"value": "ThreadsAPI",
+													"description": "The topic to add to a post.",
+													"disabled": true
+												},
+												{
+													"key": "location_id",
+													"value": "{{location_id}}",
+													"description": "The ID of the location being tagged.",
+													"disabled": true
+												},
+												{
+													"key": "auto_publish_text",
+													"value": "true",
+													"description": "When this optional flag is passed, a Threads post is published automatically when a Threads media container is created without needing to go through the extra publish step."
 												}
 											]
 										}
@@ -448,12 +619,12 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?text=This is an image.&media_type=IMAGE&image_url={{image_url}}&alt_text=An example image.",
+									"raw": "{{api_host}}/{{user_id}}/threads?text=This is an image.&media_type=IMAGE&image_url={{image_url}}&alt_text=An example image.",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"threads"
 									],
 									"query": [
@@ -487,6 +658,30 @@
 											"key": "reply_to_id",
 											"value": "",
 											"description": "Required if replying to a specific post.",
+											"disabled": true
+										},
+										{
+											"key": "topic_tag",
+											"value": "ThreadsAPI",
+											"description": "The topic to add to a post.",
+											"disabled": true
+										},
+										{
+											"key": "location_id",
+											"value": "{{location_id}}",
+											"description": "The ID of the location being tagged.",
+											"disabled": true
+										},
+										{
+											"key": "text_entities",
+											"value": "[{\"entity_type\": \"SPOILER\",\"offset\": 0,\"length\": 4}]",
+											"description": "Optional field to specify spoilers present in the text field.",
+											"disabled": true
+										},
+										{
+											"key": "is_spoiler_media",
+											"value": "true",
+											"description": "Optional field to specify if the attached media is a spoiler.",
 											"disabled": true
 										}
 									]
@@ -540,6 +735,18 @@
 													"value": null,
 													"description": "Required if replying to a specific post.",
 													"disabled": true
+												},
+												{
+													"key": "topic_tag",
+													"value": "ThreadsAPI",
+													"description": "The topic to add to a post.",
+													"disabled": true
+												},
+												{
+													"key": "location_id",
+													"value": "{{location_id}}",
+													"description": "The ID of the location being tagged.",
+													"disabled": true
 												}
 											]
 										}
@@ -581,12 +788,12 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?text=This is a video.&media_type=VIDEO&video_url={{video_url}}&alt_text=An example video.",
+									"raw": "{{api_host}}/{{user_id}}/threads?text=This is a video.&media_type=VIDEO&video_url={{video_url}}&alt_text=An example video.",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"threads"
 									],
 									"query": [
@@ -620,6 +827,30 @@
 											"key": "reply_to_id",
 											"value": "",
 											"description": "Required if replying to a specific post.",
+											"disabled": true
+										},
+										{
+											"key": "topic_tag",
+											"value": "ThreadsAPI",
+											"description": "The topic to add to a post.",
+											"disabled": true
+										},
+										{
+											"key": "location_id",
+											"value": "{{location_id}}",
+											"description": "The ID of the location being tagged.",
+											"disabled": true
+										},
+										{
+											"key": "text_entities",
+											"value": "[{\"entity_type\": \"SPOILER\",\"offset\": 0,\"length\": 4}]",
+											"description": "Optional field to specify spoilers present in the text field.",
+											"disabled": true
+										},
+										{
+											"key": "is_spoiler_media",
+											"value": "true",
+											"description": "Optional field to specify if the attached media is a spoiler.",
 											"disabled": true
 										}
 									]
@@ -673,6 +904,18 @@
 													"value": null,
 													"description": "Required if replying to a specific post.",
 													"disabled": true
+												},
+												{
+													"key": "topic_tag",
+													"value": "ThreadsAPI",
+													"description": "The topic to add to a post.",
+													"disabled": true
+												},
+												{
+													"key": "location_id",
+													"value": "{{location_id}}",
+													"description": "The ID of the location being tagged.",
+													"disabled": true
 												}
 											]
 										}
@@ -714,12 +957,12 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads_publish?creation_id={{container_id}}",
+									"raw": "{{api_host}}/{{user_id}}/threads_publish?creation_id={{container_id}}",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"threads_publish"
 									],
 									"query": [
@@ -808,12 +1051,12 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?media_type=IMAGE&image_url={{image_url}}&is_carousel_item=true&alt_text=An example image.",
+									"raw": "{{api_host}}/{{user_id}}/threads?media_type=IMAGE&image_url={{image_url}}&is_carousel_item=true&alt_text=An example image.",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"threads"
 									],
 									"query": [
@@ -926,12 +1169,12 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?media_type=VIDEO&video_url={{video_url}}&is_carousel_item=true&alt_text=An example video.",
+									"raw": "{{api_host}}/{{user_id}}/threads?media_type=VIDEO&video_url={{video_url}}&is_carousel_item=true&alt_text=An example video.",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"threads"
 									],
 									"query": [
@@ -1039,12 +1282,12 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?media_type=CAROUSEL&children={{carousel_children_ids}}&text=This is a carousel",
+									"raw": "{{api_host}}/{{user_id}}/threads?media_type=CAROUSEL&children={{carousel_children_ids}}&text=This is a carousel.",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"threads"
 									],
 									"query": [
@@ -1060,8 +1303,44 @@
 										},
 										{
 											"key": "text",
-											"value": "This is a carousel",
+											"value": "This is a carousel.",
 											"description": "The text associated with the post. This is optional on carousel posts."
+										},
+										{
+											"key": "reply_control",
+											"value": "everyone",
+											"description": "Can be used to specify who can reply to a post.",
+											"disabled": true
+										},
+										{
+											"key": "reply_to_id",
+											"value": null,
+											"description": "Required if replying to a specific post.",
+											"disabled": true
+										},
+										{
+											"key": "topic_tag",
+											"value": "ThreadsAPI",
+											"description": "The topic to add to a post.",
+											"disabled": true
+										},
+										{
+											"key": "location_id",
+											"value": "{{location_id}}",
+											"description": "The ID of the location being tagged.",
+											"disabled": true
+										},
+										{
+											"key": "text_entities",
+											"value": "[{\"entity_type\": \"SPOILER\",\"offset\": 0,\"length\": 4}]",
+											"description": "Optional field to specify spoilers present in the text field.",
+											"disabled": true
+										},
+										{
+											"key": "is_spoiler_media",
+											"value": "true",
+											"description": "Optional field to specify if the attached media is a spoiler.",
+											"disabled": true
 										}
 									]
 								},
@@ -1097,6 +1376,30 @@
 													"key": "text",
 													"value": "This is a carousel",
 													"description": "(Optional.) The text associated with the post."
+												},
+												{
+													"key": "reply_control",
+													"value": "everyone",
+													"description": "Can be used to specify who can reply to a post.",
+													"disabled": true
+												},
+												{
+													"key": "reply_to_id",
+													"value": null,
+													"description": "Required if replying to a specific post.",
+													"disabled": true
+												},
+												{
+													"key": "topic_tag",
+													"value": "ThreadsAPI",
+													"description": "The topic to add to a post.",
+													"disabled": true
+												},
+												{
+													"key": "location_id",
+													"value": "{{location_id}}",
+													"description": "The ID of the location being tagged.",
+													"disabled": true
 												}
 											]
 										}
@@ -1138,12 +1441,12 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads_publish?creation_id={{container_id}}",
+									"raw": "{{api_host}}/{{user_id}}/threads_publish?creation_id={{container_id}}",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"threads_publish"
 									],
 									"query": [
@@ -1223,12 +1526,12 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?text=This is a quoted post.&media_type=TEXT&quote_post_id={{quote_post_id}}",
+									"raw": "{{api_host}}/{{user_id}}/threads?text=This is a quoted post.&media_type=TEXT&quote_post_id={{quote_post_id}}",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"threads"
 									],
 									"query": [
@@ -1276,12 +1579,9 @@
 										"method": "POST",
 										"header": [],
 										"url": {
-											"raw": "https://graph.threads.net/me/threads?text=This is a quoted post.&media_type=TEXT&quote_post_id={{quote_post_id}}",
-											"protocol": "https",
+											"raw": "{{api_host}}/me/threads?text=This is a quoted post.&media_type=TEXT&quote_post_id={{quote_post_id}}",
 											"host": [
-												"graph",
-												"threads",
-												"net"
+												"{{api_host}}"
 											],
 											"path": [
 												"me",
@@ -1361,12 +1661,12 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads_publish?creation_id={{container_id}}",
+									"raw": "{{api_host}}/{{user_id}}/threads_publish?creation_id={{container_id}}",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"threads_publish"
 									],
 									"query": [
@@ -1381,7 +1681,7 @@
 							},
 							"response": [
 								{
-									"name": "2. Publish Threads Post",
+									"name": "2. Publish Threads Quote Post",
 									"originalRequest": {
 										"method": "POST",
 										"header": [],
@@ -1490,6 +1790,149 @@
 						}
 					],
 					"description": "This folder will enable you to repost an original Threads post."
+				},
+				{
+					"name": "Location Search and Retrieval",
+					"item": [
+						{
+							"name": "Search for Locations",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/location_search?q=Menlo Park&fields={{fields_location}}",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"location_search"
+									],
+									"query": [
+										{
+											"key": "q",
+											"value": "Menlo Park",
+											"description": "A query to search for locations by."
+										},
+										{
+											"key": "latitude",
+											"value": "",
+											"description": "The latitude of a location.",
+											"disabled": true
+										},
+										{
+											"key": "longitude",
+											"value": "",
+											"description": "The longitude of a location.",
+											"disabled": true
+										},
+										{
+											"key": "fields",
+											"value": "{{fields_location}}",
+											"description": "List of comma-separated fields for a location."
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Search for Locations",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/location_search?q=Menlo Park&fields={{fields_location}}",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"location_search"
+											],
+											"query": [
+												{
+													"key": "q",
+													"value": "Menlo Park",
+													"description": "A query to search for locations by."
+												},
+												{
+													"key": "latitude",
+													"value": null,
+													"description": "The latitude of a location.",
+													"disabled": true
+												},
+												{
+													"key": "longitude",
+													"value": null,
+													"description": "The longitude of a location.",
+													"disabled": true
+												},
+												{
+													"key": "fields",
+													"value": "{{fields_location}}"
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "",
+									"header": [],
+									"cookie": [],
+									"body": ""
+								}
+							]
+						},
+						{
+							"name": "Retrieve Threads Location",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/{{location_id}}?fields={{fields_location}}",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"{{location_id}}"
+									],
+									"query": [
+										{
+											"key": "fields",
+											"value": "{{fields_location}}",
+											"description": "List of comma-separated fields for a location."
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Retrieve Threads Location",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/{{location_id}}?fields={{fields_location}}",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"{{location_id}}"
+											],
+											"query": [
+												{
+													"key": "fields",
+													"value": "{{fields_location}}",
+													"description": "List of comma-separated fields for a location."
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "",
+									"header": [],
+									"cookie": [],
+									"body": ""
+								}
+							]
+						}
+					],
+					"description": "This folder will enable you to search and retrieve information about a location ID, which can later be used to publish a Threads post with a tagged location."
 				}
 			],
 			"description": "This folder enables you to use the Threads API to publish single image, video, text or carousel posts."
@@ -1501,7 +1944,7 @@
 					"name": "Retrieve Threads Profiles",
 					"item": [
 						{
-							"name": "Get Threads User's Profile Information",
+							"name": "Get App-Scoped User's Profile Information",
 							"event": [
 								{
 									"listen": "test",
@@ -1511,7 +1954,7 @@
 											"if (pm.collectionVariables.get(\"auto_save_variables\") === \"true\") {",
 											"    var jsonData = pm.response.json();",
 											"    ",
-											"    if (jsonData.id)",
+											"    if (typeof jsonData.id === \"string\" && /^[1-9]\\d*$/.test(jsonData.id))",
 											"        pm.collectionVariables.set(\"user_id\", jsonData.id);",
 											"}"
 										],
@@ -1543,17 +1986,14 @@
 							},
 							"response": [
 								{
-									"name": "Get Threads User's Profile Information",
+									"name": "Get App-Scoped User's Profile Information",
 									"originalRequest": {
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "https://graph.threads.net/me?fields=id,username,name,threads_profile_picture_url,threads_biography",
-											"protocol": "https",
+											"raw": "{{api_host}}/me?fields={{fields_profile}}",
 											"host": [
-												"graph",
-												"threads",
-												"net"
+												"{{api_host}}"
 											],
 											"path": [
 												"me"
@@ -1561,7 +2001,7 @@
 											"query": [
 												{
 													"key": "fields",
-													"value": "id,username,name,threads_profile_picture_url,threads_biography",
+													"value": "{{fields_profile}}",
 													"description": "A comma-separated list of fields for a user on Threads."
 												}
 											]
@@ -1578,6 +2018,58 @@
 									],
 									"cookie": [],
 									"body": "{\n    \"id\": \"string\",\n    \"username\": \"string\",\n    \"name\": \"string\",\n    \"threads_profile_picture_url\": \"string\",\n    \"threads_biography\": \"string\"\n}"
+								}
+							]
+						},
+						{
+							"name": "Get Public Threads User's Profile Information",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/profile_lookup?username=threads",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"profile_lookup"
+									],
+									"query": [
+										{
+											"key": "username",
+											"value": "threads",
+											"description": "Handle or unique username on Threads. Must be an exact match."
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Get Public Threads User's Profile Information",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/profile_lookup?username=threads",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"profile_lookup"
+											],
+											"query": [
+												{
+													"key": "username",
+													"value": "threads",
+													"description": "Handle or unique username on Threads. Must be an exact match."
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": null,
+									"header": null,
+									"cookie": [],
+									"body": null
 								}
 							]
 						}
@@ -1617,20 +2109,17 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "https://graph.threads.net/?fields=id,media_product_type,media_type,media_url,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,children,is_quote_post,has_replies,alt_text,link_attachment_url",
-											"protocol": "https",
+											"raw": "{{api_host}}/{{thread_id}}?fields={{fields_threads}}",
 											"host": [
-												"graph",
-												"threads",
-												"net"
+												"{{api_host}}"
 											],
 											"path": [
-												""
+												"{{thread_id}}"
 											],
 											"query": [
 												{
 													"key": "fields",
-													"value": "id,media_product_type,media_type,media_url,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,children,is_quote_post,has_replies,alt_text,link_attachment_url",
+													"value": "{{fields_threads}}",
 													"description": "A comma-separated list of fields for a media object on Threads."
 												}
 											]
@@ -1656,12 +2145,12 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?fields={{fields_threads}}&limit=50",
+									"raw": "{{api_host}}/{{user_id}}/threads?fields={{fields_threads}}&limit=50",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"threads"
 									],
 									"query": [
@@ -1710,12 +2199,9 @@
 										"method": "GET",
 										"header": [],
 										"url": {
-											"raw": "https://graph.threads.net/me/threads?fields=id,media_product_type,media_type,media_url,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,children,is_quote_post,has_replies,alt_text,link_attachment_url&limit=50",
-											"protocol": "https",
+											"raw": "{{api_host}}/me/threads?fields={{fields_threads}}&limit=50",
 											"host": [
-												"graph",
-												"threads",
-												"net"
+												"{{api_host}}"
 											],
 											"path": [
 												"me",
@@ -1724,7 +2210,7 @@
 											"query": [
 												{
 													"key": "fields",
-													"value": "id,media_product_type,media_type,media_url,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,children,is_quote_post,has_replies,alt_text,link_attachment_url",
+													"value": "{{fields_threads}}",
 													"description": "A comma-separated list of fields for media objects on Threads."
 												},
 												{
@@ -1772,137 +2258,71 @@
 									"body": "{\n    \"data\": [\n        {\n            \"id\": \"string\",\n            \"media_product_type\": \"THREADS\",\n            \"media_type\": \"TEXT_POST\",\n            \"permalink\": \"string\",\n            \"owner\": {\n                \"id\": \"string\"\n            },\n            \"username\": \"string\",\n            \"text\": \"This is a test post\",\n            \"timestamp\": \"2024-09-12T23:17:39+0000\",\n            \"shortcode\": \"string\",\n            \"is_quote_post\": false,\n            \"has_replies\": false,\n            \"poll_attachment\": {\n                \"option_a\": \"first\",\n                \"option_b\": \"second\",\n                \"option_c\": \"third\",\n                \"option_d\": \"fourth\",\n                \"option_a_votes_percentage\": 0.25,\n                \"option_b_votes_percentage\": 0.25,\n                \"option_c_votes_percentage\": 0.25,\n                \"option_d_votes_percentage\": 0.25,\n                \"expiration_timestamp\": \"2024-09-12T23:17:39+0000\"\n            }\n        }\n    ],\n    \"paging\": {\n        \"cursors\": {\n            \"before\": \"string\",\n            \"after\": \"string\"\n        }\n    }\n}"
 								}
 							]
+						},
+						{
+							"name": "Retrieve a List of a Public Profile's Threads",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/profile_posts?username=threads&fields={{fields_threads}}",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"profile_posts"
+									],
+									"query": [
+										{
+											"key": "username",
+											"value": "threads",
+											"description": "Handle or unique username on Threads. Must be an exact match."
+										},
+										{
+											"key": "fields",
+											"value": "{{fields_threads}}",
+											"description": "A comma-separated list of fields for media objects on Threads."
+										}
+									]
+								}
+							},
+							"response": [
+								{
+									"name": "Retrieve a List of a Public Profile's Threads",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/profile_posts?username=threads&fields={{fields_threads}}",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"profile_posts"
+											],
+											"query": [
+												{
+													"key": "username",
+													"value": "threads",
+													"description": "Handle or unique username on Threads. Must be an exact match."
+												},
+												{
+													"key": "fields",
+													"value": "{{fields_threads}}",
+													"description": "A comma-separated list of fields for media objects on Threads."
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "",
+									"header": [],
+									"cookie": [],
+									"body": ""
+								}
+							]
 						}
 					],
 					"description": "This folder will enable you to use the Threads API to retrieve details about posts."
-				},
-				{
-					"name": "Read Threads Insights",
-					"item": [
-						{
-							"name": "Get Post Insights",
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{api_host}}/{{thread_id}}/insights?metric={{metrics_post}}",
-									"host": [
-										"{{api_host}}"
-									],
-									"path": [
-										"{{thread_id}}",
-										"insights"
-									],
-									"query": [
-										{
-											"key": "metric",
-											"value": "{{metrics_post}}",
-											"description": "A comma-separated list of metrics for a post on Threads."
-										}
-									]
-								},
-								"description": "Use the `GET` /{threads-media-id}/insights [endpoint](https://developers.facebook.com/docs/threads/insights#media-insights) to return the insights of a given Threads post."
-							},
-							"response": [
-								{
-									"name": "Get Post Insights",
-									"originalRequest": {
-										"method": "GET",
-										"header": [],
-										"url": {
-											"raw": "{{api_host}}/{{thread_id}}/insights?metric={{metrics_post}}",
-											"host": [
-												"{{api_host}}"
-											],
-											"path": [
-												"{{thread_id}}",
-												"insights"
-											],
-											"query": [
-												{
-													"key": "metric",
-													"value": "{{metrics_post}}",
-													"description": "A comma-separated list of metrics for a post on Threads."
-												}
-											]
-										}
-									},
-									"_postman_previewlanguage": null,
-									"header": null,
-									"cookie": [],
-									"body": "{\n    \"data\": [\n        {\n            \"name\": \"views\",\n            \"period\": \"lifetime\",\n            \"values\": [\n                {\n                    \"value\": 0\n                }\n            ],\n            \"title\": \"Views\",\n            \"description\": \"The number of times your post was viewed. This metric is in development (https://www.facebook.com/business/help/metrics-labeling)\",\n            \"id\": \"{thread_id}/insights/views/lifetime\"\n        },\n        {\n            \"name\": \"likes\",\n            \"period\": \"lifetime\",\n            \"values\": [\n                {\n                    \"value\": 0\n                }\n            ],\n            \"title\": \"Likes\",\n            \"description\": \"The number of likes on your post.\",\n            \"id\": \"{thread_id}/insights/likes/lifetime\"\n        },\n        {\n            \"name\": \"replies\",\n            \"period\": \"lifetime\",\n            \"values\": [\n                {\n                    \"value\": 0\n                }\n            ],\n            \"title\": \"Replies\",\n            \"description\": \"The number of replies on your post.\",\n            \"id\": \"{thread_id}/insights/thread_replies/lifetime\"\n        },\n        {\n            \"name\": \"reposts\",\n            \"period\": \"lifetime\",\n            \"values\": [\n                {\n                    \"value\": 0\n                }\n            ],\n            \"title\": \"Reposts\",\n            \"description\": \"The number of times your post was reposted.\",\n            \"id\": \"{thread_id}/insights/reposts/lifetime\"\n        },\n        {\n            \"name\": \"quotes\",\n            \"period\": \"lifetime\",\n            \"values\": [\n                {\n                    \"value\": 0\n                }\n            ],\n            \"title\": \"Quotes\",\n            \"description\": \"The number of times your post was quoted.\",\n            \"id\": \"{thread_id}/insights/quotes/lifetime\"\n        }\n    ]\n}"
-								}
-							]
-						},
-						{
-							"name": "Get Account Insights",
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{api_host}}/me/threads_insights?metric={{metrics_account}}",
-									"host": [
-										"{{api_host}}"
-									],
-									"path": [
-										"me",
-										"threads_insights"
-									],
-									"query": [
-										{
-											"key": "metric",
-											"value": "{{metrics_account}}",
-											"description": "A comma-separated list of metrics for an account on Threads."
-										},
-										{
-											"key": "breakdown",
-											"value": "{{follower_demographics_breakdown}}",
-											"description": "Used for categorizing follower demographics. Must be one of the following values: country, city, age, or gender.",
-											"disabled": true
-										}
-									]
-								},
-								"description": "Use the `GET` /{threads-user-id}/threads_insights [endpoint](https://developers.facebook.com/docs/threads/insights#user-insights) to return the insights of a given Threads user."
-							},
-							"response": [
-								{
-									"name": "Get Account Insights",
-									"originalRequest": {
-										"method": "GET",
-										"header": [],
-										"url": {
-											"raw": "{{api_host}}/me/threads_insights?metric={{metrics_account}}",
-											"host": [
-												"{{api_host}}"
-											],
-											"path": [
-												"me",
-												"threads_insights"
-											],
-											"query": [
-												{
-													"key": "metric",
-													"value": "{{metrics_account}}",
-													"description": "A comma-separated list of metrics for an account on Threads."
-												},
-												{
-													"key": "breakdown",
-													"value": "{{follower_demographics_breakdown}}",
-													"description": "Used for categorizing follower demographics. Must be one of the following values: country, city, age, or gender.",
-													"disabled": true
-												}
-											]
-										}
-									},
-									"_postman_previewlanguage": null,
-									"header": null,
-									"cookie": [],
-									"body": "{\n    \"data\": [\n        {\n            \"name\": \"views\",\n            \"period\": \"day\",\n            \"values\": [\n                {\n                    \"value\": 0,\n                    \"end_time\": \"2024-09-16T07:00:00+0000\"\n                },\n                {\n                    \"value\": 0,\n                    \"end_time\": \"2024-09-17T07:00:00+0000\"\n                }\n            ],\n            \"title\": \"views\",\n            \"description\": \"The number of times your profile was viewed.\",\n            \"id\": \"{user_id}/insights/views/day\"\n        },\n        {\n            \"name\": \"likes\",\n            \"period\": \"day\",\n            \"title\": \"likes\",\n            \"description\": \"The number of likes on your posts.\",\n            \"total_value\": {\n                \"value\": 0\n            },\n            \"id\": \"{user_id}/insights/likes/day\"\n        },\n        {\n            \"name\": \"replies\",\n            \"period\": \"day\",\n            \"title\": \"replies\",\n            \"description\": \"The number of replies on your posts.\",\n            \"total_value\": {\n                \"value\": 0\n            },\n            \"id\": \"{user_id}/insights/replies/day\"\n        },\n        {\n            \"name\": \"reposts\",\n            \"period\": \"day\",\n            \"title\": \"reposts\",\n            \"description\": \"The number of times your posts were reposted.\",\n            \"total_value\": {\n                \"value\": 0\n            },\n            \"id\": \"{user_id}/insights/reposts/day\"\n        },\n        {\n            \"name\": \"quotes\",\n            \"period\": \"day\",\n            \"title\": \"quotes\",\n            \"description\": \"The number of times your posts were quoted.\",\n            \"total_value\": {\n                \"value\": 0\n            },\n            \"id\": \"{user_id}/insights/quotes/day\"\n        },\n        {\n            \"name\": \"followers_count\",\n            \"period\": \"day\",\n            \"title\": \"followers_count\",\n            \"description\": \"This is your total number of followers on Threads.\",\n            \"total_value\": {\n                \"value\": 0\n            },\n            \"id\": \"{user_id}/insights/followers_count/day\"\n        }\n    ],\n    \"paging\": {\n        \"previous\": \"string\",\n        \"next\": \"string\"\n    }\n}"
-								}
-							]
-						}
-					],
-					"description": "This folder will enable you to use the Threads API to retrieve insights about posts and accounts."
 				},
 				{
 					"name": "Read and Manage Threads Replies",
@@ -1961,6 +2381,88 @@
 													"key": "reverse",
 													"value": "false",
 													"description": "Whether or not replies should be sorted in reverse chronological order. The default is true if not specified."
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json",
+											"description": "",
+											"type": "text"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"data\": [\n        {\n            \"id\": \"string\",\n            \"text\": \"reply\",\n            \"timestamp\": \"2024-09-17T20:54:47+0000\",\n            \"media_product_type\": \"THREADS\",\n            \"media_type\": \"TEXT_POST\",\n            \"permalink\": \"string\",\n            \"shortcode\": \"string\",\n            \"username\": \"string\",\n            \"is_quote_post\": false,\n            \"has_replies\": false,\n            \"is_reply\": true,\n            \"is_reply_owned_by_me\": false,\n            \"root_post\": {\n                \"id\": \"string\"\n            },\n            \"replied_to\": {\n                \"id\": \"string\"\n            }\n        }\n    ],\n    \"paging\": {\n        \"cursors\": {\n            \"before\": \"string\",\n            \"after\": \"string\"\n        }\n    }\n}"
+								}
+							]
+						},
+						{
+							"name": "Get Threads Pending Replies",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/{{thread_id}}/pending_replies?fields={{fields_replies}}&reverse=false&approval_status=pending",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"{{thread_id}}",
+										"pending_replies"
+									],
+									"query": [
+										{
+											"key": "fields",
+											"value": "{{fields_replies}}",
+											"description": "A comma-separated list of fields for replies on Threads."
+										},
+										{
+											"key": "reverse",
+											"value": "false",
+											"description": "Whether or not replies should be sorted in reverse chronological order. The default is true if not specified."
+										},
+										{
+											"key": "approval_status",
+											"value": "pending",
+											"description": "Set to \"pending\" to only fetch pending replies, set to \"ignored\" to only fetch ignored replies"
+										}
+									]
+								},
+								"description": "Use `GET` /pending_replies [endpoint](https://developers.facebook.com/docs/threads/reply-management#retrieve-pending-replies) to fetch a paginated list of all pending replies."
+							},
+							"response": [
+								{
+									"name": "Get Threads Pending Replies",
+									"originalRequest": {
+										"method": "GET",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/{{thread_id}}/pending_replies?fields={{fields_replies}}&reverse=false",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"{{thread_id}}",
+												"replies"
+											],
+											"query": [
+												{
+													"key": "fields",
+													"value": "{{fields_replies}}",
+													"description": "A comma-separated list of fields for replies on Threads."
+												},
+												{
+													"key": "reverse",
+													"value": "false",
+													"description": "Whether or not replies should be sorted in reverse chronological order. The default is true if not specified."
+												},
+												{
+													"key": "approval_status",
+													"value": "pending",
+													"description": "Set to \"pending\" to only fetch pending replies, set to \"ignored\" to only fetch ignored replies"
 												}
 											]
 										}
@@ -2114,17 +2616,79 @@
 							]
 						},
 						{
+							"name": "Manage Pending Replies",
+							"request": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/{{reply_thread_id}}/manage_pending_reply?approve=true",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"{{reply_thread_id}}",
+										"manage_pending_reply"
+									],
+									"query": [
+										{
+											"key": "approve",
+											"value": "true",
+											"description": "Set to true to approve a reply and set to false to ignore a reply."
+										}
+									]
+								},
+								"description": "Use `POST` /manage_pending_reply [endpoint](https://developers.facebook.com/docs/threads/reply-management#manage-pending-replies) to approve or ignore pending replies."
+							},
+							"response": [
+								{
+									"name": "Manage Pending Replies",
+									"originalRequest": {
+										"method": "POST",
+										"header": [],
+										"url": {
+											"raw": "{{api_host}}/{{reply_thread_id}}/manage_pending_reply?approve=true",
+											"host": [
+												"{{api_host}}"
+											],
+											"path": [
+												"{{reply_thread_id}}",
+												"manage_pending_reply"
+											],
+											"query": [
+												{
+													"key": "approve",
+													"value": "true",
+													"description": "Set to true to approve a reply and set to false to ignore a reply."
+												}
+											]
+										}
+									},
+									"_postman_previewlanguage": "json",
+									"header": [
+										{
+											"key": "Content-Type",
+											"value": "application/json",
+											"description": "",
+											"type": "text"
+										}
+									],
+									"cookie": [],
+									"body": "{\n    \"success\": true\n}"
+								}
+							]
+						},
+						{
 							"name": "Respond to Replies",
 							"request": {
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?media_type=TEXT&text=Text&reply_to_id={{reply_thread_id}}",
+									"raw": "{{api_host}}/{{user_id}}/threads?media_type=TEXT&text=Text&reply_to_id={{reply_thread_id}}",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"threads"
 									],
 									"query": [
@@ -2201,12 +2765,12 @@
 								"method": "POST",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/threads?media_type=TEXT&text=Text&reply_control={{reply_control}}",
+									"raw": "{{api_host}}/{{user_id}}/threads?media_type=TEXT&text=Text&reply_control={{reply_control}}",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"threads"
 									],
 									"query": [
@@ -2282,12 +2846,12 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/me/replies?fields={{fields_replies}}&limit=50",
+									"raw": "{{api_host}}/{{user_id}}/replies?fields={{fields_replies}}&limit=50",
 									"host": [
 										"{{api_host}}"
 									],
 									"path": [
-										"me",
+										"{{user_id}}",
 										"replies"
 									],
 									"query": [
@@ -2406,6 +2970,7 @@
 							"name": "Delete Threads Post",
 							"request": {
 								"method": "DELETE",
+								"description": "Deletes a post created by the authenticated user. Requires threads_delete. Deletion cannot be undone. Use a test app and test user.",
 								"header": [],
 								"url": {
 									"raw": "{{api_host}}/{{thread_id}}",
@@ -2444,7 +3009,135 @@
 					"description": "This folder will enable you to use the Threads API to delete your own posts."
 				}
 			],
-			"description": "This folder enables you to use the Threads API to retrieve details about profiles and media objects, reads insights and handle reply moderation."
+			"description": "This folder enables you to use the Threads API to retrieve details about profiles and media objects, and handle reply moderation."
+		},
+		{
+			"name": "Read Threads Insights",
+			"item": [
+				{
+					"name": "Get Post Insights",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_host}}/{{thread_id}}/insights?metric={{metrics_post}}",
+							"host": [
+								"{{api_host}}"
+							],
+							"path": [
+								"{{thread_id}}",
+								"insights"
+							],
+							"query": [
+								{
+									"key": "metric",
+									"value": "{{metrics_post}}",
+									"description": "A comma-separated list of metrics for a post on Threads."
+								}
+							]
+						},
+						"description": "Use the `GET` /{threads-media-id}/insights [endpoint](https://developers.facebook.com/docs/threads/insights#media-insights) to return the insights of a given Threads post."
+					},
+					"response": [
+						{
+							"name": "Get Post Insights",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/{{thread_id}}/insights?metric={{metrics_post}}",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"{{thread_id}}",
+										"insights"
+									],
+									"query": [
+										{
+											"key": "metric",
+											"value": "{{metrics_post}}",
+											"description": "A comma-separated list of metrics for a post on Threads."
+										}
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": "{\n    \"data\": [\n        {\n            \"name\": \"views\",\n            \"period\": \"lifetime\",\n            \"values\": [\n                {\n                    \"value\": 0\n                }\n            ],\n            \"title\": \"Views\",\n            \"description\": \"The number of times your post was viewed. This metric is in development (https://www.facebook.com/business/help/metrics-labeling)\",\n            \"id\": \"{thread_id}/insights/views/lifetime\"\n        },\n        {\n            \"name\": \"likes\",\n            \"period\": \"lifetime\",\n            \"values\": [\n                {\n                    \"value\": 0\n                }\n            ],\n            \"title\": \"Likes\",\n            \"description\": \"The number of likes on your post.\",\n            \"id\": \"{thread_id}/insights/likes/lifetime\"\n        },\n        {\n            \"name\": \"replies\",\n            \"period\": \"lifetime\",\n            \"values\": [\n                {\n                    \"value\": 0\n                }\n            ],\n            \"title\": \"Replies\",\n            \"description\": \"The number of replies on your post.\",\n            \"id\": \"{thread_id}/insights/thread_replies/lifetime\"\n        },\n        {\n            \"name\": \"reposts\",\n            \"period\": \"lifetime\",\n            \"values\": [\n                {\n                    \"value\": 0\n                }\n            ],\n            \"title\": \"Reposts\",\n            \"description\": \"The number of times your post was reposted.\",\n            \"id\": \"{thread_id}/insights/reposts/lifetime\"\n        },\n        {\n            \"name\": \"quotes\",\n            \"period\": \"lifetime\",\n            \"values\": [\n                {\n                    \"value\": 0\n                }\n            ],\n            \"title\": \"Quotes\",\n            \"description\": \"The number of times your post was quoted.\",\n            \"id\": \"{thread_id}/insights/quotes/lifetime\"\n        }\n    ]\n}"
+						}
+					]
+				},
+				{
+					"name": "Get Account Insights",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_host}}/{{user_id}}/threads_insights?metric={{metrics_account}}",
+							"host": [
+								"{{api_host}}"
+							],
+							"path": [
+								"{{user_id}}",
+								"threads_insights"
+							],
+							"query": [
+								{
+									"key": "metric",
+									"value": "{{metrics_account}}",
+									"description": "A comma-separated list of metrics for an account on Threads."
+								},
+								{
+									"key": "breakdown",
+									"value": "{{follower_demographics_breakdown}}",
+									"description": "Used for categorizing follower demographics. Must be one of the following values: country, city, age, or gender.",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Use the `GET` /{threads-user-id}/threads_insights [endpoint](https://developers.facebook.com/docs/threads/insights#user-insights) to return the insights of a given Threads user."
+					},
+					"response": [
+						{
+							"name": "Get Account Insights",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/me/threads_insights?metric={{metrics_account}}",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"me",
+										"threads_insights"
+									],
+									"query": [
+										{
+											"key": "metric",
+											"value": "{{metrics_account}}",
+											"description": "A comma-separated list of metrics for an account on Threads."
+										},
+										{
+											"key": "breakdown",
+											"value": "{{follower_demographics_breakdown}}",
+											"description": "Used for categorizing follower demographics. Must be one of the following values: country, city, age, or gender.",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": "{\n    \"data\": [\n        {\n            \"name\": \"views\",\n            \"period\": \"day\",\n            \"values\": [\n                {\n                    \"value\": 0,\n                    \"end_time\": \"2024-09-16T07:00:00+0000\"\n                },\n                {\n                    \"value\": 0,\n                    \"end_time\": \"2024-09-17T07:00:00+0000\"\n                }\n            ],\n            \"title\": \"views\",\n            \"description\": \"The number of times your profile was viewed.\",\n            \"id\": \"{user_id}/insights/views/day\"\n        },\n        {\n            \"name\": \"likes\",\n            \"period\": \"day\",\n            \"title\": \"likes\",\n            \"description\": \"The number of likes on your posts.\",\n            \"total_value\": {\n                \"value\": 0\n            },\n            \"id\": \"{user_id}/insights/likes/day\"\n        },\n        {\n            \"name\": \"replies\",\n            \"period\": \"day\",\n            \"title\": \"replies\",\n            \"description\": \"The number of replies on your posts.\",\n            \"total_value\": {\n                \"value\": 0\n            },\n            \"id\": \"{user_id}/insights/replies/day\"\n        },\n        {\n            \"name\": \"reposts\",\n            \"period\": \"day\",\n            \"title\": \"reposts\",\n            \"description\": \"The number of times your posts were reposted.\",\n            \"total_value\": {\n                \"value\": 0\n            },\n            \"id\": \"{user_id}/insights/reposts/day\"\n        },\n        {\n            \"name\": \"quotes\",\n            \"period\": \"day\",\n            \"title\": \"quotes\",\n            \"description\": \"The number of times your posts were quoted.\",\n            \"total_value\": {\n                \"value\": 0\n            },\n            \"id\": \"{user_id}/insights/quotes/day\"\n        },\n        {\n            \"name\": \"followers_count\",\n            \"period\": \"day\",\n            \"title\": \"followers_count\",\n            \"description\": \"This is your total number of followers on Threads.\",\n            \"total_value\": {\n                \"value\": 0\n            },\n            \"id\": \"{user_id}/insights/followers_count/day\"\n        }\n    ],\n    \"paging\": {\n        \"previous\": \"string\",\n        \"next\": \"string\"\n    }\n}"
+						}
+					]
+				}
+			],
+			"description": "This folder will enable you to use the Threads API to retrieve insights about posts and accounts."
 		},
 		{
 			"name": "Discover Threads",
@@ -2474,15 +3167,45 @@
 									"description": "This is the type of search to be performed. This can be either TOP or RECENT."
 								},
 								{
+									"key": "fields",
+									"value": "{{fields_threads}}",
+									"description": "A comma-separated list of fields for media objects on Threads."
+								},
+								{
+									"key": "search_mode",
+									"value": "TAG",
+									"description": "Specifies the search mode. KEYWORD (default) — The query will be treated as a keyword. TAG — The query will be treated as a topic tag.",
+									"disabled": true
+								},
+								{
 									"key": "limit",
-									"value": "",
+									"value": "50",
 									"description": "Query string parameter representing the maximum number of media objects or records to return.",
 									"disabled": true
 								},
 								{
-									"key": "fields",
-									"value": "{{fields_threads}}",
-									"description": "A comma-separated list of fields for media objects on Threads."
+									"key": "since",
+									"value": "2025-01-01",
+									"description": "Query string parameter representing the start date for retrieval (must be a Unix timestamp or a date/time representation parseable by strtotime();, the timestamp must be greater than or equal to 1688540400 and less than the until parameter).",
+									"disabled": true
+								},
+								{
+									"key": "until",
+									"value": "2025-02-01",
+									"description": "Query string parameter representing the end date for retrieval (must be a Unix timestamp or a date/time representation parseable by strtotime();, the timestamp must be less than or equal to the current timestamp and greater than the since parameter).",
+									"disabled": true
+								},
+								{
+									"key": "media_type",
+									"value": "IMAGE",
+									"description": "Filter by TEXT, IMAGE or VIDEO.",
+									"disabled": true
+								},
+								{
+									"key": "author_username",
+									"value": "<AUTHOR_USERNAME>",
+									"description": "Filter by the exact author username without the @ symbol.",
+									"disabled": true
 								}
 							]
 						}
@@ -2513,15 +3236,33 @@
 											"description": "This is the type of search to be performed. This can be either TOP or RECENT."
 										},
 										{
-											"key": "limit",
-											"value": "",
-											"description": "Query string parameter representing the maximum number of media objects or records to return.",
-											"disabled": true
-										},
-										{
 											"key": "fields",
 											"value": "{{fields_threads}}",
 											"description": "A comma-separated list of fields for media objects on Threads."
+										},
+										{
+											"key": "search_mode",
+											"value": "TAG",
+											"description": "Specifies the search mode. KEYWORD (default) — The query will be treated as a keyword. TAG — The query will be treated as a topic tag.",
+											"disabled": true
+										},
+										{
+											"key": "since",
+											"value": "2025-01-01",
+											"description": "Query string parameter representing the start date for retrieval (must be a Unix timestamp or a date/time representation parseable by strtotime();, the timestamp must be greater than or equal to 1688540400 and less than the until parameter).",
+											"disabled": true
+										},
+										{
+											"key": "until",
+											"value": "2025-02-01",
+											"description": "Query string parameter representing the end date for retrieval (must be a Unix timestamp or a date/time representation parseable by strtotime();, the timestamp must be less than or equal to the current timestamp and greater than the since parameter).",
+											"disabled": true
+										},
+										{
+											"key": "limit",
+											"value": "50",
+											"description": "Query string parameter representing the maximum number of media objects or records to return.",
+											"disabled": true
 										}
 									]
 								}
@@ -2539,12 +3280,12 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{api_host}}/me/mentions?fields={{fields_threads}}&limit=50",
+							"raw": "{{api_host}}/{{user_id}}/mentions?fields={{fields_threads}}&limit=50",
 							"host": [
 								"{{api_host}}"
 							],
 							"path": [
-								"me",
+								"{{user_id}}",
 								"mentions"
 							],
 							"query": [
@@ -2641,7 +3382,7 @@
 			"name": "Display Threads",
 			"item": [
 				{
-					"name": "Embed a Threads Post",
+					"name": "Embed a Threads Post or Profile",
 					"request": {
 						"auth": {
 							"type": "noauth"
@@ -2649,7 +3390,7 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{api_host}}/oembed?url=https://www.threads.net/@threads/post/DCkkKl_OGb1",
+							"raw": "{{api_host}}/oembed?url=https://www.threads.com/@threads/post/DCkkKl_OGb1",
 							"host": [
 								"{{api_host}}"
 							],
@@ -2659,20 +3400,14 @@
 							"query": [
 								{
 									"key": "url",
-									"value": "https://www.threads.net/@threads/post/DCkkKl_OGb1",
-									"description": "This is the URL of the Threads post to be embedded. With standard access, you may embed posts from the @meta, @threads, @instagram, and @facebook accounts."
+									"value": "https://www.threads.com/@threads/post/DCkkKl_OGb1",
+									"description": "A Threads post or profile URL. To embed a profile, use that profile's URL. With standard access, you may embed posts from the @meta, @threads, @instagram, and @facebook accounts."
 								},
 								{
-									"key": "access_token",
-									"value": "TH|{{app_id}}|{{app_secret}}",
-									"description": "This is your app access token. This consists of your app's ID and secret.",
-									"disabled": true
-								},
-								{
-									"key": "access_token",
-									"value": "{{app_access_token}}",
-									"description": "This is your app access token received via the GET /oauth/access_token endpoint. See the Authorization folder for details.",
-									"disabled": true
+									"key": "theme",
+									"value": "dark",
+									"disabled": true,
+									"description": "Choose light, dark, or auto. Light is the default. Auto follows the viewer's display settings."
 								}
 							]
 						}
@@ -2684,7 +3419,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "{{api_host}}/oembed?url=https://www.threads.net/@threads/post/DCkkKl_OGb1",
+									"raw": "{{api_host}}/oembed?url=https://www.threads.com/@threads/post/DCkkKl_OGb1",
 									"host": [
 										"{{api_host}}"
 									],
@@ -2694,20 +3429,8 @@
 									"query": [
 										{
 											"key": "url",
-											"value": "https://www.threads.net/@threads/post/DCkkKl_OGb1",
+											"value": "https://www.threads.com/@threads/post/DCkkKl_OGb1",
 											"description": "This is the URL of the Threads post to be embedded. With standard access, you may embed posts from the @meta, @threads, @instagram, and @facebook accounts."
-										},
-										{
-											"key": "access_token",
-											"value": "TH|{{app_id}}|{{app_secret}}",
-											"description": "This is your app access token. This consists of your app's ID and secret.",
-											"disabled": true
-										},
-										{
-											"key": "access_token",
-											"value": "{{app_access_token}}",
-											"description": "This is your app access token received via the GET /oauth/access_token endpoint. See the Authorization folder for details.",
-											"disabled": true
 										}
 									]
 								}
@@ -2715,7 +3438,7 @@
 							"_postman_previewlanguage": null,
 							"header": null,
 							"cookie": [],
-							"body": "{\n    \"type\": \"rich\",\n    \"version\": \"1.0\",\n    \"html\": \"<blockquote class=\\\"text-post-media\\\" data-text-post-permalink=\\\"https://www.threads.net/@threads/post/DCkkKl_OGb1\\\" data-text-post-version=\\\"0\\\" id=\\\"ig-tp-DCkkKl_OGb1\\\" style=\\\" background:#FFF; border-width: 1px; border-style: solid; border-color: #00000026; border-radius: 16px; max-width:658px; margin: 1px; min-width:270px; padding:0; width:99.375%; width:-webkit-calc(100% - 2px); width:calc(100% - 2px);\\\"> <a href=\\\"https://www.threads.net/@threads/post/DCkkKl_OGb1\\\" style=\\\" background:#FFFFFF; line-height:0; padding:0 0; text-align:center; text-decoration:none; width:100%; font-family: -apple-system, BlinkMacSystemFont, sans-serif;\\\" target=\\\"_blank\\\"> <div style=\\\" padding: 40px; display: flex; flex-direction: column; align-items: center;\\\"><div style=\\\" display:block; height:32px; width:32px; padding-bottom:20px;\\\"> <svg aria-label=\\\"Threads\\\" height=\\\"32px\\\" role=\\\"img\\\" viewBox=\\\"0 0 192 192\\\" width=\\\"32px\\\" xmlns=\\\"http://www.w3.org/2000/svg\\\"> <path d=\\\"M141.537 88.9883C140.71 88.5919 139.87 88.2104 139.019 87.8451C137.537 60.5382 122.616 44.905 97.5619 44.745C97.4484 44.7443 97.3355 44.7443 97.222 44.7443C82.2364 44.7443 69.7731 51.1409 62.102 62.7807L75.881 72.2328C81.6116 63.5383 90.6052 61.6848 97.2286 61.6848C97.3051 61.6848 97.3819 61.6848 97.4576 61.6855C105.707 61.7381 111.932 64.1366 115.961 68.814C118.893 72.2193 120.854 76.925 121.825 82.8638C114.511 81.6207 106.601 81.2385 98.145 81.7233C74.3247 83.0954 59.0111 96.9879 60.0396 116.292C60.5615 126.084 65.4397 134.508 73.775 140.011C80.8224 144.663 89.899 146.938 99.3323 146.423C111.79 145.74 121.563 140.987 128.381 132.296C133.559 125.696 136.834 117.143 138.28 106.366C144.217 109.949 148.617 114.664 151.047 120.332C155.179 129.967 155.42 145.8 142.501 158.708C131.182 170.016 117.576 174.908 97.0135 175.059C74.2042 174.89 56.9538 167.575 45.7381 153.317C35.2355 139.966 29.8077 120.682 29.6052 96C29.8077 71.3178 35.2355 52.0336 45.7381 38.6827C56.9538 24.4249 74.2039 17.11 97.0132 16.9405C119.988 17.1113 137.539 24.4614 149.184 38.788C154.894 45.8136 159.199 54.6488 162.037 64.9503L178.184 60.6422C174.744 47.9622 169.331 37.0357 161.965 27.974C147.036 9.60668 125.202 0.195148 97.0695 0H96.9569C68.8816 0.19447 47.2921 9.6418 32.7883 28.0793C19.8819 44.4864 13.2244 67.3157 13.0007 95.9325L13 96L13.0007 96.0675C13.2244 124.684 19.8819 147.514 32.7883 163.921C47.2921 182.358 68.8816 191.806 96.9569 192H97.0695C122.03 191.827 139.624 185.292 154.118 170.811C173.081 151.866 172.51 128.119 166.26 113.541C161.776 103.087 153.227 94.5962 141.537 88.9883ZM98.4405 129.507C88.0005 130.095 77.1544 125.409 76.6196 115.372C76.2232 107.93 81.9158 99.626 99.0812 98.6368C101.047 98.5234 102.976 98.468 104.871 98.468C111.106 98.468 116.939 99.0737 122.242 100.233C120.264 124.935 108.662 128.946 98.4405 129.507Z\\\" /></svg></div><div style=\\\" font-size: 15px; line-height: 21px; color: #000000; font-weight: 600; \\\"> View on Threads</div></div></a></blockquote>\\n<script async src=\\\"https://www.threads.net/embed.js\\\"></script>\",\n    \"provider_name\": \"Threads\",\n    \"provider_url\": \"https://www.threads.net/\",\n    \"width\": 658\n}"
+							"body": "{\n    \"type\": \"rich\",\n    \"version\": \"1.0\",\n    \"html\": \"<blockquote class=\\\"text-post-media\\\" data-text-post-permalink=\\\"https://www.threads.com/@threads/post/DCkkKl_OGb1\\\" data-text-post-version=\\\"0\\\" id=\\\"ig-tp-DCkkKl_OGb1\\\" style=\\\" background:#FFF; border-width: 1px; border-style: solid; border-color: #00000026; border-radius: 16px; max-width:658px; margin: 1px; min-width:270px; padding:0; width:99.375%; width:-webkit-calc(100% - 2px); width:calc(100% - 2px);\\\"> <a href=\\\"https://www.threads.com/@threads/post/DCkkKl_OGb1\\\" style=\\\" background:#FFFFFF; line-height:0; padding:0 0; text-align:center; text-decoration:none; width:100%; font-family: -apple-system, BlinkMacSystemFont, sans-serif;\\\" target=\\\"_blank\\\"> <div style=\\\" padding: 40px; display: flex; flex-direction: column; align-items: center;\\\"><div style=\\\" display:block; height:32px; width:32px; padding-bottom:20px;\\\"> <svg aria-label=\\\"Threads\\\" height=\\\"32px\\\" role=\\\"img\\\" viewBox=\\\"0 0 192 192\\\" width=\\\"32px\\\" xmlns=\\\"http://www.w3.org/2000/svg\\\"> <path d=\\\"M141.537 88.9883C140.71 88.5919 139.87 88.2104 139.019 87.8451C137.537 60.5382 122.616 44.905 97.5619 44.745C97.4484 44.7443 97.3355 44.7443 97.222 44.7443C82.2364 44.7443 69.7731 51.1409 62.102 62.7807L75.881 72.2328C81.6116 63.5383 90.6052 61.6848 97.2286 61.6848C97.3051 61.6848 97.3819 61.6848 97.4576 61.6855C105.707 61.7381 111.932 64.1366 115.961 68.814C118.893 72.2193 120.854 76.925 121.825 82.8638C114.511 81.6207 106.601 81.2385 98.145 81.7233C74.3247 83.0954 59.0111 96.9879 60.0396 116.292C60.5615 126.084 65.4397 134.508 73.775 140.011C80.8224 144.663 89.899 146.938 99.3323 146.423C111.79 145.74 121.563 140.987 128.381 132.296C133.559 125.696 136.834 117.143 138.28 106.366C144.217 109.949 148.617 114.664 151.047 120.332C155.179 129.967 155.42 145.8 142.501 158.708C131.182 170.016 117.576 174.908 97.0135 175.059C74.2042 174.89 56.9538 167.575 45.7381 153.317C35.2355 139.966 29.8077 120.682 29.6052 96C29.8077 71.3178 35.2355 52.0336 45.7381 38.6827C56.9538 24.4249 74.2039 17.11 97.0132 16.9405C119.988 17.1113 137.539 24.4614 149.184 38.788C154.894 45.8136 159.199 54.6488 162.037 64.9503L178.184 60.6422C174.744 47.9622 169.331 37.0357 161.965 27.974C147.036 9.60668 125.202 0.195148 97.0695 0H96.9569C68.8816 0.19447 47.2921 9.6418 32.7883 28.0793C19.8819 44.4864 13.2244 67.3157 13.0007 95.9325L13 96L13.0007 96.0675C13.2244 124.684 19.8819 147.514 32.7883 163.921C47.2921 182.358 68.8816 191.806 96.9569 192H97.0695C122.03 191.827 139.624 185.292 154.118 170.811C173.081 151.866 172.51 128.119 166.26 113.541C161.776 103.087 153.227 94.5962 141.537 88.9883ZM98.4405 129.507C88.0005 130.095 77.1544 125.409 76.6196 115.372C76.2232 107.93 81.9158 99.626 99.0812 98.6368C101.047 98.5234 102.976 98.468 104.871 98.468C111.106 98.468 116.939 99.0737 122.242 100.233C120.264 124.935 108.662 128.946 98.4405 129.507Z\\\" /></svg></div><div style=\\\" font-size: 15px; line-height: 21px; color: #000000; font-weight: 600; \\\"> View on Threads</div></div></a></blockquote>\\n<script async src=\\\"https://www.threads.com/embed.js\\\"></script>\",\n    \"provider_name\": \"Threads\",\n    \"provider_url\": \"https://www.threads.com/\",\n    \"width\": 658\n}"
 						}
 					]
 				}
@@ -2786,12 +3509,12 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{api_host}}/me/threads_publishing_limit?fields={{fields_quota}}",
+							"raw": "{{api_host}}/{{user_id}}/threads_publishing_limit?fields={{fields_quota}}",
 							"host": [
 								"{{api_host}}"
 							],
 							"path": [
-								"me",
+								"{{user_id}}",
 								"threads_publishing_limit"
 							],
 							"query": [
@@ -2834,9 +3557,61 @@
 							"body": "{\n    \"data\": [\n        {\n            \"quota_usage\": 1,\n            \"config\": {\n                \"quota_total\": 250,\n                \"quota_duration\": 86400\n            },\n            \"reply_quota_usage\": 0,\n            \"reply_config\": {\n                \"quota_total\": 1000,\n                \"quota_duration\": 86400\n            }\n        }\n    ]\n}"
 						}
 					]
+				},
+				{
+					"name": "Debug Access Token",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_host}}/debug_token?input_token={{input_token}}",
+							"host": [
+								"{{api_host}}"
+							],
+							"path": [
+								"debug_token"
+							],
+							"query": [
+								{
+									"key": "input_token",
+									"value": "{{input_token}}",
+									"description": "The access token to be inspected."
+								}
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Debug Access Token",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{api_host}}/debug_token?input_token={{input_token}}",
+									"host": [
+										"{{api_host}}"
+									],
+									"path": [
+										"debug_token"
+									],
+									"query": [
+										{
+											"key": "input_token",
+											"value": "{{input_token}}",
+											"description": "The access token to be inspected."
+										}
+									]
+								}
+							},
+							"_postman_previewlanguage": "",
+							"header": [],
+							"cookie": [],
+							"body": ""
+						}
+					]
 				}
 			],
-			"description": "This folder enables you to perform basic toubleshooting."
+			"description": "This folder enables you to perform basic toubleshooting, including checking a container's publishing status and debugging an access token."
 		}
 	],
 	"auth": {
@@ -2922,12 +3697,12 @@
 	"variable": [
 		{
 			"key": "authorization_host",
-			"value": "https://www.threads.net",
+			"value": "https://www.threads.com",
 			"type": "string"
 		},
 		{
 			"key": "api_host",
-			"value": "https://graph.threads.net",
+			"value": "https://graph.threads.com",
 			"type": "string"
 		},
 		{
@@ -2980,7 +3755,7 @@
 		},
 		{
 			"key": "scope",
-			"value": "threads_basic,threads_content_publish,threads_manage_insights,threads_manage_replies,threads_read_replies,threads_keyword_search,threads_manage_mentions"
+			"value": "threads_basic,threads_content_publish,threads_manage_insights,threads_manage_replies,threads_read_replies,threads_keyword_search,threads_manage_mentions,threads_delete,threads_location_tagging,threads_profile_discovery"
 		},
 		{
 			"key": "media_type",
@@ -2988,7 +3763,7 @@
 		},
 		{
 			"key": "reply_control",
-			"value": "everyone,accounts_you_follow,mentioned_only"
+			"value": "everyone,accounts_you_follow,mentioned_only,parent_post_author_only,followers_only"
 		},
 		{
 			"key": "metrics_post",
@@ -2997,7 +3772,7 @@
 		},
 		{
 			"key": "metrics_account",
-			"value": "views,likes,replies,reposts,quotes,followers_count,follower_demographics",
+			"value": "views,likes,replies,reposts,quotes,clicks,followers_count,follower_demographics",
 			"type": "string"
 		},
 		{
@@ -3007,15 +3782,15 @@
 		},
 		{
 			"key": "fields_threads",
-			"value": "id,media_product_type,media_type,media_url,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,children,is_quote_post,quoted_post,reposted_post,has_replies,alt_text,link_attachment_url,poll_attachment{option_a,option_b,option_c,option_d,option_a_votes_percentage,option_b_votes_percentage,option_c_votes_percentage,option_d_votes_percentage,expiration_timestamp}"
+			"value": "id,media_product_type,media_type,media_url,gif_url,permalink,owner,username,text,timestamp,shortcode,thumbnail_url,children,is_quote_post,quoted_post,reposted_post,has_replies,alt_text,link_attachment_url,poll_attachment{option_a,option_b,option_c,option_d,option_a_votes_percentage,option_b_votes_percentage,option_c_votes_percentage,option_d_votes_percentage,expiration_timestamp},location_id,topic_tag,is_verified,profile_picture_url"
 		},
 		{
 			"key": "fields_replies",
-			"value": "id,text,timestamp,media_product_type,media_type,media_url,permalink,shortcode,thumbnail_url,username,children,is_quote_post,quoted_post,reposted_post,alt_text,link_attachment_url,has_replies,is_reply,is_reply_owned_by_me,root_post,replied_to,hide_status,reply_audience,poll_attachment{option_a,option_b,option_c,option_d,option_a_votes_percentage,option_b_votes_percentage,option_c_votes_percentage,option_d_votes_percentage,expiration_timestamp}"
+			"value": "id,text,timestamp,media_product_type,media_type,media_url,gif_url,permalink,shortcode,thumbnail_url,username,children,is_quote_post,quoted_post,reposted_post,alt_text,link_attachment_url,has_replies,is_reply,is_reply_owned_by_me,root_post,replied_to,hide_status,reply_audience,poll_attachment{option_a,option_b,option_c,option_d,option_a_votes_percentage,option_b_votes_percentage,option_c_votes_percentage,option_d_votes_percentage,expiration_timestamp},location_id,topic_tag,is_verified,profile_picture_url,reply_approval_status"
 		},
 		{
 			"key": "fields_profile",
-			"value": "id,username,name,threads_profile_picture_url,threads_biography"
+			"value": "id,username,name,is_verified,threads_profile_picture_url,threads_biography,recently_searched_keywords,is_eligible_for_geo_gating"
 		},
 		{
 			"key": "video_url",
@@ -3027,7 +3802,7 @@
 		},
 		{
 			"key": "fields_quota",
-			"value": "quota_usage,config,reply_quota_usage,reply_config"
+			"value": "quota_usage,config,reply_quota_usage,reply_config,delete_quota_usage,delete_config,location_search_quota_usage,location_search_config"
 		},
 		{
 			"key": "fields_container",
@@ -3043,6 +3818,19 @@
 			"key": "carousel_children_ids",
 			"value": "",
 			"type": "string"
+		},
+		{
+			"key": "fields_location",
+			"value": "id,address,city,country,name,latitude,longitude,postal_code",
+			"type": "string"
+		},
+		{
+			"key": "location_id",
+			"value": ""
+		},
+		{
+			"key": "input_token",
+			"value": ""
 		}
 	]
 }

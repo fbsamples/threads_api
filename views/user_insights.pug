@@ -1,13 +1,19 @@
 extends layout_with_account
 
+block head
+    meta(name='viewport' content='width=device-width, initial-scale=1')
+
 block content
-    include insights
-    br
-    form.insights(action='/userInsights' method='GET')
-        span
-            label(for='since') Since
-            input#since(type='date' name='since' value=since)
-        span
-            label(for='until') Until
-            input#until(type='date' name='until' value=until)
-        input#submit.threads-button(type='submit' value='Refine')
+    .user-insights
+        .insights-table-scroll(role='region' aria-label='User Insights Metrics' tabindex='0')
+            include insights
+        if minDate
+            p Choose dates on or after #{minDate}. The cutoff uses UTC.
+        form.insights.insights-date-controls(action='/userInsights' method='GET')
+            .insights-date-field
+                label(for='since') Since
+                input#since(type='date' name='since' value=since min=minDate)
+            .insights-date-field
+                label(for='until') Until
+                input#until(type='date' name='until' value=until min=minDate)
+            input#submit.threads-button(type='submit' value='Refine')

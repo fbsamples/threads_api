@@ -5,24 +5,30 @@ block content
         thead
             tr
                 th Username
-                th ID
-                th Created On
+                th Post ID
+                th Creation Date and Time
                 th Media Type
                 th Text
                 th Permalink
-                th Reply Audience
+                th Media URL
         tbody
             each thread in threads
                 tr.threads-list-item
                     td.thread-username=thread.username
                     td.thread-id
                         a(href=`/threads/${thread.id}`)=thread.id
-                    td.thread-timestamp=thread.timestamp
+                    td.thread-timestamp
+                        if getPostTimestampISO(thread.timestamp)
+                            time(datetime=getPostTimestampISO(thread.timestamp) data-local-timestamp='')=formatPostTimestamp(thread.timestamp)
+                        else
+                            =formatPostTimestamp(thread.timestamp)
                     td.thread-type=thread.media_type
                     td.thread-text=thread.text
                     td.thread-permalink
                         a(href=thread.permalink target='_blank') View on Threads
-                    td.thread-reply-audience=thread.reply_audience
+                    td.thread-media-url
+                        if thread.media_url
+                            a(href=thread.media_url target='_blank') View Media File
 
     div.paging
         if paging.nextUrl

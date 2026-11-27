@@ -1,0 +1,32 @@
+extends layout_with_account
+
+block content
+    table
+        tbody
+            tr
+                th(colspan=2) App Name
+                td(colspan=2)=applicationName
+            tr
+                th(colspan=2) Issued At
+                td(colspan=2)
+                    if issuedAtISO
+                        time(datetime=issuedAtISO data-local-timestamp='')=issuedAt
+                    else
+                        =issuedAt
+            tr
+                th(colspan=2) Expires At
+                td(colspan=2)
+                    if expiresAtISO
+                        time(datetime=expiresAtISO data-local-timestamp='')=expiresAt
+                    else
+                        =expiresAt
+            tr
+                th(colspan=2) Permissions
+                td(colspan=2)
+                    if permissions && permissions.length
+                        ul
+                            each permission in permissions
+                                li=permission
+            tr
+                th(colspan=2) User ID
+                td(colspan=2)=appScopedUserId

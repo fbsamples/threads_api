@@ -1,13 +1,6 @@
 extends layout
 
-append content
-    style(type="text/css").
-        a.account-link {
-            position: absolute;
-            left: 10px;
-            top: 10px;
-        }
-
-    a.account-link(href='/account') Go to Account
-
-    block content
+block navigation
+    a.menu-link.account-link(href='/account')
+        span(aria-hidden='true') 👤
+        | Account

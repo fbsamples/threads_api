@@ -2,11 +2,17 @@ extends layout.pug
 
 block content
   div
-    .profile-picture
-      img(src=threads_profile_picture_url alt='User\'s profile picture' width=36 height=36)
+    .pictures
+      .profile-picture
+        img(src=threads_profile_picture_url alt='User\'s profile picture' width=36 height=36)
+      .verified
+        if is_verified
+          img(src='/img/verified.png' alt='Verified Badge' width=20 height=20)
     .username
       span
         a(href=user_profile_url target='_blank') @#{username}
+    .display-name
+      p #{name}
     .user-bio
       p #{threads_biography}
 
@@ -16,5 +22,11 @@ block content
     button(onclick="location.href='/replies'") My Replies
     button(onclick="location.href='/mentions'") My Mentions
     button(onclick="location.href='/keywordSearch'") Search for Threads
+    button(onclick="location.href='/profileLookup'") Profile Lookup
     button(onclick="location.href='/userInsights'") My Insights
     button(onclick="location.href='/publishingLimit'") Publishing Limit
+    button(onclick="location.href='/debug'") Debug Access Token
+    if csrfToken
+      form(action='/logout' method='POST')
+        input(type='hidden' name='_csrf' value=csrfToken)
+        button(type='submit') Log Out

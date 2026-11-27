@@ -8,24 +8,63 @@ block content
             text-align: left;
         }
         form.oembed {
-            margin-top: 50px;
+            margin: 50px auto 0;
+            width: min(500px, calc(100% - 32px));
+            gap: 24px;
+        }
+        form.oembed .embed-field {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+        form.oembed input[type='text'] {
+            box-sizing: border-box;
+            width: 100%;
+            height: auto;
+            min-height: 36px;
+            padding: 8px;
+        }
+        form.oembed select {
+            padding: 6px;
+        }
+        form.oembed p {
+            margin: 0;
+        }
+        form.oembed input[type='submit'] {
+            margin: 0;
+            max-width: 100%;
+        }
+        .embed-preview {
+            padding-top: 2rem;
         }
 
-    p Try embedding a post from one of these accounts:
+    p Try embedding a post or profile from one of these accounts:
     ul#example-accounts
         li
-            a(href='https://www.threads.net/@meta') @meta
+            a(href='https://www.threads.com/@meta') @meta
         li
-            a(href='https://www.threads.net/@threads') @threads
+            a(href='https://www.threads.com/@threads') @threads
         li
-            a(href='https://www.threads.net/@instagram') @instagram
+            a(href='https://www.threads.com/@instagram') @instagram
         li
-            a(href='https://www.threads.net/@facebook') @facebook
+            a(href='https://www.threads.com/@facebook') @facebook
 
     form.oembed(action='/oEmbed' id='form' method='GET')
-        input(type='text' placeholder='Enter a URL of a Threads post to embed' name='url' autocomplete='off')
+        .embed-field
+            label(for='embed-url') Post or Profile URL
+            input#embed-url(type='text' placeholder='Enter a Threads post or profile URL' name='url' value=url autocomplete='off')
+
+        .embed-field
+            label(for='embed-theme') Theme
+            select#embed-theme(name='theme')
+                option(value='light' selected=theme === 'light') Light
+                option(value='dark' selected=theme === 'dark') Dark
+                option(value='auto' selected=theme === 'auto') Auto
+            p Auto follows the viewer's display settings.
 
         input(type='submit' value='Embed')
 
     if html
-        div !{html}
+        .embed-preview !{html}

@@ -1,77 +1,152 @@
 extends layout_with_account
 
+block head
+    meta(name='viewport' content='width=device-width, initial-scale=1')
+
 block content
-    table
-        thead
-            tr
-                th Field
-                th Value
-        tbody
-            tr
-                td Media Type
-                td #{media_type}
-            tr
-                td Text
-                td #{text}
-            tr
-                td Created On
-                td #{timestamp}
-            tr
-                td Media URL
-                td
-                    a(href=media_url target='_blank') #{media_url}
-            tr
-                td GIF URL
-                td
-                    a(href=gif_url target='_blank') #{gif_url}
-            tr
-                td Alt Text
-                td #{alt_text}
-            tr
-                td Link Attachment URL
-                td #{link_attachment_url}
-            tr
-                td Poll
-                td
-                    if option_a && option_b
-                        table
-                            tr
-                                td Option A
-                                td #{option_a}
-                            tr
-                                td Option B
-                                td #{option_b}
-                            tr
-                                td Option C
-                                td #{option_c}
-                            tr
-                                td Option D
-                                td #{option_d}
-            tr
-                td Permalink
-                td
-                    a(href=permalink target='_blank') #{permalink}
-            tr
-                td Replies
-                td
-                    a(href=`/threads/${threadId}/replies?username=${username}`) View Direct Replies
-                    br
-                    if (!is_reply)
-                        a(href=`/threads/${threadId}/conversation?username=${username}`) View Conversation
-            tr
-                td Reply Audience
-                td #{reply_audience}
-            tr
-                td Insights
-                td
-                    a(href=`/threads/${threadId}/insights`) View Insights
-            tr
-                td Quote
-                td
-                    button(onclick=`location.href='/upload?quotePostId=${threadId}'`) Quote
-            tr
-                td Repost
-                td
-                    form(action='/repost' method='post')
-                        input(type='hidden' name='repostId' value=threadId)
-                        button(type='submit') Repost
+    if postLoaded
+        .post-details
+            table.post-details-table
+                thead
+                    tr
+                        th(scope='col') Field
+                        th(scope='col') Value
+                tbody
+                    tr
+                        td Post ID
+                        td=threadId
+                    if typeof username === 'string' && hasDisplayValue(username)
+                        tr
+                            td Author
+                            td
+                                a(href=`https://www.threads.com/@${encodeURIComponent(username)}` target='_blank' rel='noopener noreferrer')=username
+                    if hasDisplayValue(creationDateTime)
+                        tr
+                            td Creation Date and Time
+                            td
+                                if getPostTimestampISO(timestamp)
+                                    time(datetime=getPostTimestampISO(timestamp) data-local-timestamp='')=creationDateTime
+                                else
+                                    =creationDateTime
+                    if hasDisplayValue(permalink)
+                        tr
+                            td Post Link
+                            td
+                                if isWebUrl(permalink)
+                                    a(href=permalink target='_blank' rel='noopener noreferrer')=permalink
+                                else
+                                    =permalink
+                    if hasDisplayValue(text)
+                        tr
+                            td Text
+                            td.post-details-text=text
+                    if hasDisplayValue(topic_tag)
+                        tr
+                            td Topic Tag
+                            td=topic_tag
+                    if hasDisplayValue(media_type)
+                        tr
+                            td Media Type
+                            td=media_type
+                    if hasDisplayValue(media_url)
+                        tr
+                            td Media URL
+                            td
+                                if isWebUrl(media_url)
+                                    a(href=media_url target='_blank' rel='noopener noreferrer') View Media File
+                                else
+                                    =media_url
+                    if hasDisplayValue(link_attachment_url)
+                        tr
+                            td Link Attachment URL
+                            td
+                                if isWebUrl(link_attachment_url)
+                                    a(href=link_attachment_url target='_blank' rel='noopener noreferrer') View Link Attachment
+                                else
+                                    =link_attachment_url
+                    if hasDisplayValue(gif_url)
+                        tr
+                            td GIF URL
+                            td
+                                if isWebUrl(gif_url)
+                                    a(href=gif_url target='_blank' rel='noopener noreferrer') View GIF
+                                else
+                                    =gif_url
+                    if hasDisplayValue(option_a) || hasDisplayValue(option_b) || hasDisplayValue(option_c) || hasDisplayValue(option_d)
+                        tr
+                            td Poll
+                            td
+                                table
+                                    each option in [['Option A', option_a], ['Option B', option_b], ['Option C', option_c], ['Option D', option_d]]
+                                        if hasDisplayValue(option[1])
+                                            tr
+                                                td=option[0]
+                                                td=option[1]
+                    if hasDisplayValue(alt_text)
+                        tr
+                            td Alt Text
+                            td=alt_text
+                    if hasDisplayValue(is_quote_post)
+                        tr
+                            td Is Quote Post
+                            td=is_quote_post
+                    if quoted_post && typeof quoted_post.id === 'string' && /^\d+$/.test(quoted_post.id)
+                        tr
+                            td Quoted Post
+                            td
+                                a(href=`/threads/${quoted_post.id}`) View Quoted Post
+                    if reposted_post && typeof reposted_post.id === 'string' && /^\d+$/.test(reposted_post.id)
+                        tr
+                            td Reposted Post
+                            td
+                                a(href=`/threads/${reposted_post.id}`) View Reposted Post
+                    tr
+                        td Replies
+                        td
+                            a(href=`/threads/${threadId}/replies${typeof username === 'string' && hasDisplayValue(username) ? `?username=${encodeURIComponent(username)}` : ''}`) View Direct Replies
+                            if is_reply !== true
+                                br
+                                a(href=`/threads/${threadId}/conversation${typeof username === 'string' && hasDisplayValue(username) ? `?username=${encodeURIComponent(username)}` : ''}`) View Conversation
+                    if hasDisplayValue(reply_audience)
+                        tr
+                            td Reply Audience
+                            td=reply_audience
+                    if hasDisplayValue(is_spoiler_media)
+                        tr
+                            td Is Spoiler Media Post
+                            td=is_spoiler_media
+                    if hasDisplayValue(text_entities)
+                        tr
+                            td Text Entities
+                            td.post-details-text=typeof text_entities === 'object' ? JSON.stringify(text_entities, null, 2) : text_entities
+                    if hasDisplayValue(is_ghost_post)
+                        tr
+                            td Is Ghost Post
+                            td=is_ghost_post
+                    tr
+                        td Insights
+                        td
+                            a(href=`/threads/${threadId}/insights`) View Insights
+                    tr
+                        td Reply
+                        td
+                            button(onclick=`location.href='/upload?replyToId=${threadId}'`) Reply
+                    tr
+                        td Quote
+                        td
+                            button(onclick=`location.href='/upload?quotePostId=${threadId}'`) Quote
+                    tr
+                        td Repost
+                        td
+                            form(action='/repost' method='post')
+                                input(type='hidden' name='_csrf' value=csrfToken)
+                                input(type='hidden' name='repostId' value=threadId)
+                                button(type='submit') Repost
+                    if canDelete
+                        tr
+                            td Delete
+                            td
+                                form(action=`/threads/${threadId}/delete` method='POST' onsubmit="return confirm('Are you sure? This permanently deletes your post and cannot be undone.');")
+                                    input(type='hidden' name='_csrf' value=csrfToken)
+                                    input(type='hidden' name='csrfToken' value=deleteCsrfToken)
+                                    button(type='submit' aria-label='Delete Post' title='Delete Post') 🗑

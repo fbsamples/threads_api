@@ -6,37 +6,59 @@
  */
 
 const express = require('express');
+const { rateLimit } = require('express-rate-limit');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const axios = require('axios');
+const { Buffer } = require('node:buffer');
+const crypto = require('crypto');
 const https = require('https');
 const path = require('path');
 const fs = require('fs');
 const { URLSearchParams, URL } = require('url');
 const multer = require('multer');
+const { DateTime } = require('luxon');
+const { setTimeout, clearTimeout } = require('node:timers');
+const textParser = require('../public/scripts/text-parser.js');
 
+const spoilerMarker = '**spoiler**';
 const app = express();
 const upload = multer();
 
 const DEFAULT_THREADS_QUERY_LIMIT = 10;
+const MAX_MEDIA_ATTACHMENTS = 20;
 
 const FIELD__ALT_TEXT = 'alt_text';
+const FIELD__APPLICATION = 'application';
+const FIELD__APP_SCOPED_USER_ID = 'user_id';
+const FIELD__CLICKS = 'clicks';
 const FIELD__ERROR_MESSAGE = 'error_message';
+const FIELD__EXPIRES_AT = 'expires_at';
 const FIELD__FOLLOWERS_COUNT = 'followers_count';
 const FIELD__HIDE_STATUS = 'hide_status';
 const FIELD__ID = 'id';
+const FIELD__ISSUED_AT = 'issued_at';
 const FIELD__IS_REPLY = 'is_reply';
+const FIELD__IS_VERIFIED = 'is_verified';
+const FIELD__IS_QUOTE_POST = 'is_quote_post';
 const FIELD__LIKES = 'likes';
 const FIELD__LINK_ATTACHMENT_URL = 'link_attachment_url';
+const FIELD__TOPIC_TAG = 'topic_tag';
 const FIELD__MEDIA_TYPE = 'media_type';
 const FIELD__MEDIA_URL = 'media_url';
+const FIELD__NAME = 'name';
+const FIELD__OWNER = 'owner';
 const FIELD__GIF_URL = 'gif_url';
 const FIELD__PERMALINK = 'permalink';
 const FIELD__POLL_ATTACHMENT = 'poll_attachment';
 const FIELD__REPLIES = 'replies';
 const FIELD__REPOSTS = 'reposts';
+const FIELD__QUOTED_POST = 'quoted_post';
 const FIELD__QUOTES = 'quotes';
 const FIELD__REPLY_AUDIENCE = 'reply_audience';
+const FIELD__REPOSTED_POST = 'reposted_post';
+const FIELD__SCOPES = 'scopes';
+const FIELD__SHARES = 'shares';
 const FIELD__STATUS = 'status';
 const FIELD__TEXT = 'text';
 const FIELD__TIMESTAMP = 'timestamp';
@@ -44,19 +66,44 @@ const FIELD__THREADS_BIOGRAPHY = 'threads_biography';
 const FIELD__THREADS_PROFILE_PICTURE_URL = 'threads_profile_picture_url';
 const FIELD__USERNAME = 'username';
 const FIELD__VIEWS = 'views';
+const FIELD_IS_SPOILER_MEDIA = 'is_spoiler_media';
+const FIELD_TEXT_ENTITES = 'text_entities';
+const FIELD_GHOST_POST_STATUS = 'ghost_post_status';
 
+const MEDIA_TYPE__AUDIO = 'AUDIO';
 const MEDIA_TYPE__CAROUSEL = 'CAROUSEL';
+const MEDIA_TYPE__CAROUSEL_ALBUM = 'CAROUSEL_ALBUM';
 const MEDIA_TYPE__IMAGE = 'IMAGE';
 const MEDIA_TYPE__TEXT = 'TEXT';
+const MEDIA_TYPE__TEXT_POST = 'TEXT_POST';
 const MEDIA_TYPE__VIDEO = 'VIDEO';
 
+const DELETABLE_MEDIA_TYPES = [
+    MEDIA_TYPE__TEXT_POST,
+    MEDIA_TYPE__IMAGE,
+    MEDIA_TYPE__VIDEO,
+    MEDIA_TYPE__CAROUSEL_ALBUM,
+    MEDIA_TYPE__AUDIO,
+];
+
 const PARAMS__ACCESS_TOKEN = 'access_token';
+const PARAMS__AFTER = 'after';
 const PARAMS__ALT_TEXT = 'alt_text';
+const PARAMS__AUTHOR_USERNAME = 'author_username';
+const PARAMS__AUTO_PUBLISH_TEXT = 'auto_publish_text';
+const PARAMS__BEFORE = 'before';
 const PARAMS__CLIENT_ID = 'client_id';
 const PARAMS__CONFIG = 'config';
+const PARAMS__DELETE_CONFIG = 'delete_config';
+const PARAMS__DELETE_QUOTA_USAGE = 'delete_quota_usage';
 const PARAMS__FIELDS = 'fields';
 const PARAMS__HIDE = 'hide';
+const PARAMS__INPUT_TOKEN = 'input_token';
+const PARAMS__LIMIT = 'limit';
 const PARAMS__LINK_ATTACHMENT = 'link_attachment';
+const PARAMS__LOCATION_SEARCH_CONFIG = 'location_search_config';
+const PARAMS__LOCATION_SEARCH_QUOTA_USAGE = 'location_search_quota_usage';
+const PARAMS__MEDIA_TYPE = 'media_type';
 const PARAMS__METRIC = 'metric';
 const PARAMS__POLL_ATTACHMENT = 'poll_attachment';
 const PARAMS__Q = 'q';
@@ -70,8 +117,19 @@ const PARAMS__REPLY_TO_ID = 'reply_to_id';
 const PARAMS__RESPONSE_TYPE = 'response_type';
 const PARAMS__RETURN_URL = 'return_url';
 const PARAMS__SCOPE = 'scope';
+const PARAMS__SEARCH_MODE = 'search_mode';
 const PARAMS__SEARCH_TYPE = 'search_type';
+const PARAMS__SINCE = 'since';
+const PARAMS__STATE = 'state';
 const PARAMS__TEXT = 'text';
+const PARAMS__THEME = 'theme';
+const PARAMS__TOPIC_TAG = 'topic_tag';
+const PARAMS__UNTIL = 'until';
+const PARAMS__URL = 'url';
+const PARAMS__USERNAME = 'username';
+const PARAMS_IS_SPOILER_MEDIA = 'is_spoiler_media';
+const PARAMS_TEXT_ENTITES = 'text_entities';
+const PARAMS_IS_GHOST_POST = 'is_ghost_post';
 
 // Read variables from environment
 require('dotenv').config();
@@ -91,9 +149,10 @@ const agent = new https.Agent({
     rejectUnauthorized: REJECT_UNAUTHORIZED !== 'false',
 });
 
-const GRAPH_API_BASE_URL = 'https://graph.threads.net/' +
+const GRAPH_API_BASE_URL =
+    'https://graph.threads.com/' +
     (GRAPH_API_VERSION ? GRAPH_API_VERSION + '/' : '');
-const AUTHORIZATION_BASE_URL = 'https://www.threads.net';
+const AUTHORIZATION_BASE_URL = 'https://www.threads.com';
 
 let initial_access_token = INITIAL_ACCESS_TOKEN;
 let initial_user_id = INITIAL_USER_ID;
@@ -108,6 +167,8 @@ const SCOPES = [
     'threads_keyword_search',
     'threads_manage_mentions',
     'threads_delete',
+    'threads_location_tagging',
+    'threads_profile_discovery',
 ];
 
 app.use(express.static('public'));
@@ -122,95 +183,347 @@ app.use(
         saveUninitialized: true,
         cookie: {
             maxAge: 6000000,
+            sameSite: 'lax',
         },
     })
 );
 
-// Middleware to ensure the user is logged in
-const loggedInUserChecker = (req, res, next) => {
-    if (req.session.access_token) {
-        next();
-    } else if (initial_access_token && initial_user_id) {
-        useInitialAuthenticationValues(req);
-        next();
-    } else {
-        const returnUrl = encodeURIComponent(req.originalUrl);
-        res.redirect(`/?${PARAMS__RETURN_URL}=${returnUrl}`);
+function matchesSessionToken(expected, received) {
+    return (
+        typeof expected === 'string' &&
+        typeof received === 'string' &&
+        /^[a-f0-9]{64}$/.test(expected) &&
+        /^[a-f0-9]{64}$/.test(received) &&
+        crypto.timingSafeEqual(
+            Buffer.from(expected, 'hex'),
+            Buffer.from(received, 'hex')
+        )
+    );
+}
+
+app.use(function protectAgainstCsrf(req, res, next) {
+    if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+        req.session.csrfToken ??= crypto.randomBytes(32).toString('hex');
+        res.locals.csrfToken = req.session.csrfToken;
+        res.set('Cache-Control', 'no-store');
+        return next();
     }
+
+    const headerToken = req.get('X-CSRF-Token');
+    const csrfToken =
+        headerToken ??
+        (req.is('application/x-www-form-urlencoded')
+            ? req.body?._csrf
+            : undefined);
+    if (!matchesSessionToken(req.session.csrfToken, csrfToken)) {
+        return res.status(403).json({
+            error: true,
+            message:
+                'The request could not be verified. Reload the page and try again.',
+        });
+    }
+    res.locals.csrfToken = req.session.csrfToken;
+    res.set('Cache-Control', 'no-store');
+    next();
+});
+
+const JSON_TOKEN_PATTERN =
+    /"(?:[^"\\]|\\.)*"|-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?|[{}\[\]:,]/g;
+
+function parseUserIdResponse(text) {
+    const stack = [];
+    let previous;
+    let field;
+    const preserved = text.replace(JSON_TOKEN_PATTERN, (token) => {
+        const frame = stack[stack.length - 1];
+        let result = token;
+        if (token === '{' || token === '[') {
+            stack.push({ object: token === '{', keys: new Set() });
+        } else if (token === '}' || token === ']') {
+            stack.pop();
+        } else if (
+            token[0] === '"' &&
+            frame?.object &&
+            (previous === '{' || previous === ',')
+        ) {
+            field = JSON.parse(token);
+            if (frame.keys.has(field))
+                throw new Error('Duplicate response field.');
+            frame.keys.add(field);
+        } else if (
+            previous === ':' &&
+            field === 'user_id' &&
+            /^-?\d/.test(token)
+        ) {
+            if (!/^[1-9]\d*$/.test(token)) throw new Error('Invalid user ID.');
+            result = JSON.stringify(token);
+        }
+        previous = token;
+        return result;
+    });
+    return JSON.parse(preserved);
+}
+
+function isAppScopedUserId(userId) {
+    return typeof userId === 'string' && /^[1-9]\d*$/.test(userId);
+}
+
+async function verifySessionUserId(req) {
+    const binding = req.session.user_id_binding;
+    if (
+        binding?.access_token === req.session.access_token &&
+        binding?.user_id === req.session.user_id
+    )
+        return true;
+    try {
+        const response = await axios.get(
+            buildGraphAPIURL(
+                'debug_token',
+                { [PARAMS__INPUT_TOKEN]: req.session.access_token },
+                req.session.access_token
+            ),
+            { httpsAgent: agent, transformResponse: [parseUserIdResponse] }
+        );
+        const data = response.data?.data;
+        if (data?.is_valid !== true || data.user_id !== req.session.user_id)
+            return false;
+        req.session.user_id_binding = {
+            access_token: req.session.access_token,
+            user_id: req.session.user_id,
+        };
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+// Middleware to ensure the user is logged in with an app-scoped user ID.
+const loggedInUserChecker = (req, res, next) => {
+    if (
+        !req.session.access_token &&
+        initial_access_token &&
+        isAppScopedUserId(initial_user_id)
+    ) {
+        useInitialAuthenticationValues(req);
+    }
+    if (req.session.access_token && isAppScopedUserId(req.session.user_id)) {
+        return next();
+    }
+    if (req.method !== 'GET') {
+        return res.status(401).json({
+            error: true,
+            message: 'Sign in again to load your Threads app-scoped user ID.',
+        });
+    }
+    if (req.session.access_token) {
+        return res.status(401).render('index', {
+            title: 'Sign In',
+            error: 'Sign in again to load your Threads app-scoped user ID.',
+            returnUrl: req.originalUrl,
+        });
+    }
+    const returnUrl = encodeURIComponent(req.originalUrl);
+    return res.redirect(`/?${PARAMS__RETURN_URL}=${returnUrl}`);
 };
 
 app.get('/', async (req, res) => {
-    if (!(req.session.access_token) &&
-        (initial_access_token && initial_user_id)) {
+    if (
+        !req.session.access_token &&
+        initial_access_token &&
+        isAppScopedUserId(initial_user_id)
+    ) {
         useInitialAuthenticationValues(req);
         res.redirect('/account');
     } else {
         res.render('index', {
-            title: 'Index',
+            title: 'Home',
             returnUrl: req.query[PARAMS__RETURN_URL],
         });
     }
 });
 
-// Login route using OAuth
-app.get('/login', (req, res) => {
-    const url = buildGraphAPIURL('oauth/authorize', {
-        [PARAMS__SCOPE]: SCOPES.join(','),
-        [PARAMS__CLIENT_ID]: APP_ID,
-        [PARAMS__REDIRECT_URI]: REDIRECT_URI,
-        [PARAMS__RESPONSE_TYPE]: 'code',
-    }, null, AUTHORIZATION_BASE_URL);
+// Store single-use OAuth state outside snapshots saved by concurrent requests.
+const oauthStates = new Map();
+const OAUTH_STATE_LIFETIME_MS = 10 * 60 * 1000;
 
+function clearOAuthState(sessionID) {
+    const record = oauthStates.get(sessionID);
+    if (record) clearTimeout(record.timer);
+    oauthStates.delete(sessionID);
+}
+
+function createOAuthState(sessionID) {
+    clearOAuthState(sessionID);
+    const record = {
+        value: crypto.randomBytes(32).toString('hex'),
+        expiresAt: Date.now() + OAUTH_STATE_LIFETIME_MS,
+    };
+    record.timer = setTimeout(() => {
+        if (oauthStates.get(sessionID) === record)
+            oauthStates.delete(sessionID);
+    }, OAUTH_STATE_LIFETIME_MS);
+    record.timer.unref();
+    oauthStates.set(sessionID, record);
+    return record.value;
+}
+
+function consumeOAuthState(req, state) {
+    const record = oauthStates.get(req.sessionID);
+    if (
+        !record ||
+        record.expiresAt <= Date.now() ||
+        !matchesSessionToken(record.value, state)
+    )
+        return false;
+    clearOAuthState(req.sessionID);
+    return true;
+}
+
+const signInRateLimit = rateLimit({
+    windowMs: 60 * 1000,
+    limit: 20,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    handler: (_req, res, _next, options) => {
+        return res.status(options.statusCode).render('index', {
+            title: 'Sign In',
+            error: 'Too many sign-in requests. Wait a minute and try again.',
+        });
+    },
+});
+
+// Start OAuth with a state value bound to this browser session.
+app.get('/login', signInRateLimit, (req, res) => {
+    if (req.method !== 'GET') return res.sendStatus(405);
+    const state = createOAuthState(req.sessionID);
+    const url = buildGraphAPIURL(
+        'oauth/authorize',
+        {
+            [PARAMS__SCOPE]: SCOPES.join(','),
+            [PARAMS__CLIENT_ID]: APP_ID,
+            [PARAMS__REDIRECT_URI]: REDIRECT_URI,
+            [PARAMS__RESPONSE_TYPE]: 'code',
+            [PARAMS__STATE]: state,
+        },
+        null,
+        AUTHORIZATION_BASE_URL
+    );
     res.redirect(url);
 });
 
-// Callback route for OAuth user token And reroute to '/pages'
-app.get('/callback', async (req, res) => {
+// Verify the OAuth callback before exchanging the authorization code.
+app.get('/callback', signInRateLimit, async (req, res) => {
+    if (req.method !== 'GET') return res.sendStatus(405);
     const code = req.query.code;
-    const uri = buildGraphAPIURL('oauth/access_token', {}, null, GRAPH_API_BASE_URL);
+    const uri = buildGraphAPIURL(
+        'oauth/access_token',
+        {},
+        null,
+        GRAPH_API_BASE_URL
+    );
 
     try {
-        const response = await axios.post(uri, new URLSearchParams({
-            client_id: APP_ID,
-            client_secret: API_SECRET,
-            grant_type: 'authorization_code',
-            redirect_uri: REDIRECT_URI,
-            code,
-        }).toString(), {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            httpsAgent: agent,
-        });
+        if (!consumeOAuthState(req, req.query[PARAMS__STATE])) {
+            return res.status(403).render('index', {
+                title: 'Sign In',
+                error: 'The sign-in request could not be verified. Start sign-in again.',
+            });
+        }
+        if (typeof code !== 'string' || !code) {
+            return res.status(400).render('index', {
+                title: 'Sign In',
+                error: 'No authorization code was returned. Start sign-in again.',
+            });
+        }
+        const response = await axios.post(
+            uri,
+            new URLSearchParams({
+                client_id: APP_ID,
+                client_secret: API_SECRET,
+                grant_type: 'authorization_code',
+                redirect_uri: REDIRECT_URI,
+                code,
+            }).toString(),
+            {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                httpsAgent: agent,
+                transformResponse: [parseUserIdResponse],
+            }
+        );
+        if (
+            typeof response.data?.access_token !== 'string' ||
+            !response.data.access_token ||
+            !isAppScopedUserId(response.data.user_id)
+        ) {
+            return res.status(502).render('index', {
+                title: 'Sign In',
+                error: 'The sign-in response did not include a Threads app-scoped user ID. Try signing in again.',
+            });
+        }
         req.session.access_token = response.data.access_token;
+        req.session.user_id = response.data.user_id;
+        req.session.user_id_binding = {
+            access_token: req.session.access_token,
+            user_id: req.session.user_id,
+        };
+        const extendAccessTokenUrl = buildGraphAPIURL(
+            `access_token`,
+            {
+                grant_type: 'th_exchange_token',
+                client_secret: API_SECRET,
+            },
+            req.session.access_token
+        );
+        try {
+            const extendTokenResponse = await axios.get(extendAccessTokenUrl, {
+                httpsAgent: agent,
+            });
+            const extendedToken = extendTokenResponse.data?.access_token;
+            if (typeof extendedToken === 'string' && extendedToken) {
+                req.session.access_token = extendedToken;
+            }
+        } catch (e) {
+            console.error(e?.response?.data?.error?.message ?? e.message);
+        }
+        req.session.user_id_binding = {
+            access_token: req.session.access_token,
+            user_id: req.session.user_id,
+        };
         res.redirect('/account');
     } catch (err) {
-        console.error(err?.response?.data);
-        res.render('index', {
-            error: `There was an error with the request: ${err}`,
+        console.error('Unable to complete Threads sign-in.');
+        res.status(502).render('index', {
+            title: 'Sign In',
+            error: 'Unable to complete Threads sign-in. Try again.',
         });
     }
 });
 
 app.get('/account', loggedInUserChecker, async (req, res) => {
-    const getUserDetailsUrl = buildGraphAPIURL('me', {
-        [PARAMS__FIELDS]: [
-            FIELD__USERNAME,
-            FIELD__THREADS_PROFILE_PICTURE_URL,
-            FIELD__THREADS_BIOGRAPHY,
-        ].join(','),
-    }, req.session.access_token);
+    const getUserDetailsUrl = buildGraphAPIURL(
+        req.session.user_id,
+        {
+            [PARAMS__FIELDS]: [
+                FIELD__USERNAME,
+                FIELD__NAME,
+                FIELD__THREADS_PROFILE_PICTURE_URL,
+                FIELD__THREADS_BIOGRAPHY,
+                FIELD__IS_VERIFIED,
+            ].join(','),
+        },
+        req.session.access_token
+    );
 
     let userDetails = {};
     try {
-        const response = await axios.get(getUserDetailsUrl, { httpsAgent: agent });
+        const response = await axios.get(getUserDetailsUrl, {
+            httpsAgent: agent,
+        });
         userDetails = response.data;
 
-        // This value is not currently used but it may come handy in the future
-        if (!req.session.user_id)
-            req.session.user_id = response.data.id;
-
-        userDetails.user_profile_url = `https://www.threads.net/@${userDetails.username}`;
+        userDetails.user_profile_url = `https://www.threads.com/@${userDetails.username}`;
     } catch (e) {
         console.error(e);
     }
@@ -223,6 +536,36 @@ app.get('/account', loggedInUserChecker, async (req, res) => {
 
 app.get('/userInsights', loggedInUserChecker, async (req, res) => {
     const { since, until } = req.query;
+    const minDate = DateTime.utc().minus({ years: 2 }).toISODate();
+    let filterError;
+    for (const value of [since, until]) {
+        if (value === undefined || value === '') continue;
+        if (
+            typeof value !== 'string' ||
+            !/^\d{4}-\d{2}-\d{2}$/.test(value) ||
+            !DateTime.fromISO(value, { zone: 'utc' }).isValid
+        ) {
+            filterError = 'Enter valid dates in YYYY-MM-DD format.';
+            break;
+        }
+        if (value < minDate) {
+            filterError = `Choose dates on or after ${minDate}.`;
+            break;
+        }
+    }
+    if (!filterError && since && until && since > until) {
+        filterError = 'Since must be on or before Until.';
+    }
+    if (filterError) {
+        return res.status(400).render('user_insights', {
+            title: 'User Insights',
+            metrics: [],
+            since: typeof since === 'string' ? since : undefined,
+            until: typeof until === 'string' ? until : undefined,
+            minDate,
+            error: filterError,
+        });
+    }
 
     const params = {
         [PARAMS__METRIC]: [
@@ -231,8 +574,9 @@ app.get('/userInsights', loggedInUserChecker, async (req, res) => {
             FIELD__REPLIES,
             FIELD__QUOTES,
             FIELD__REPOSTS,
+            FIELD__CLICKS,
             FIELD__FOLLOWERS_COUNT,
-        ].join(',')
+        ].join(','),
     };
     if (since) {
         params.since = since;
@@ -241,11 +585,17 @@ app.get('/userInsights', loggedInUserChecker, async (req, res) => {
         params.until = until;
     }
 
-    const queryThreadUrl = buildGraphAPIURL(`me/threads_insights`, params, req.session.access_token);
+    const queryThreadUrl = buildGraphAPIURL(
+        `${req.session.user_id}/threads_insights`,
+        params,
+        req.session.access_token
+    );
 
     let data = [];
     try {
-        const queryResponse = await axios.get(queryThreadUrl, { httpsAgent: agent });
+        const queryResponse = await axios.get(queryThreadUrl, {
+            httpsAgent: agent,
+        });
         data = queryResponse.data;
     } catch (e) {
         console.error(e?.response?.data?.error?.message ?? e.message);
@@ -257,8 +607,9 @@ app.get('/userInsights', loggedInUserChecker, async (req, res) => {
         if (metric.name === FIELD__VIEWS) {
             // The "views" metric returns as a value for user insights
             getInsightsValue(metrics, index);
-        }
-        else {
+        } else if (metric.name === FIELD__CLICKS) {
+            getInsightsValueForClicks(metrics, index);
+        } else {
             // All other metrics return as a total value
             getInsightsTotalValue(metrics, index);
         }
@@ -269,65 +620,150 @@ app.get('/userInsights', loggedInUserChecker, async (req, res) => {
         metrics,
         since,
         until,
+        minDate,
     });
 });
 
+function formatQuotaWindow(seconds) {
+    if (!Number.isSafeInteger(seconds) || seconds <= 0) return undefined;
+
+    const parts = [];
+    // Show the standard window as 24 hours, not as a calendar day.
+    for (const [unit, size] of [
+        ['day', 86400],
+        ['hour', 3600],
+        ['minute', 60],
+        ['second', 1],
+    ]) {
+        if (unit === 'day' && seconds === size) continue;
+        const count = Math.floor(seconds / size);
+        seconds %= size;
+        if (count) parts.push(`${count} ${unit}${count === 1 ? '' : 's'}`);
+    }
+    return parts.join(' ');
+}
+
 app.get('/publishingLimit', loggedInUserChecker, async (req, res) => {
-    const params = {
-        [PARAMS__FIELDS]: [
+    const families = [
+        [
+            'Publishing',
+            'published',
+            'post',
+            'posts',
             PARAMS__QUOTA_USAGE,
             PARAMS__CONFIG,
+        ],
+        [
+            'Replies',
+            'posted',
+            'reply',
+            'replies',
             PARAMS__REPLY_QUOTA_USAGE,
-            PARAMS__REPLY_CONFIG
-        ].join(','),
+            PARAMS__REPLY_CONFIG,
+        ],
+        [
+            'Deletion',
+            'deleted',
+            'post',
+            'posts',
+            PARAMS__DELETE_QUOTA_USAGE,
+            PARAMS__DELETE_CONFIG,
+        ],
+        [
+            'Location Search',
+            'made',
+            'location search request',
+            'location search requests',
+            PARAMS__LOCATION_SEARCH_QUOTA_USAGE,
+            PARAMS__LOCATION_SEARCH_CONFIG,
+        ],
+    ];
+    const params = {
+        [PARAMS__FIELDS]: families
+            .flatMap(([, , , , usage, config]) => [usage, config])
+            .join(','),
     };
 
-    const publishingLimitUrl = buildGraphAPIURL(`me/threads_publishing_limit`, params, req.session.access_token);
+    const publishingLimitUrl = buildGraphAPIURL(
+        `${req.session.user_id}/threads_publishing_limit`,
+        params,
+        req.session.access_token
+    );
 
-    let data = [];
+    let data;
+    let error;
     try {
-        const queryResponse = await axios.get(publishingLimitUrl, { httpsAgent: agent });
-        data = queryResponse.data;
-    } catch (e) {
-        console.error(e?.response?.data?.error?.message ?? e.message);
+        const queryResponse = await axios.get(publishingLimitUrl, {
+            httpsAgent: agent,
+        });
+        const rows = queryResponse.data?.data;
+        if (!Array.isArray(rows)) throw new Error('Invalid quota response.');
+        data = rows[0];
+        if (
+            rows.length &&
+            (!data || typeof data !== 'object' || Array.isArray(data))
+        ) {
+            throw new Error('Invalid quota row.');
+        }
+    } catch {
+        data = undefined;
+        error = 'Unable to load quota information. Try again later.';
     }
 
-    data = data.data?.[0] ?? {};
+    const formatCount = new Intl.NumberFormat('en-US');
+    const quotas = families.map(
+        ([name, verb, singular, plural, usageField, configField]) => {
+            const used = data?.[usageField];
+            const config = data?.[configField];
+            const limit = config?.quota_total;
+            const window = formatQuotaWindow(config?.quota_duration);
+            const usage =
+                Number.isSafeInteger(used) &&
+                used >= 0 &&
+                Number.isSafeInteger(limit) &&
+                limit >= 0
+                    ? `You ${verb} ${formatCount.format(
+                          used
+                      )} out of ${formatCount.format(limit)} ${
+                          limit === 1 ? singular : plural
+                      }`
+                    : undefined;
+            return { name, usage, window };
+        }
+    );
 
-    const quotaUsage = data[PARAMS__QUOTA_USAGE];
-    const config = data[PARAMS__CONFIG];
-    const replyQuotaUsage = data[PARAMS__REPLY_QUOTA_USAGE];
-    const replyConfig = data[PARAMS__REPLY_CONFIG];
-
-    res.render('publishing_limit', {
+    return res.status(error ? 502 : 200).render('publishing_limit', {
         title: 'Publishing Limit',
-        quotaUsage,
-        config,
-        replyQuotaUsage,
-        replyConfig,
+        quotas,
+        error,
     });
 });
 
 app.get('/upload', loggedInUserChecker, (req, res) => {
-    const { replyToId, quotePostId } = req.query;
-    const title = replyToId === undefined ? 'Upload' : 'Upload (Reply)';
+    const { replyToId: replyToID, quotePostId: quotePostID } = req.query;
+    let title = 'Upload';
+    if (replyToID !== undefined) title = 'Upload (Reply)';
+    else if (quotePostID) title = 'Upload (Quote)';
     res.render('upload', {
         title,
-        replyToId,
-        quotePostId,
+        replyToId: replyToID,
+        quotePostId: quotePostID,
     });
 });
 
 app.post('/repost', upload.array(), async (req, res) => {
     const { repostId } = req.body;
 
-    const repostThreadsUrl = buildGraphAPIURL(`${repostId}/repost`, {}, req.session.access_token);
+    const repostThreadsUrl = buildGraphAPIURL(
+        `${repostId}/repost`,
+        {},
+        req.session.access_token
+    );
     try {
         const repostResponse = await axios.post(repostThreadsUrl, {});
         const containerId = repostResponse.data.id;
         return res.redirect(`threads/${containerId}`);
-    }
-    catch (e) {
+    } catch (e) {
         console.error(e.message);
         return res.json({
             error: true,
@@ -336,104 +772,261 @@ app.post('/repost', upload.array(), async (req, res) => {
     }
 });
 
-app.post('/upload', upload.array(), async (req, res) => {
-    const {
-        text,
-        attachmentType,
-        attachmentUrl,
-        attachmentAltText,
-        replyControl,
-        replyToId,
-        linkAttachment,
-        pollOptionA,
-        pollOptionB,
-        pollOptionC,
-        pollOptionD,
-        quotePostId
-    } = req.body;
-
-    const params = {
-        [PARAMS__TEXT]: text,
-        [PARAMS__REPLY_CONTROL]: replyControl,
-        [PARAMS__REPLY_TO_ID]: replyToId,
-        [PARAMS__LINK_ATTACHMENT]: linkAttachment,
-    };
-
-    if (pollOptionA && pollOptionB) {
-        const pollAttachment = JSON.stringify({
-            option_a: pollOptionA,
-            option_b: pollOptionB,
-            option_c: pollOptionC,
-            option_d: pollOptionD,
+const publishingRateLimit = rateLimit({
+    windowMs: 60 * 1000,
+    limit: 20,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    handler: (_req, res, _next, options) => {
+        res.status(options.statusCode).json({
+            error: true,
+            message:
+                'Too many publishing requests. Wait a minute and try again.',
         });
-        params[PARAMS__POLL_ATTACHMENT] = pollAttachment;
-    }
+    },
+});
 
-    if (quotePostId) {
-        params[PARAMS__QUOTE_POST_ID] = quotePostId;
-    }
+app.post(
+    '/upload',
+    publishingRateLimit,
+    loggedInUserChecker,
+    upload.array(),
+    async (req, res) => {
+        const {
+            text = '',
+            attachmentType = [],
+            attachmentUrl = [],
+            attachmentAltText = [],
+            replyControl,
+            replyToId,
+            topicTag = '',
+            linkAttachment,
+            autoPublishText,
+            pollOptionA,
+            pollOptionB,
+            pollOptionC,
+            pollOptionD,
+            quotePostId,
+            spoilerMedia,
+            ghostPostMedia,
+        } = req.body;
 
-    // No attachments
-    if (!attachmentType?.length) {
-        params.media_type = MEDIA_TYPE__TEXT;
-    }
-    // Single attachment
-    else if (attachmentType?.length === 1) {
-        addAttachmentFields(params, attachmentType[0], attachmentUrl[0], attachmentAltText[0]);
-    }
-    // Multiple attachments
-    else {
-        params.media_type = MEDIA_TYPE__CAROUSEL;
-        params.children = [];
-        attachmentType.forEach((type, i) => {
-            const child = {
-                is_carousel_item: true,
-            };
-            addAttachmentFields(child, type, attachmentUrl[i], attachmentAltText[i]);
-            params.children.push(child);
-        });
-    }
+        const pollOptions = [
+            pollOptionA,
+            pollOptionB,
+            pollOptionC,
+            pollOptionD,
+        ];
+        const pollAttached = pollOptions.some(Boolean);
+        const hasMediaAttachment =
+            Array.isArray(attachmentType) && attachmentType.length > 0;
+        const invalidInputTypes =
+            typeof text !== 'string' ||
+            typeof topicTag !== 'string' ||
+            (linkAttachment !== undefined &&
+                typeof linkAttachment !== 'string') ||
+            !Array.isArray(attachmentType) ||
+            !Array.isArray(attachmentUrl) ||
+            !Array.isArray(attachmentAltText);
 
-    if (params.media_type === MEDIA_TYPE__CAROUSEL) {
-        const createChildPromises = params.children.map(child => (
-            axios.post(
-                buildGraphAPIURL(`me/threads`, child, req.session.access_token),
-                {},
-            )
-        ));
+        if (
+            !invalidInputTypes &&
+            attachmentType.length > MAX_MEDIA_ATTACHMENTS
+        ) {
+            return res.status(400).json({
+                error: true,
+                message: 'Attach no more than 20 images or videos.',
+            });
+        }
+
+        const invalidMediaAttachments =
+            !invalidInputTypes &&
+            (attachmentType.length !== attachmentUrl.length ||
+                attachmentType.some(
+                    (type, i) =>
+                        !['Image', 'Video'].includes(type) ||
+                        typeof attachmentUrl[i] !== 'string' ||
+                        !attachmentUrl[i].trim()
+                ));
+
+        const invalidPollOptions =
+            (pollAttached &&
+                (!pollOptionA ||
+                    !pollOptionB ||
+                    (pollOptionD && !pollOptionC))) ||
+            pollOptions.some(
+                (option) => option !== undefined && typeof option !== 'string'
+            );
+
+        const incompatibleAttachments =
+            (pollAttached && linkAttachment) ||
+            (hasMediaAttachment &&
+                (linkAttachment || pollAttached || autoPublishText === 'on'));
+
+        if (
+            invalidInputTypes ||
+            invalidMediaAttachments ||
+            invalidPollOptions ||
+            incompatibleAttachments
+        ) {
+            return res.status(400).json({
+                error: true,
+                message:
+                    'Check the post options and attachments, then try again.',
+            });
+        }
+
+        const params = {
+            [PARAMS__REPLY_CONTROL]: replyControl,
+            [PARAMS__REPLY_TO_ID]: replyToId,
+        };
+        if (linkAttachment) {
+            params[PARAMS__LINK_ATTACHMENT] = linkAttachment;
+        }
+
+        if (text.includes(spoilerMarker)) {
+            parsedInput = textParser.extractSpoilerInfo(text);
+            processedText = parsedInput.text;
+            textEntites = parsedInput.textEntities;
+            params[PARAMS__TEXT] = processedText;
+            params[PARAMS_TEXT_ENTITES] = JSON.stringify(textEntites);
+        } else {
+            params[PARAMS__TEXT] = text;
+        }
+        if (
+            topicTag.length >= 1 &&
+            topicTag.length <= 50 &&
+            !topicTag.includes('.') &&
+            !topicTag.includes('&')
+        ) {
+            params[PARAMS__TOPIC_TAG] = topicTag;
+        }
+
+        if (spoilerMedia) {
+            params[PARAMS_IS_SPOILER_MEDIA] = true;
+        }
+
+        if (ghostPostMedia) {
+            params[PARAMS_IS_GHOST_POST] = true;
+        }
+
+        if (pollOptionA && pollOptionB) {
+            const pollAttachment = JSON.stringify({
+                option_a: pollOptionA,
+                option_b: pollOptionB,
+                option_c: pollOptionC,
+                option_d: pollOptionD,
+            });
+            params[PARAMS__POLL_ATTACHMENT] = pollAttachment;
+        }
+
+        if (quotePostId) {
+            params[PARAMS__QUOTE_POST_ID] = quotePostId;
+        }
+
+        // No attachments
+        if (!attachmentType?.length) {
+            params.media_type = MEDIA_TYPE__TEXT;
+        }
+        // Single attachment
+        else if (attachmentType?.length === 1) {
+            addAttachmentFields(
+                params,
+                attachmentType[0],
+                attachmentUrl[0],
+                attachmentAltText[0]
+            );
+        }
+        // Multiple attachments
+        else {
+            params.media_type = MEDIA_TYPE__CAROUSEL;
+            params.children = [];
+            attachmentType.forEach((type, i) => {
+                const child = {
+                    is_carousel_item: true,
+                };
+                addAttachmentFields(
+                    child,
+                    type,
+                    attachmentUrl[i],
+                    attachmentAltText[i]
+                );
+                params.children.push(child);
+            });
+        }
+
+        if (
+            autoPublishText === 'on' &&
+            params.media_type === MEDIA_TYPE__TEXT
+        ) {
+            params[PARAMS__AUTO_PUBLISH_TEXT] = true;
+        }
+
+        if (params.media_type === MEDIA_TYPE__CAROUSEL) {
+            const createChildPromises = params.children.map((child) =>
+                axios.post(
+                    buildGraphAPIURL(
+                        `${req.session.user_id}/threads`,
+                        child,
+                        req.session.access_token
+                    ),
+                    {}
+                )
+            );
+            try {
+                const createCarouselItemResponse = await Promise.all(
+                    createChildPromises
+                );
+                // Replace children with the IDs
+                params.children = createCarouselItemResponse
+                    .filter((response) => response.status === 200)
+                    .map((response) => response.data.id)
+                    .join(',');
+            } catch (e) {
+                console.error(e.message);
+                res.json({
+                    error: true,
+                    message: `Error creating child elements: ${e}`,
+                });
+                return;
+            }
+        }
+
+        const postThreadsUrl = buildGraphAPIURL(
+            `${req.session.user_id}/threads`,
+            params,
+            req.session.access_token
+        );
         try {
-            const createCarouselItemResponse = await Promise.all(createChildPromises);
-            // Replace children with the IDs
-            params.children = createCarouselItemResponse
-                .filter(response => response.status === 200)
-                .map(response => response.data.id)
-                .join(',');
+            const postResponse = await axios.post(
+                postThreadsUrl,
+                {},
+                { httpsAgent: agent }
+            );
+            const id = postResponse.data.id;
+            if (
+                autoPublishText === 'on' &&
+                params.media_type === MEDIA_TYPE__TEXT
+            ) {
+                // If auto_publish_text is on, the returned ID is the published Threads ID.
+                return res.json({
+                    redirectUrl: `/threads/${id}`,
+                });
+            } else {
+                // Otherwise, the returned ID is the container ID.
+                return res.json({
+                    id: id,
+                });
+            }
         } catch (e) {
             console.error(e.message);
             res.json({
                 error: true,
-                message: `Error creating child elements: ${e}`,
+                message: `Error during upload: ${e}`,
             });
-            return;
         }
     }
-
-    const postThreadsUrl = buildGraphAPIURL(`me/threads`, params, req.session.access_token);
-    try {
-        const postResponse = await axios.post(postThreadsUrl, {}, { httpsAgent: agent });
-        const containerId = postResponse.data.id;
-        res.json({
-            id: containerId,
-        });
-    }
-    catch (e) {
-        console.error(e.message);
-        res.json({
-            error: true,
-            message: `Error during upload: ${e}`,
-        });
-    }
-});
+);
 
 app.get('/publish/:containerId', loggedInUserChecker, async (req, res) => {
     const containerId = req.params.containerId;
@@ -443,93 +1036,265 @@ app.get('/publish/:containerId', loggedInUserChecker, async (req, res) => {
     });
 });
 
-app.get('/container/status/:containerId', loggedInUserChecker, async (req, res) => {
-    const { containerId } = req.params;
-    const getContainerStatusUrl = buildGraphAPIURL(containerId, {
-        [PARAMS__FIELDS]: [
-            FIELD__STATUS,
-            FIELD__ERROR_MESSAGE
-        ].join(','),
-    }, req.session.access_token);
+app.get(
+    '/container/status/:containerId',
+    loggedInUserChecker,
+    async (req, res) => {
+        const { containerId } = req.params;
+        const getContainerStatusUrl = buildGraphAPIURL(
+            containerId,
+            {
+                [PARAMS__FIELDS]: [FIELD__STATUS, FIELD__ERROR_MESSAGE].join(
+                    ','
+                ),
+            },
+            req.session.access_token
+        );
 
-    try {
-        const queryResponse = await axios.get(getContainerStatusUrl, { httpsAgent: agent });
-        res.json(queryResponse.data);
-    } catch (e) {
-        console.error(e.message);
-        res.json({
-            error: true,
-            message: `Error querying container status: ${e}`,
-        });
+        try {
+            const queryResponse = await axios.get(getContainerStatusUrl, {
+                httpsAgent: agent,
+            });
+            res.json(queryResponse.data);
+        } catch (e) {
+            console.error(e.message);
+            res.json({
+                error: true,
+                message: `Error querying container status: ${e}`,
+            });
+        }
     }
+);
+
+app.post(
+    '/publish',
+    publishingRateLimit,
+    loggedInUserChecker,
+    upload.array(),
+    async (req, res) => {
+        const { containerId } = req.body;
+        const publishThreadsUrl = buildGraphAPIURL(
+            `${req.session.user_id}/threads_publish`,
+            {
+                creation_id: containerId,
+            },
+            req.session.access_token
+        );
+
+        try {
+            const postResponse = await axios.post(publishThreadsUrl, {
+                httpsAgent: agent,
+            });
+            const threadId = postResponse.data.id;
+            res.json({
+                id: threadId,
+            });
+        } catch (e) {
+            console.error(e.message);
+            res.json({
+                error: true,
+                message: `Error during publishing: ${e}`,
+            });
+        }
+    }
+);
+
+function hasDisplayValue(value) {
+    if (value === null || value === undefined) return false;
+    if (typeof value === 'string') return value.trim() !== '';
+    if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === 'object') return Object.keys(value).length > 0;
+    return true;
+}
+
+function isWebUrl(value) {
+    return typeof value === 'string' && /^https?:\/\//i.test(value);
+}
+
+function formatPostTimestamp(timestamp) {
+    if (typeof timestamp !== 'string' || timestamp.trim() === '')
+        return timestamp;
+    const date = DateTime.fromISO(timestamp, { zone: 'utc', setZone: true });
+    return date.isValid
+        ? date
+              .toUTC()
+              .setLocale('en')
+              .toFormat("LLLL d, yyyy 'at' h:mm a 'UTC'")
+        : timestamp;
+}
+
+function getPostTimestampISO(timestamp) {
+    if (typeof timestamp !== 'string' || timestamp.trim() === '')
+        return undefined;
+    const date = DateTime.fromISO(timestamp, { zone: 'utc', setZone: true });
+    return date.isValid ? date.toUTC().toISO() : undefined;
+}
+
+app.locals.formatPostTimestamp = formatPostTimestamp;
+app.locals.getPostTimestampISO = getPostTimestampISO;
+
+const postDetailsRateLimit = rateLimit({
+    windowMs: 60 * 1000,
+    limit: 60,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    handler: (_req, res, _next, options) => {
+        res.status(options.statusCode).render('error', {
+            title: 'Post Details',
+            error: 'Too many post detail requests. Wait a minute and try again.',
+        });
+    },
 });
 
-app.post('/publish', upload.array(), async (req, res) => {
-    const { containerId } = req.body;
-    const publishThreadsUrl = buildGraphAPIURL(`me/threads_publish`, {
-        creation_id: containerId,
-    }, req.session.access_token);
+app.get(
+    '/threads/:threadId',
+    postDetailsRateLimit,
+    loggedInUserChecker,
+    async (req, res) => {
+        const { threadId } = req.params;
+        if (!/^\d+$/.test(threadId)) {
+            return res.status(400).render('error', {
+                title: 'Thread',
+                error: 'The post ID is invalid.',
+            });
+        }
+        let data = {};
+        let postLoaded = false;
+        let canDelete = false;
+        let error;
+        const queryThreadUrl = buildGraphAPIURL(
+            `${threadId}`,
+            {
+                [PARAMS__FIELDS]: [
+                    FIELD__TEXT,
+                    FIELD__MEDIA_TYPE,
+                    FIELD__MEDIA_URL,
+                    FIELD__GIF_URL,
+                    FIELD__PERMALINK,
+                    FIELD__TIMESTAMP,
+                    FIELD__IS_REPLY,
+                    FIELD__USERNAME,
+                    FIELD__REPLY_AUDIENCE,
+                    FIELD__ALT_TEXT,
+                    FIELD__LINK_ATTACHMENT_URL,
+                    FIELD__TOPIC_TAG,
+                    FIELD__POLL_ATTACHMENT,
+                    FIELD__IS_QUOTE_POST,
+                    FIELD__QUOTED_POST,
+                    FIELD__REPOSTED_POST,
+                    FIELD_IS_SPOILER_MEDIA,
+                    FIELD_TEXT_ENTITES,
+                    FIELD_GHOST_POST_STATUS,
+                ].join(','),
+            },
+            req.session.access_token
+        );
 
-    try {
-        const postResponse = await axios.post(publishThreadsUrl, { httpsAgent: agent });
-        const threadId = postResponse.data.id;
-        res.json({
-            id: threadId,
-        });
-    }
-    catch (e) {
-        console.error(e.message);
-        res.json({
-            error: true,
-            message: `Error during publishing: ${e}`,
-        });
-    }
-});
+        try {
+            const queryResponse = await axios.get(queryThreadUrl, {
+                httpsAgent: agent,
+            });
+            if (
+                !queryResponse.data ||
+                typeof queryResponse.data !== 'object' ||
+                Array.isArray(queryResponse.data) ||
+                !hasDisplayValue(queryResponse.data)
+            ) {
+                throw new Error('The API returned an empty or invalid post.');
+            }
+            const { poll_attachment, ghost_post_status, ...rest } =
+                queryResponse.data;
+            data = rest;
 
-app.get('/threads/:threadId', loggedInUserChecker, async (req, res) => {
-    const { threadId } = req.params;
-    let data = {};
-    const queryThreadUrl = buildGraphAPIURL(`${threadId}`, {
-        [PARAMS__FIELDS]: [
-            FIELD__TEXT,
-            FIELD__MEDIA_TYPE,
-            FIELD__MEDIA_URL,
-            FIELD__GIF_URL,
-            FIELD__PERMALINK,
-            FIELD__TIMESTAMP,
-            FIELD__IS_REPLY,
-            FIELD__USERNAME,
-            FIELD__REPLY_AUDIENCE,
-            FIELD__ALT_TEXT,
-            FIELD__LINK_ATTACHMENT_URL,
-            FIELD__POLL_ATTACHMENT,
-        ].join(','),
-    }, req.session.access_token);
+            if (poll_attachment) {
+                data = {
+                    ...data,
+                    ...poll_attachment,
+                };
+            }
 
-    try {
-        const queryResponse = await axios.get(queryThreadUrl, { httpsAgent: agent });
-        const { poll_attachment, ...rest } = queryResponse.data;
-        data = rest;
-
-        if (poll_attachment) {
+            const is_ghost_post = hasDisplayValue(ghost_post_status)
+                ? ghost_post_status === 'ACTIVE'
+                : undefined;
             data = {
                 ...data,
-                ...poll_attachment
+                is_ghost_post,
             };
+            postLoaded = true;
+        } catch (e) {
+            error = e?.response?.data?.error?.message ?? e.message;
+            console.error(error);
         }
-    } catch (e) {
-        console.error(e?.response?.data?.error?.message ?? e.message);
-    }
 
-    res.render('thread', {
-        threadId,
-        ...data,
-        title: 'Thread',
-    });
-});
+        if (DELETABLE_MEDIA_TYPES.includes(data.media_type)) {
+            try {
+                if (!(await verifySessionUserId(req))) {
+                    throw new Error(
+                        'The access token does not match the app-scoped user ID.'
+                    );
+                }
+                const userUrl = buildGraphAPIURL(
+                    req.session.user_id,
+                    { [PARAMS__FIELDS]: FIELD__ID },
+                    req.session.access_token
+                );
+                const userResponse = await axios.get(userUrl, {
+                    httpsAgent: agent,
+                });
+                const ownerUrl = buildGraphAPIURL(
+                    threadId,
+                    {
+                        [PARAMS__FIELDS]: [
+                            FIELD__ID,
+                            FIELD__MEDIA_TYPE,
+                            FIELD__OWNER,
+                        ].join(','),
+                    },
+                    req.session.access_token
+                );
+                const ownerResponse = await axios.get(ownerUrl, {
+                    httpsAgent: agent,
+                });
+                canDelete =
+                    userResponse.data.id === req.session.user_id &&
+                    ownerResponse.data.id === threadId &&
+                    ownerResponse.data.owner?.id === userResponse.data.id &&
+                    DELETABLE_MEDIA_TYPES.includes(
+                        ownerResponse.data.media_type
+                    );
+                if (canDelete && !req.session.deleteCsrfToken) {
+                    req.session.deleteCsrfToken = crypto
+                        .randomBytes(32)
+                        .toString('hex');
+                }
+            } catch (e) {
+                canDelete = false;
+                console.error(e?.response?.data?.error?.message ?? e.message);
+            }
+        }
+
+        res.render('thread', {
+            threadId,
+            ...data,
+            canDelete,
+            deleteCsrfToken: canDelete
+                ? req.session.deleteCsrfToken
+                : undefined,
+            error,
+            hasDisplayValue,
+            isWebUrl,
+            creationDateTime: formatPostTimestamp(data.timestamp),
+            postLoaded,
+            title: 'Post Details',
+        });
+    }
+);
 
 app.get('/threads', loggedInUserChecker, async (req, res) => {
     const { before, after, limit } = req.query;
+    if (!req.session.deleteCsrfToken) {
+        req.session.deleteCsrfToken = crypto.randomBytes(32).toString('hex');
+    }
     const params = {
         [PARAMS__FIELDS]: [
             FIELD__TEXT,
@@ -537,8 +1302,7 @@ app.get('/threads', loggedInUserChecker, async (req, res) => {
             FIELD__MEDIA_URL,
             FIELD__PERMALINK,
             FIELD__TIMESTAMP,
-            FIELD__REPLY_AUDIENCE,
-            FIELD__ALT_TEXT,
+            FIELD__USERNAME,
         ].join(','),
         limit: limit ?? DEFAULT_THREADS_QUERY_LIMIT,
     };
@@ -552,10 +1316,16 @@ app.get('/threads', loggedInUserChecker, async (req, res) => {
     let threads = [];
     let paging = {};
 
-    const queryThreadsUrl = buildGraphAPIURL(`me/threads`, params, req.session.access_token);
+    const queryThreadsUrl = buildGraphAPIURL(
+        `${req.session.user_id}/threads`,
+        params,
+        req.session.access_token
+    );
 
     try {
-        const queryResponse = await axios.get(queryThreadsUrl, { httpsAgent: agent });
+        const queryResponse = await axios.get(queryThreadsUrl, {
+            httpsAgent: agent,
+        });
         threads = queryResponse.data.data;
 
         if (queryResponse.data.paging) {
@@ -566,7 +1336,10 @@ app.get('/threads', loggedInUserChecker, async (req, res) => {
             }
 
             if (previous) {
-                paging.previousUrl = getCursorUrlFromGraphApiPagingUrl(req, previous);
+                paging.previousUrl = getCursorUrlFromGraphApiPagingUrl(
+                    req,
+                    previous
+                );
             }
         }
     } catch (e) {
@@ -576,9 +1349,144 @@ app.get('/threads', loggedInUserChecker, async (req, res) => {
     res.render('threads', {
         paging,
         threads,
+        canDelete: true,
+        deletableMediaTypes: DELETABLE_MEDIA_TYPES,
+        deleteCsrfToken: req.session.deleteCsrfToken,
         title: 'Threads',
     });
 });
+
+const deleteRateLimit = rateLimit({
+    windowMs: 60 * 1000,
+    limit: 10,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    handler: (_req, res, _next, options) => {
+        res.status(options.statusCode).render('error', {
+            title: 'Delete Post',
+            error: 'Too many delete requests. Wait a minute and try again.',
+        });
+    },
+});
+
+app.post(
+    ['/threads/:threadId/delete', '/threads/delete'],
+    deleteRateLimit,
+    loggedInUserChecker,
+    upload.array(),
+    async (req, res) => {
+        const { threadId } = req.params;
+        const selected = req.body.thread_ids;
+        const threadIds = [
+            ...new Set(
+                threadId
+                    ? [threadId]
+                    : Array.isArray(selected)
+                    ? selected
+                    : [selected]
+            ),
+        ];
+        const title = threadId ? 'Delete Post' : 'Delete Selected Posts';
+        if (
+            threadIds.length > 100 ||
+            !threadIds.every((id) => typeof id === 'string' && /^\d+$/.test(id))
+        ) {
+            return res.status(400).render('error', {
+                title,
+                error: 'The post ID is invalid.',
+            });
+        }
+        if (
+            !req.session.deleteCsrfToken ||
+            typeof req.body.csrfToken !== 'string' ||
+            req.body.csrfToken !== req.session.deleteCsrfToken
+        ) {
+            return res.status(403).render('error', {
+                title,
+                error: 'The request could not be verified. Open your posts and try again.',
+            });
+        }
+
+        try {
+            if (!(await verifySessionUserId(req))) {
+                return res.status(403).render('error', {
+                    title,
+                    error: 'The access token does not match the app-scoped user ID. Sign in again.',
+                });
+            }
+            const userUrl = buildGraphAPIURL(
+                req.session.user_id,
+                { [PARAMS__FIELDS]: FIELD__ID },
+                req.session.access_token
+            );
+            const userResponse = await axios.get(userUrl, {
+                httpsAgent: agent,
+            });
+            for (const threadId of threadIds) {
+                const postUrl = buildGraphAPIURL(
+                    threadId,
+                    {
+                        [PARAMS__FIELDS]: [
+                            FIELD__ID,
+                            FIELD__MEDIA_TYPE,
+                            FIELD__OWNER,
+                        ].join(','),
+                    },
+                    req.session.access_token
+                );
+                const postResponse = await axios.get(postUrl, {
+                    httpsAgent: agent,
+                });
+                if (
+                    !DELETABLE_MEDIA_TYPES.includes(
+                        postResponse.data.media_type
+                    )
+                ) {
+                    return res.status(403).render('error', {
+                        title,
+                        error: 'This post type is not supported for deletion in this sample.',
+                    });
+                }
+                if (
+                    userResponse.data.id !== req.session.user_id ||
+                    postResponse.data.id !== threadId ||
+                    postResponse.data.owner?.id !== userResponse.data.id
+                ) {
+                    return res.status(403).render('error', {
+                        title,
+                        error: 'This post cannot be deleted. Choose one of your posts on the Threads page.',
+                    });
+                }
+            }
+            for (const threadId of threadIds) {
+                const deleteUrl = buildGraphAPIURL(
+                    threadId,
+                    {},
+                    req.session.access_token
+                );
+                const response = await axios.delete(deleteUrl, {
+                    httpsAgent: agent,
+                });
+                if (
+                    response.data.success !== true ||
+                    response.data.deleted_id !== threadId
+                ) {
+                    return res.status(502).render('error', {
+                        title,
+                        error: 'Deletion was not confirmed. Refresh your posts before trying again.',
+                    });
+                }
+            }
+            return res.redirect(303, '/threads');
+        } catch (e) {
+            const error =
+                e?.response?.data?.error?.message ??
+                'Unable to confirm deletion. Refresh your posts before trying again.';
+            console.error(error);
+            return res.status(502).render('error', { title, error });
+        }
+    }
+);
 
 app.get('/replies', loggedInUserChecker, async (req, res) => {
     const { before, after, limit } = req.query;
@@ -589,7 +1497,7 @@ app.get('/replies', loggedInUserChecker, async (req, res) => {
             FIELD__MEDIA_URL,
             FIELD__PERMALINK,
             FIELD__TIMESTAMP,
-            FIELD__REPLY_AUDIENCE,
+            FIELD__USERNAME,
         ].join(','),
         limit: limit ?? DEFAULT_THREADS_QUERY_LIMIT,
     };
@@ -603,10 +1511,16 @@ app.get('/replies', loggedInUserChecker, async (req, res) => {
     let threads = [];
     let paging = {};
 
-    const queryRepliesUrl = buildGraphAPIURL(`me/replies`, params, req.session.access_token);
+    const queryRepliesUrl = buildGraphAPIURL(
+        `${req.session.user_id}/replies`,
+        params,
+        req.session.access_token
+    );
 
     try {
-        const queryResponse = await axios.get(queryRepliesUrl, { httpsAgent: agent });
+        const queryResponse = await axios.get(queryRepliesUrl, {
+            httpsAgent: agent,
+        });
         threads = queryResponse.data.data;
 
         if (queryResponse.data.paging) {
@@ -617,7 +1531,10 @@ app.get('/replies', loggedInUserChecker, async (req, res) => {
             }
 
             if (previous) {
-                paging.previousUrl = getCursorUrlFromGraphApiPagingUrl(req, previous);
+                paging.previousUrl = getCursorUrlFromGraphApiPagingUrl(
+                    req,
+                    previous
+                );
             }
         }
     } catch (e) {
@@ -635,30 +1552,6 @@ app.get('/threads/:threadId/replies', loggedInUserChecker, (req, res) => {
     showReplies(req, res, true);
 });
 
-app.post('/threads/delete', loggedInUserChecker, (req, res) => {
-    const { thread_ids } = req.body;
-    const threadIds = Array.isArray(thread_ids) ? thread_ids : [thread_ids];
-
-    const deletePromises = threadIds.map(threadId => {
-        if (threadId) {
-            const deleteThreadUrl = buildGraphAPIURL(`${threadId}`, {}, req.session.access_token);
-            return axios.delete(deleteThreadUrl, { httpsAgent: agent });
-        }
-    }).filter(Boolean);
-
-    Promise.all(deletePromises)
-        .then(() => {
-            res.redirect('/threads');
-        })
-        .catch((e) => {
-            console.error(e?.response?.data?.error?.message ?? e.message);
-            res.json({
-                error: true,
-                message: `Error deleting thread(s): ${e}`,
-            });
-        });
-});
-
 app.get('/threads/:threadId/conversation', loggedInUserChecker, (req, res) => {
     showReplies(req, res, false);
 });
@@ -672,12 +1565,17 @@ app.post('/manage_reply/:replyId', upload.array(), async (req, res) => {
         params[PARAMS__HIDE] = hide === 'true';
     }
 
-    const hideReplyUrl = buildGraphAPIURL(`${replyId}/manage_reply`, {}, req.session.access_token);
+    const hideReplyUrl = buildGraphAPIURL(
+        `${replyId}/manage_reply`,
+        {},
+        req.session.access_token
+    );
 
     try {
-        response = await axios.post(hideReplyUrl, params, { httpsAgent: agent });
-    }
-    catch (e) {
+        response = await axios.post(hideReplyUrl, params, {
+            httpsAgent: agent,
+        });
+    } catch (e) {
         console.error(e?.message);
         return res.status(e?.response?.status ?? 500).json({
             error: true,
@@ -688,50 +1586,61 @@ app.post('/manage_reply/:replyId', upload.array(), async (req, res) => {
     return res.sendStatus(200);
 });
 
-app.get('/threads/:threadId/insights', loggedInUserChecker, async (req, res) => {
-    const { threadId } = req.params;
-    const { since, until } = req.query;
+app.get(
+    '/threads/:threadId/insights',
+    loggedInUserChecker,
+    async (req, res) => {
+        const { threadId } = req.params;
+        const { since, until } = req.query;
 
-    const params = {
-        [PARAMS__METRIC]: [
-            FIELD__VIEWS,
-            FIELD__LIKES,
-            FIELD__REPLIES,
-            FIELD__REPOSTS,
-            FIELD__QUOTES,
-        ].join(',')
-    };
-    if (since) {
-        params.since = since;
+        const params = {
+            [PARAMS__METRIC]: [
+                FIELD__VIEWS,
+                FIELD__LIKES,
+                FIELD__REPLIES,
+                FIELD__REPOSTS,
+                FIELD__QUOTES,
+                FIELD__SHARES,
+            ].join(','),
+        };
+        if (since) {
+            params.since = since;
+        }
+        if (until) {
+            params.until = until;
+        }
+
+        const queryThreadUrl = buildGraphAPIURL(
+            `${threadId}/insights`,
+            params,
+            req.session.access_token
+        );
+
+        let data = [];
+        try {
+            const queryResponse = await axios.get(queryThreadUrl, {
+                httpsAgent: agent,
+            });
+            data = queryResponse.data;
+        } catch (e) {
+            console.error(e?.response?.data?.error?.message ?? e.message);
+        }
+
+        const metrics = data?.data ?? [];
+        for (const index in metrics) {
+            // All metrics return as a value (rather than total value) for media insights
+            getInsightsValue(metrics, index);
+        }
+
+        res.render('thread_insights', {
+            title: 'Thread Insights',
+            threadId,
+            metrics,
+            since,
+            until,
+        });
     }
-    if (until) {
-        params.until = until;
-    }
-
-    const queryThreadUrl = buildGraphAPIURL(`${threadId}/insights`, params, req.session.access_token);
-
-    let data = [];
-    try {
-        const queryResponse = await axios.get(queryThreadUrl, { httpsAgent: agent });
-        data = queryResponse.data;
-    } catch (e) {
-        console.error(e?.response?.data?.error?.message ?? e.message);
-    }
-
-    const metrics = data?.data ?? [];
-    for (const index in metrics) {
-        // All metrics return as a value (rather than total value) for media insights
-        getInsightsValue(metrics, index);
-    }
-
-    res.render('thread_insights', {
-        title: 'Thread Insights',
-        threadId,
-        metrics,
-        since,
-        until,
-    });
-});
+);
 
 app.get('/mentions', loggedInUserChecker, async (req, res) => {
     const { before, after, limit } = req.query;
@@ -743,8 +1652,6 @@ app.get('/mentions', loggedInUserChecker, async (req, res) => {
             FIELD__MEDIA_URL,
             FIELD__PERMALINK,
             FIELD__TIMESTAMP,
-            FIELD__REPLY_AUDIENCE,
-            FIELD__ALT_TEXT,
         ].join(','),
         limit: limit ?? DEFAULT_THREADS_QUERY_LIMIT,
     };
@@ -755,13 +1662,19 @@ app.get('/mentions', loggedInUserChecker, async (req, res) => {
         params.after = after;
     }
 
-    const queryMentionsUrl = buildGraphAPIURL(`me/mentions`, params, req.session.access_token);
+    const queryMentionsUrl = buildGraphAPIURL(
+        `${req.session.user_id}/mentions`,
+        params,
+        req.session.access_token
+    );
 
     let threads = [];
     let paging = {};
 
     try {
-        const queryResponse = await axios.get(queryMentionsUrl, { httpsAgent: agent });
+        const queryResponse = await axios.get(queryMentionsUrl, {
+            httpsAgent: agent,
+        });
         threads = queryResponse.data.data;
 
         if (queryResponse.data.paging) {
@@ -772,7 +1685,10 @@ app.get('/mentions', loggedInUserChecker, async (req, res) => {
             }
 
             if (previous) {
-                paging.previousUrl = getCursorUrlFromGraphApiPagingUrl(req, previous);
+                paging.previousUrl = getCursorUrlFromGraphApiPagingUrl(
+                    req,
+                    previous
+                );
             }
         }
     } catch (e) {
@@ -786,36 +1702,200 @@ app.get('/mentions', loggedInUserChecker, async (req, res) => {
     });
 });
 
+app.get('/debug', loggedInUserChecker, async (req, res) => {
+    const params = {
+        [PARAMS__INPUT_TOKEN]: req.session.access_token,
+    };
+
+    const debugAccessTokenUrl = buildGraphAPIURL(
+        `debug_token`,
+        params,
+        req.session.access_token
+    );
+
+    try {
+        const response = await axios.get(debugAccessTokenUrl, {
+            httpsAgent: agent,
+            transformResponse: [parseUserIdResponse],
+        });
+        const data = response.data?.data;
+        if (
+            !isAppScopedUserId(data?.[FIELD__APP_SCOPED_USER_ID]) ||
+            !Array.isArray(data[FIELD__SCOPES]) ||
+            !data[FIELD__SCOPES].every((scope) => typeof scope === 'string') ||
+            !Number.isFinite(data[FIELD__EXPIRES_AT]) ||
+            !Number.isFinite(data[FIELD__ISSUED_AT])
+        ) {
+            throw new Error('Invalid token metadata.');
+        }
+        return res.render('debug', {
+            title: 'Inspect Access Token',
+            applicationName: data[FIELD__APPLICATION],
+            expiresAt: formatTimestamp(data[FIELD__EXPIRES_AT]),
+            expiresAtISO: DateTime.fromSeconds(data[FIELD__EXPIRES_AT], {
+                zone: 'utc',
+            }).toISO(),
+            issuedAt: formatTimestamp(data[FIELD__ISSUED_AT]),
+            issuedAtISO: DateTime.fromSeconds(data[FIELD__ISSUED_AT], {
+                zone: 'utc',
+            }).toISO(),
+            permissions: data[FIELD__SCOPES],
+            appScopedUserId: data[FIELD__APP_SCOPED_USER_ID],
+        });
+    } catch {
+        return res.status(502).render('debug', {
+            title: 'Inspect Access Token',
+            error: 'Unable to inspect the access token. Try again.',
+        });
+    }
+});
+
 app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
-    const { keyword, searchType } = req.query;
+    const { keyword, searchType = 'TOP', before, after, limit } = req.query;
+    const { searchMode = 'KEYWORD', since, until } = req.query;
+    const { mediaType = '', authorUsername = '' } = req.query;
+    const author =
+        typeof authorUsername === 'string' ? authorUsername.trim() : '';
+    const mediaAuthorFilters = { mediaType, authorUsername: author };
+    const hasLimit =
+        limit !== undefined &&
+        (typeof limit !== 'string' || limit.trim() !== '');
+    const pageSize =
+        hasLimit && typeof limit === 'string' ? Number(limit) : undefined;
+    let filterError;
+    if (
+        !['', MEDIA_TYPE__TEXT, MEDIA_TYPE__IMAGE, MEDIA_TYPE__VIDEO].includes(
+            mediaType
+        )
+    ) {
+        filterError = 'Choose All Media Types, Text, Image or Video.';
+    } else if (typeof authorUsername !== 'string' || author.includes('@')) {
+        filterError = 'Enter an author username without the @ symbol.';
+    }
+    if (filterError) {
+        return res.status(400).render('keyword_search', {
+            title: 'Search for Threads',
+            ...mediaAuthorFilters,
+            keyword,
+            searchType,
+            searchMode,
+            since: typeof since === 'string' ? since : undefined,
+            until: typeof until === 'string' ? until : undefined,
+            limit: typeof limit === 'string' ? limit : undefined,
+            error: filterError,
+        });
+    }
+
+    if (!['KEYWORD', 'TAG'].includes(searchMode)) {
+        return res.status(400).render('keyword_search', {
+            title: 'Search for Threads',
+            ...mediaAuthorFilters,
+            keyword,
+            searchType,
+            searchMode,
+            since: typeof since === 'string' ? since : undefined,
+            until: typeof until === 'string' ? until : undefined,
+            limit: typeof limit === 'string' ? limit : undefined,
+            error: 'Choose Keyword or Topic Tag for the search mode.',
+        });
+    }
+    if (
+        hasLimit &&
+        (typeof limit !== 'string' ||
+            !Number.isInteger(pageSize) ||
+            pageSize < 0 ||
+            pageSize > 100)
+    ) {
+        return res.status(400).render('keyword_search', {
+            title: 'Search for Threads',
+            ...mediaAuthorFilters,
+            keyword,
+            searchType,
+            searchMode,
+            since: typeof since === 'string' ? since : undefined,
+            until: typeof until === 'string' ? until : undefined,
+            limit: typeof limit === 'string' ? limit : undefined,
+            error: 'Page size must be a whole number from 0 to 100.',
+        });
+    }
+    if (
+        (since !== undefined && typeof since !== 'string') ||
+        (until !== undefined && typeof until !== 'string')
+    ) {
+        return res.status(400).render('keyword_search', {
+            title: 'Search for Threads',
+            ...mediaAuthorFilters,
+            keyword,
+            searchType,
+            searchMode,
+            limit: pageSize,
+            error: 'Use a date or Unix timestamp for Since and Until.',
+        });
+    }
 
     if (!keyword) {
         return res.render('keyword_search', {
             title: 'Search for Threads',
+            ...mediaAuthorFilters,
+            searchMode,
+            searchType,
+            since,
+            until,
+            limit: pageSize,
         });
     }
 
     const params = {
         [PARAMS__Q]: keyword,
+        [PARAMS__SEARCH_MODE]: searchMode,
         [PARAMS__SEARCH_TYPE]: searchType,
         [PARAMS__FIELDS]: [
             FIELD__USERNAME,
             FIELD__ID,
             FIELD__TIMESTAMP,
             FIELD__MEDIA_TYPE,
+            FIELD__TOPIC_TAG,
             FIELD__TEXT,
             FIELD__PERMALINK,
-            FIELD__REPLY_AUDIENCE,
-        ].join(',')
+            FIELD__MEDIA_URL,
+        ].join(','),
     };
 
-    const keywordSearchUrl = buildGraphAPIURL(`keyword_search`, params, req.session.access_token);
+    if (before) {
+        params[PARAMS__BEFORE] = before;
+    }
+    if (after) {
+        params[PARAMS__AFTER] = after;
+    }
+    if (hasLimit) {
+        params[PARAMS__LIMIT] = pageSize;
+    }
+    if (since && since.trim()) {
+        params[PARAMS__SINCE] = since.trim();
+    }
+    if (until && until.trim()) {
+        params[PARAMS__UNTIL] = until.trim();
+    }
+    if (mediaType) {
+        params[PARAMS__MEDIA_TYPE] = mediaType;
+    }
+    if (author) {
+        params[PARAMS__AUTHOR_USERNAME] = author;
+    }
+
+    const keywordSearchUrl = buildGraphAPIURL(
+        `keyword_search`,
+        params,
+        req.session.access_token
+    );
 
     let threads = [];
     let paging = {};
 
     try {
-        const response = await axios.get(keywordSearchUrl, { httpsAgent: agent });
+        const response = await axios.get(keywordSearchUrl, {
+            httpsAgent: agent,
+        });
         threads = response.data.data;
 
         if (response.data.paging) {
@@ -824,68 +1904,361 @@ app.get('/keywordSearch', loggedInUserChecker, async (req, res) => {
             if (next) {
                 paging.nextUrl = getCursorUrlFromGraphApiPagingUrl(req, next);
             }
+            if (previous) {
+                paging.previousUrl = getCursorUrlFromGraphApiPagingUrl(
+                    req,
+                    previous
+                );
+            }
         }
     } catch (e) {
         console.error(e?.response?.data?.error?.message ?? e.message);
+        return res.render('keyword_search', {
+            title: 'Search for Threads',
+            ...mediaAuthorFilters,
+            keyword,
+            searchType,
+            searchMode,
+            since,
+            until,
+            limit: pageSize,
+            error: e?.response?.data?.error?.message ?? e.message,
+        });
     }
 
+    const resultTypeLabel = searchType === 'RECENT' ? 'Recent' : 'Top';
     return res.render('keyword_search', {
         title: 'Search for Threads',
+        ...mediaAuthorFilters,
+        keyword,
+        searchType,
+        searchMode,
+        since,
+        until,
+        limit: pageSize,
         threads,
         paging,
-        resultsTitle: `${searchType} results for '${keyword}'`,
+        formatPostTimestamp,
+        resultsTitle: `${resultTypeLabel} ${
+            searchMode === 'TAG' ? 'Topic Tag' : 'Keyword'
+        } Results for '${keyword}'`,
     });
 });
 
-// Logout route to kill the session
-app.get('/logout', (req, res) => {
-    if (req.session) {
-        req.session.destroy((err) => {
-            if (err) {
-                res.render('index', { error: 'Unable to log out' });
-            } else {
-                res.render('index', { response: 'Logout successful!' });
-            }
+const logoutRateLimit = rateLimit({
+    windowMs: 60 * 1000,
+    limit: 20,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    handler: (_req, res, _next, options) => {
+        return res.status(options.statusCode).json({
+            error: true,
+            message: 'Too many sign-out requests. Wait a minute and try again.',
         });
-    } else {
-        res.render('index', { response: 'Token not stored in session' });
-    }
+    },
+});
+
+// Logout route to destroy the authenticated session.
+app.post('/logout', logoutRateLimit, (req, res) => {
+    clearOAuthState(req.sessionID);
+    req.session.destroy((err) => {
+        if (err) {
+            return res.status(500).render('index', {
+                title: 'Home',
+                error: 'Unable to log out.',
+            });
+        }
+        res.clearCookie('connect.sid', { sameSite: 'lax' });
+        delete res.locals.csrfToken;
+        res.render('index', { title: 'Home', message: 'Logged out.' });
+    });
 });
 
 app.get('/oEmbed', async (req, res) => {
-    const { url } = req.query;
-    if (!url) {
-        return res.render('oembed', {
-            title: 'Embed Threads',
+    const { url, theme = 'light' } = req.query;
+    const values = {
+        title: 'Embed Threads',
+        url: typeof url === 'string' ? url : undefined,
+        theme: ['light', 'dark', 'auto'].includes(theme) ? theme : 'light',
+    };
+    if (!['light', 'dark', 'auto'].includes(theme)) {
+        return res.status(400).render('oembed', {
+            ...values,
+            error: 'Choose Light, Dark, or Auto for the embed theme.',
+        });
+    }
+    if (url === undefined || url === '') {
+        return res.render('oembed', values);
+    }
+    if (typeof url !== 'string') {
+        return res.status(400).render('oembed', {
+            ...values,
+            error: 'Enter a Threads post or profile URL.',
         });
     }
 
-    const oEmbedUrl = buildGraphAPIURL(`oembed`, {
-        url,
-    }, `TH|${APP_ID}|${API_SECRET}`);
-
-    let html = '<p>Unable to embed</p>';
+    const oEmbedURL = buildGraphAPIURL('oembed', {
+        [PARAMS__URL]: url,
+        [PARAMS__THEME]: theme,
+    });
     try {
-        const response = await axios.get(oEmbedUrl, { httpsAgent: agent });
-        if (response.data?.html) {
-            html = response.data.html;
+        const response = await axios.get(oEmbedURL, {
+            httpsAgent: agent,
+            maxRedirects: 0,
+        });
+        if (
+            typeof response.data?.html !== 'string' ||
+            !response.data.html.trim() ||
+            Object.prototype.hasOwnProperty.call(response.data, 'error')
+        ) {
+            throw new Error('Invalid embed response.');
         }
-    } catch (e) {
-        console.error(e?.response?.data?.error?.message ?? e.message);
+        return res.render('oembed', { ...values, html: response.data.html });
+    } catch {
+        return res.status(502).render('oembed', {
+            ...values,
+            error: 'Unable to load this embed. Check the URL and try again.',
+        });
+    }
+});
+
+function getProfileUsername(input) {
+    if (typeof input !== 'string') return undefined;
+    let username = input.trim();
+    if (!username) return '';
+    if (/^https?:\/\//i.test(username)) {
+        try {
+            if (/[\\\s]/.test(username)) return undefined;
+            const rawURL = username.match(/^https?:\/\/([^/?#]+)(\/[^?#]*)/i);
+            if (!rawURL || !/^(?:www\.)?threads\.(?:com|net)$/i.test(rawURL[1]))
+                return undefined;
+            const profileURL = new URL(username);
+            if (
+                !['http:', 'https:'].includes(profileURL.protocol) ||
+                ![
+                    'threads.com',
+                    'www.threads.com',
+                    'threads.net',
+                    'www.threads.net',
+                ].includes(profileURL.hostname) ||
+                profileURL.username ||
+                profileURL.password ||
+                profileURL.port
+            )
+                return undefined;
+            const profilePath = rawURL[2].match(/^\/@([^/]+)\/?$/);
+            if (!profilePath) return undefined;
+            username = decodeURIComponent(profilePath[1]);
+        } catch {
+            return undefined;
+        }
+    } else if (username.startsWith('@')) {
+        username = username.slice(1);
+    }
+    return username && !/[\s/@?#\\:<>&]/.test(username) ? username : undefined;
+}
+
+app.get('/profileLookup', async (req, res) => {
+    const { username: usernameInput, before, after, limit } = req.query;
+    const username = getProfileUsername(usernameInput);
+    if (usernameInput === undefined || username === '') {
+        return res.render('profile_lookup', {
+            title: 'Profile Lookup',
+            usernameInput,
+        });
+    }
+    if (username === undefined) {
+        return res.status(400).render('profile_lookup', {
+            title: 'Profile Lookup',
+            usernameInput:
+                typeof usernameInput === 'string' ? usernameInput : undefined,
+            error: 'Enter a username or a Threads profile URL.',
+        });
     }
 
-    return res.render('oembed', {
-        title: 'Embed Threads',
-        html,
-        url,
+    const profileUnavailableMessage =
+        'This profile is unavailable or cannot be accessed. Try another username or check your access.';
+    const params = {
+        [PARAMS__USERNAME]: username,
+    };
+
+    const profileLookupUrl = buildGraphAPIURL(
+        `profile_lookup`,
+        params,
+        req.session.access_token
+    );
+
+    let response;
+    try {
+        response = await axios.get(profileLookupUrl, { httpsAgent: agent });
+        if (
+            !response.data ||
+            typeof response.data !== 'object' ||
+            Array.isArray(response.data) ||
+            Object.prototype.hasOwnProperty.call(response.data, 'error')
+        ) {
+            throw new Error(profileUnavailableMessage);
+        }
+        const hasProfileText = [
+            'name',
+            'biography',
+            'profile_picture_url',
+        ].some(
+            (field) =>
+                typeof response.data[field] === 'string' &&
+                response.data[field].trim() !== ''
+        );
+        const hasProfileCount = [
+            'follower_count',
+            'likes_count',
+            'quotes_count',
+            'replies_count',
+            'reposts_count',
+            'views_count',
+        ].some(
+            (field) =>
+                typeof response.data[field] === 'number' &&
+                Number.isFinite(response.data[field]) &&
+                response.data[field] >= 0
+        );
+        if (
+            !hasProfileText &&
+            !hasProfileCount &&
+            typeof response.data.is_verified !== 'boolean'
+        ) {
+            throw new Error(profileUnavailableMessage);
+        }
+    } catch {
+        console.error(profileUnavailableMessage);
+        return res.status(502).render('profile_lookup', {
+            title: 'Profile Lookup',
+            usernameInput,
+            error: profileUnavailableMessage,
+        });
+    }
+
+    const displayName = response.data?.name;
+    const profilePictureUrl = response.data?.profile_picture_url;
+    const isVerified = response.data?.is_verified;
+    const bio = response.data?.biography;
+    const formatCount = (count) =>
+        count ? count.toLocaleString('en-US') : undefined;
+    const followerCount = formatCount(response.data?.follower_count);
+    const likesCount = formatCount(response.data?.likes_count);
+    const quotesCount = formatCount(response.data?.quotes_count);
+    const repliesCount = formatCount(response.data?.replies_count);
+    const repostsCount = formatCount(response.data?.reposts_count);
+    const viewsCount = formatCount(response.data?.views_count);
+
+    const profilePostsParams = {
+        [PARAMS__FIELDS]: [
+            FIELD__TEXT,
+            FIELD__MEDIA_TYPE,
+            FIELD__MEDIA_URL,
+            FIELD__PERMALINK,
+            FIELD__TIMESTAMP,
+        ].join(','),
+        limit: limit ?? DEFAULT_THREADS_QUERY_LIMIT,
+        [PARAMS__USERNAME]: username,
+    };
+    if (before) {
+        profilePostsParams.before = before;
+    }
+    if (after) {
+        profilePostsParams.after = after;
+    }
+
+    let threads = [];
+    let paging = {};
+    let postsLoaded = false;
+    let error;
+
+    const queryThreadsUrl = buildGraphAPIURL(
+        `profile_posts`,
+        profilePostsParams,
+        req.session.access_token
+    );
+
+    try {
+        const queryResponse = await axios.get(queryThreadsUrl, {
+            httpsAgent: agent,
+        });
+        if (
+            !queryResponse.data ||
+            typeof queryResponse.data !== 'object' ||
+            Array.isArray(queryResponse.data) ||
+            Object.prototype.hasOwnProperty.call(queryResponse.data, 'error') ||
+            !Array.isArray(queryResponse.data.data) ||
+            queryResponse.data.data.some(
+                (thread) =>
+                    !thread ||
+                    typeof thread !== 'object' ||
+                    Array.isArray(thread) ||
+                    typeof thread.id !== 'string' ||
+                    !/^[1-9]\d*$/.test(thread.id) ||
+                    thread.id.trim() !== thread.id
+            )
+        ) {
+            throw new Error('Profile posts could not be retrieved.');
+        }
+        threads = queryResponse.data.data;
+
+        if (queryResponse.data.paging) {
+            const { next, previous } = queryResponse.data.paging;
+
+            if (next) {
+                paging.nextUrl = getCursorUrlFromGraphApiPagingUrl(req, next);
+            }
+
+            if (previous) {
+                paging.previousUrl = getCursorUrlFromGraphApiPagingUrl(
+                    req,
+                    previous
+                );
+            }
+        }
+        postsLoaded = true;
+    } catch {
+        threads = [];
+        paging = {};
+        error =
+            'The profile loaded, but its posts could not be retrieved. Try again.';
+        console.error(error);
+        res.status(502);
+    }
+
+    return res.render('profile_lookup', {
+        title: 'Profile Lookup for @'.concat(username),
+        username,
+        usernameInput,
+        profileLoaded: true,
+        postsLoaded,
+        error,
+        displayName,
+        profilePictureUrl,
+        isVerified,
+        bio,
+        followerCount,
+        likesCount,
+        quotesCount,
+        repliesCount,
+        repostsCount,
+        viewsCount,
+        paging,
+        threads,
     });
 });
 
 https
-    .createServer({
-        key: fs.readFileSync(path.join(__dirname, '../'+ HOST +'-key.pem')),
-        cert: fs.readFileSync(path.join(__dirname, '../'+ HOST +'.pem')),
-    }, app)
+    .createServer(
+        {
+            key: fs.readFileSync(
+                path.join(__dirname, '../' + HOST + '-key.pem')
+            ),
+            cert: fs.readFileSync(path.join(__dirname, '../' + HOST + '.pem')),
+        },
+        app
+    )
     .listen(PORT, HOST, (err) => {
         if (err) {
             console.error(`Error: ${err}`);
@@ -916,6 +2289,7 @@ function useInitialAuthenticationValues(req) {
     // Use initial values
     req.session.access_token = initial_access_token;
     req.session.user_id = initial_user_id;
+    req.session.user_id_binding = undefined;
     // Clear initial values to enable signing out
     initial_access_token = undefined;
     initial_user_id = undefined;
@@ -942,6 +2316,21 @@ function getInsightsTotalValue(metrics, index) {
 }
 
 /**
+ * @param {{ value?: number, link_total_values: { value: number }[] }[]} metrics
+ * @param {number} index
+ */
+function getInsightsValueForClicks(metrics, index) {
+    if (metrics[index] && metrics[index].link_total_values) {
+        metrics[index].value = metrics[index]?.link_total_values?.reduce(
+            (sum, { value }) => sum + value,
+            0
+        );
+    } else {
+        metrics[index].value = 0;
+    }
+}
+
+/**
  * @param {object} target
  * @param {string} attachmentType
  * @param {string} url
@@ -956,6 +2345,16 @@ function addAttachmentFields(target, attachmentType, url, altText) {
         target.video_url = url;
         target.alt_text = altText;
     }
+}
+
+/**
+ * @param {int} timestamp
+ */
+function formatTimestamp(timestamp) {
+    const userTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return DateTime.fromSeconds(timestamp, {
+        zone: userTimeZone,
+    }).toLocaleString(DateTime.DATETIME_FULL_WITH_SECONDS);
 }
 
 /**
@@ -977,12 +2376,26 @@ function setUrlParamIfPresent(sourceUrl, destinationUrl, paramName) {
 function getCursorUrlFromGraphApiPagingUrl(req, graphApiPagingUrl) {
     const graphUrl = new URL(graphApiPagingUrl);
 
-    const cursorUrl = new URL(req.protocol + '://' + req.get('host') + req.originalUrl);
+    const requestUrl = new URL(
+        req.protocol + '://' + req.get('host') + req.originalUrl
+    );
+    const cursorUrl = new URL(requestUrl);
     cursorUrl.search = '';
 
-    setUrlParamIfPresent(graphUrl, cursorUrl, 'limit');
-    setUrlParamIfPresent(graphUrl, cursorUrl, 'before');
-    setUrlParamIfPresent(graphUrl, cursorUrl, 'after');
+    setUrlParamIfPresent(requestUrl, cursorUrl, 'keyword');
+    setUrlParamIfPresent(requestUrl, cursorUrl, 'searchMode');
+    setUrlParamIfPresent(requestUrl, cursorUrl, 'searchType');
+    setUrlParamIfPresent(requestUrl, cursorUrl, 'mediaType');
+    setUrlParamIfPresent(requestUrl, cursorUrl, 'authorUsername');
+    setUrlParamIfPresent(requestUrl, cursorUrl, PARAMS__SINCE);
+    setUrlParamIfPresent(requestUrl, cursorUrl, PARAMS__UNTIL);
+    setUrlParamIfPresent(requestUrl, cursorUrl, PARAMS__LIMIT);
+    setUrlParamIfPresent(graphUrl, cursorUrl, PARAMS__LIMIT);
+    setUrlParamIfPresent(graphUrl, cursorUrl, PARAMS__SINCE);
+    setUrlParamIfPresent(graphUrl, cursorUrl, PARAMS__UNTIL);
+    setUrlParamIfPresent(graphUrl, cursorUrl, PARAMS__BEFORE);
+    setUrlParamIfPresent(graphUrl, cursorUrl, PARAMS__AFTER);
+    setUrlParamIfPresent(graphUrl, cursorUrl, 'username');
 
     return cursorUrl.href;
 }
@@ -1004,6 +2417,7 @@ async function showReplies(req, res, isTopLevel) {
             FIELD__PERMALINK,
             FIELD__TIMESTAMP,
             FIELD__USERNAME,
+            FIELD__OWNER,
             FIELD__HIDE_STATUS,
             FIELD__ALT_TEXT,
         ].join(','),
@@ -1020,10 +2434,16 @@ async function showReplies(req, res, isTopLevel) {
     let paging = {};
 
     const repliesOrConversation = isTopLevel ? 'replies' : 'conversation';
-    const queryThreadsUrl = buildGraphAPIURL(`${threadId}/${repliesOrConversation}`, params, req.session.access_token);
+    const queryThreadsUrl = buildGraphAPIURL(
+        `${threadId}/${repliesOrConversation}`,
+        params,
+        req.session.access_token
+    );
 
     try {
-        const queryResponse = await axios.get(queryThreadsUrl, { httpsAgent: agent });
+        const queryResponse = await axios.get(queryThreadsUrl, {
+            httpsAgent: agent,
+        });
         replies = queryResponse.data.data;
 
         if (queryResponse.data.paging) {
@@ -1033,13 +2453,31 @@ async function showReplies(req, res, isTopLevel) {
                 paging.nextUrl = getCursorUrlFromGraphApiPagingUrl(req, next);
 
             if (previous)
-                paging.previousUrl = getCursorUrlFromGraphApiPagingUrl(req, previous);
+                paging.previousUrl = getCursorUrlFromGraphApiPagingUrl(
+                    req,
+                    previous
+                );
         }
     } catch (e) {
         console.error(e?.response?.data?.error?.message ?? e.message);
     }
 
+    const deletableReplies =
+        isTopLevel &&
+        replies.some(
+            (reply) =>
+                reply.owner?.id === req.session.user_id &&
+                DELETABLE_MEDIA_TYPES.includes(reply.media_type)
+        );
+    if (deletableReplies) {
+        req.session.deleteCsrfToken ??= crypto.randomBytes(32).toString('hex');
+    }
+
     res.render(isTopLevel ? 'thread_replies' : 'thread_conversation', {
+        deletableReplies,
+        deletableMediaTypes: DELETABLE_MEDIA_TYPES,
+        currentUserId: req.session.user_id,
+        deleteCsrfToken: req.session.deleteCsrfToken,
         threadId,
         username,
         paging,
