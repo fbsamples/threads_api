@@ -1370,14 +1370,27 @@ const deleteRateLimit = rateLimit({
 });
 
 app.post(
-    '/threads/:threadId/delete',
+    ['/threads/:threadId/delete', '/threads/delete'],
     deleteRateLimit,
     loggedInUserChecker,
     upload.array(),
     async (req, res) => {
         const { threadId } = req.params;
-        const title = 'Delete Post';
-        if (!/^\d+$/.test(threadId)) {
+        const selected = req.body.thread_ids;
+        const threadIds = [
+            ...new Set(
+                threadId
+                    ? [threadId]
+                    : Array.isArray(selected)
+                    ? selected
+                    : [selected]
+            ),
+        ];
+        const title = threadId ? 'Delete Post' : 'Delete Selected Posts';
+        if (
+            threadIds.length > 100 ||
+            !threadIds.every((id) => typeof id === 'string' && /^\d+$/.test(id))
+        ) {
             return res.status(400).render('error', {
                 title,
                 error: 'The post ID is invalid.',
@@ -1409,53 +1422,60 @@ app.post(
             const userResponse = await axios.get(userUrl, {
                 httpsAgent: agent,
             });
-            const postUrl = buildGraphAPIURL(
-                threadId,
-                {
-                    [PARAMS__FIELDS]: [
-                        FIELD__ID,
-                        FIELD__MEDIA_TYPE,
-                        FIELD__OWNER,
-                    ].join(','),
-                },
-                req.session.access_token
-            );
-            const postResponse = await axios.get(postUrl, {
-                httpsAgent: agent,
-            });
-            if (!DELETABLE_MEDIA_TYPES.includes(postResponse.data.media_type)) {
-                return res.status(403).render('error', {
-                    title,
-                    error: 'This post type is not supported for deletion in this sample.',
+            for (const threadId of threadIds) {
+                const postUrl = buildGraphAPIURL(
+                    threadId,
+                    {
+                        [PARAMS__FIELDS]: [
+                            FIELD__ID,
+                            FIELD__MEDIA_TYPE,
+                            FIELD__OWNER,
+                        ].join(','),
+                    },
+                    req.session.access_token
+                );
+                const postResponse = await axios.get(postUrl, {
+                    httpsAgent: agent,
                 });
+                if (
+                    !DELETABLE_MEDIA_TYPES.includes(
+                        postResponse.data.media_type
+                    )
+                ) {
+                    return res.status(403).render('error', {
+                        title,
+                        error: 'This post type is not supported for deletion in this sample.',
+                    });
+                }
+                if (
+                    userResponse.data.id !== req.session.user_id ||
+                    postResponse.data.id !== threadId ||
+                    postResponse.data.owner?.id !== userResponse.data.id
+                ) {
+                    return res.status(403).render('error', {
+                        title,
+                        error: 'This post cannot be deleted. Choose one of your posts on the Threads page.',
+                    });
+                }
             }
-            if (
-                userResponse.data.id !== req.session.user_id ||
-                postResponse.data.id !== threadId ||
-                postResponse.data.owner?.id !== userResponse.data.id
-            ) {
-                return res.status(403).render('error', {
-                    title,
-                    error: 'This post cannot be deleted. Choose one of your posts on the Threads page.',
+            for (const threadId of threadIds) {
+                const deleteUrl = buildGraphAPIURL(
+                    threadId,
+                    {},
+                    req.session.access_token
+                );
+                const response = await axios.delete(deleteUrl, {
+                    httpsAgent: agent,
                 });
-            }
-
-            const deleteUrl = buildGraphAPIURL(
-                threadId,
-                {},
-                req.session.access_token
-            );
-            const response = await axios.delete(deleteUrl, {
-                httpsAgent: agent,
-            });
-            if (
-                response.data.success !== true ||
-                response.data.deleted_id !== threadId
-            ) {
-                return res.status(502).render('error', {
-                    title,
-                    error: 'Deletion was not confirmed. Refresh your posts before trying again.',
-                });
+                if (
+                    response.data.success !== true ||
+                    response.data.deleted_id !== threadId
+                ) {
+                    return res.status(502).render('error', {
+                        title,
+                        error: 'Deletion was not confirmed. Refresh your posts before trying again.',
+                    });
+                }
             }
             return res.redirect(303, '/threads');
         } catch (e) {
@@ -2397,6 +2417,7 @@ async function showReplies(req, res, isTopLevel) {
             FIELD__PERMALINK,
             FIELD__TIMESTAMP,
             FIELD__USERNAME,
+            FIELD__OWNER,
             FIELD__HIDE_STATUS,
             FIELD__ALT_TEXT,
         ].join(','),
@@ -2441,7 +2462,22 @@ async function showReplies(req, res, isTopLevel) {
         console.error(e?.response?.data?.error?.message ?? e.message);
     }
 
+    const deletableReplies =
+        isTopLevel &&
+        replies.some(
+            (reply) =>
+                reply.owner?.id === req.session.user_id &&
+                DELETABLE_MEDIA_TYPES.includes(reply.media_type)
+        );
+    if (deletableReplies) {
+        req.session.deleteCsrfToken ??= crypto.randomBytes(32).toString('hex');
+    }
+
     res.render(isTopLevel ? 'thread_replies' : 'thread_conversation', {
+        deletableReplies,
+        deletableMediaTypes: DELETABLE_MEDIA_TYPES,
+        currentUserId: req.session.user_id,
+        deleteCsrfToken: req.session.deleteCsrfToken,
         threadId,
         username,
         paging,

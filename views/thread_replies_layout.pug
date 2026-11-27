@@ -1,6 +1,9 @@
 table.thread-replies
     thead
         tr
+            if deletableReplies
+                th
+                    input(type='checkbox' id='select-all-replies' aria-label='Select all deletable replies')
             th Post ID
             th Username
             th Creation Date and Time
@@ -13,6 +16,10 @@ table.thread-replies
     tbody
         each reply in replies
             tr.thread-replies-list-item
+                if deletableReplies
+                    td
+                        if reply.owner && reply.owner.id === currentUserId && deletableMediaTypes.includes(reply.media_type)
+                            input(type='checkbox' form='bulk-delete' name='thread_ids' value=reply.id class='bulk-delete-checkbox' aria-label=`Select reply ${reply.id}`)
                 td.reply-id
                     a(href=`/threads/${reply.id}`)=reply.id
                 td.reply-username=reply.username

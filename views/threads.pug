@@ -1,9 +1,17 @@
 extends layout_with_account
 
 block content
+    if canDelete
+        form#bulk-delete(action='/threads/delete' method='POST' onsubmit="return confirm('Are you sure? This permanently deletes your selected posts and cannot be undone.');")
+            input(type='hidden' name='_csrf' value=csrfToken)
+            input(type='hidden' name='csrfToken' value=deleteCsrfToken)
+            button.delete-button(type='submit') Delete Selected
     table.threads-list
         thead
             tr
+                if canDelete
+                    th
+                        input(type='checkbox' id='select-all' aria-label='Select all deletable posts')
                 th Post ID
                 th Creation Date and Time
                 th Author
@@ -16,6 +24,10 @@ block content
         tbody
             each thread in threads
                 tr.threads-list-item
+                    if canDelete
+                        td
+                            if deletableMediaTypes.includes(thread.media_type)
+                                input(type='checkbox' form='bulk-delete' name='thread_ids' value=thread.id class='bulk-delete-checkbox' aria-label=`Select post ${thread.id}`)
                     td.thread-id
                         a(href=`/threads/${thread.id}`)=thread.id
                     td.thread-timestamp
@@ -47,3 +59,12 @@ block content
         if paging.previousUrl
             div.paging-previous
                 a(href=paging.previousUrl) Previous
+
+
+block scripts
+    script.
+        document.getElementById('select-all')?.addEventListener('change', (event) => {
+            for (const checkbox of document.querySelectorAll('.bulk-delete-checkbox')) {
+                checkbox.checked = event.target.checked;
+            }
+        });

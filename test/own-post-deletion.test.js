@@ -514,3 +514,25 @@ test('the renamed error page preserves post and deletion failure statuses', asyn
     assert.doesNotMatch(failedHtml, /<script>Example failure|\.\!/);
     assert.match(failedHtml, /href="\/threads">Back to Your Posts<\/a>/);
 });
+
+test('bulk deletion checks the entire selection before deleting any post', async (t) => {
+    const api = apiForPost();
+    const get = api.get;
+    api.get = async (url) =>
+        new URL(url).pathname === '/124'
+            ? { data: { ...ownPost, id: '124', owner: { id: '999' } } }
+            : get(url);
+    const request = await startApp(t, api);
+    const body = new URLSearchParams([
+        ['csrfToken', await csrfToken(request)],
+        ['thread_ids', '123'],
+        ['thread_ids', '124'],
+    ]);
+    const response = await request('/threads/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body,
+    });
+    assert.equal(response.status, 403);
+    assert.match(await response.text(), /Choose one of your posts/);
+});
