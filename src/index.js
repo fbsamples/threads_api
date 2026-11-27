@@ -1247,7 +1247,7 @@ app.get(
                     httpsAgent: agent,
                     maxRedirects: 0,
                 });
-                const ownerUrl = buildGraphAPIURL(
+                const postURL = buildGraphAPIURL(
                     threadId,
                     {
                         [PARAMS__FIELDS]: [
@@ -1258,29 +1258,39 @@ app.get(
                     },
                     req.session.access_token
                 );
-                const ownerResponse = await axios.get(ownerUrl, {
+                const postResponse = await axios.get(postURL, {
                     httpsAgent: agent,
                     maxRedirects: 0,
                 });
-                canViewInsights = Boolean(
+                const isOwnedByUser = Boolean(
                     userResponse.data.id === req.session.user_id &&
-                        ownerResponse.data.id === threadId &&
-                        ownerResponse.data.owner?.id === userResponse.data.id
+                        postResponse.data.id === threadId &&
+                        postResponse.data.owner?.id === userResponse.data.id
                 );
+                canViewInsights = isOwnedByUser;
                 canDelete =
-                    canViewInsights &&
+                    isOwnedByUser &&
                     DELETABLE_MEDIA_TYPES.includes(data.media_type) &&
                     DELETABLE_MEDIA_TYPES.includes(
-                        ownerResponse.data.media_type
+                        postResponse.data.media_type
                     );
                 if (canDelete && !req.session.deleteCsrfToken) {
                     req.session.deleteCsrfToken = crypto
                         .randomBytes(32)
                         .toString('hex');
                 }
-            } catch {
+            } catch (e) {
                 canDelete = false;
                 canViewInsights = false;
+                const status = e?.response?.status;
+                console.error('Unable to verify post ownership.', {
+                    httpStatus:
+                        Number.isInteger(status) &&
+                        status >= 100 &&
+                        status <= 599
+                            ? status
+                            : null,
+                });
             }
         }
 

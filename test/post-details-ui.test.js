@@ -74,6 +74,7 @@ const examplePost = {
 
 async function startApp(t, post, owner = '456', probe = {}) {
     const reads = [];
+    const errors = [];
     const runtime = vm.runInNewContext(
         fs.readFileSync(entry, 'utf8') +
             '\n({ app, hasDisplayValue: typeof hasDisplayValue === "function" ? hasDisplayValue : undefined, formatPostTimestamp: typeof formatPostTimestamp === "function" ? formatPostTimestamp : undefined });',
@@ -86,7 +87,7 @@ async function startApp(t, post, owner = '456', probe = {}) {
                     INITIAL_USER_ID: '456',
                 },
             },
-            console: { log() {}, error() {} },
+            console: { log() {}, error: (...args) => errors.push(args) },
             require(name) {
                 if (name === 'axios')
                     return {
@@ -147,6 +148,7 @@ async function startApp(t, post, owner = '456', probe = {}) {
                                 parsed.searchParams.get('fields') ===
                                 'id,media_type,owner'
                             ) {
+                                if (probe.ownerError) throw probe.ownerError;
                                 if (probe.failOwner)
                                     throw new Error(
                                         'Synthetic owner probe failure.'
@@ -187,6 +189,7 @@ async function startApp(t, post, owner = '456', probe = {}) {
     return {
         ...runtime,
         reads,
+        errors,
         request: async (route) => {
             const response = await fetch(new URL(route, base), {
                 redirect: 'manual',
@@ -466,7 +469,7 @@ test('Insights visibility requires verified ownership independently of deletion 
             deletion: false,
         },
     ]) {
-        const { request, reads } = await startApp(
+        const { request, reads, errors } = await startApp(
             t,
             scenario.post,
             scenario.owner ?? '456',
@@ -517,6 +520,56 @@ test('Insights visibility requires verified ownership independently of deletion 
                 scenario.probe?.tokenValid === false
                     ? 2
                     : 4)
+        );
+        const probeFailed =
+            scenario.probe?.failOwner ||
+            scenario.probe?.failToken ||
+            scenario.probe?.tokenUserID ||
+            scenario.probe?.tokenValid === false ||
+            scenario.probe?.redirectStage;
+        assert.deepEqual(
+            JSON.parse(JSON.stringify(errors)),
+            probeFailed
+                ? [
+                      [
+                          'Unable to verify post ownership.',
+                          {
+                              httpStatus: ['user', 'owner'].includes(
+                                  scenario.probe?.redirectStage
+                              )
+                                  ? 302
+                                  : null,
+                          },
+                      ],
+                  ]
+                : []
+        );
+    }
+    for (const status of [429, '429', 99, 600, undefined]) {
+        const ownerError = {
+            message: 'Synthetic private error with access_token=test-token',
+            config: {
+                url: 'https://example.invalid/private?access_token=test-token',
+            },
+            response: {
+                status,
+                data: { error: { message: 'Synthetic upstream detail' } },
+            },
+        };
+        const { request, errors } = await startApp(t, examplePost, '456', {
+            ownerError,
+        });
+        const html = await (await request('/threads/123')).text();
+        assert.doesNotMatch(html, /View Insights|Delete Post/);
+        assert.deepEqual(JSON.parse(JSON.stringify(errors)), [
+            [
+                'Unable to verify post ownership.',
+                { httpStatus: status === 429 ? 429 : null },
+            ],
+        ]);
+        assert.doesNotMatch(
+            JSON.stringify(errors),
+            /test-token|access_token|https?:\/\/|Synthetic upstream detail|Synthetic private error/
         );
     }
 });
