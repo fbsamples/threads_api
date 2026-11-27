@@ -268,7 +268,7 @@ function isAppScopedUserId(userId) {
     return typeof userId === 'string' && /^[1-9]\d*$/.test(userId);
 }
 
-async function verifySessionUserId(req) {
+async function verifySessionUserId(req, refuseRedirects = false) {
     const binding = req.session.user_id_binding;
     if (
         binding?.access_token === req.session.access_token &&
@@ -282,7 +282,11 @@ async function verifySessionUserId(req) {
                 { [PARAMS__INPUT_TOKEN]: req.session.access_token },
                 req.session.access_token
             ),
-            { httpsAgent: agent, transformResponse: [parseUserIdResponse] }
+            {
+                httpsAgent: agent,
+                transformResponse: [parseUserIdResponse],
+                ...(refuseRedirects && { maxRedirects: 0 }),
+            }
         );
         const data = response.data?.data;
         if (data?.is_valid !== true || data.user_id !== req.session.user_id)
@@ -1161,6 +1165,7 @@ app.get(
         let data = {};
         let postLoaded = false;
         let canDelete = false;
+        let canViewInsights = false;
         let error;
         const queryThreadUrl = buildGraphAPIURL(
             `${threadId}`,
@@ -1226,9 +1231,9 @@ app.get(
             console.error(error);
         }
 
-        if (DELETABLE_MEDIA_TYPES.includes(data.media_type)) {
+        if (postLoaded) {
             try {
-                if (!(await verifySessionUserId(req))) {
+                if (!(await verifySessionUserId(req, true))) {
                     throw new Error(
                         'The access token does not match the app-scoped user ID.'
                     );
@@ -1240,8 +1245,9 @@ app.get(
                 );
                 const userResponse = await axios.get(userUrl, {
                     httpsAgent: agent,
+                    maxRedirects: 0,
                 });
-                const ownerUrl = buildGraphAPIURL(
+                const postURL = buildGraphAPIURL(
                     threadId,
                     {
                         [PARAMS__FIELDS]: [
@@ -1252,15 +1258,21 @@ app.get(
                     },
                     req.session.access_token
                 );
-                const ownerResponse = await axios.get(ownerUrl, {
+                const postResponse = await axios.get(postURL, {
                     httpsAgent: agent,
+                    maxRedirects: 0,
                 });
-                canDelete =
+                const isOwnedByUser = Boolean(
                     userResponse.data.id === req.session.user_id &&
-                    ownerResponse.data.id === threadId &&
-                    ownerResponse.data.owner?.id === userResponse.data.id &&
+                        postResponse.data.id === threadId &&
+                        postResponse.data.owner?.id === userResponse.data.id
+                );
+                canViewInsights = isOwnedByUser;
+                canDelete =
+                    isOwnedByUser &&
+                    DELETABLE_MEDIA_TYPES.includes(data.media_type) &&
                     DELETABLE_MEDIA_TYPES.includes(
-                        ownerResponse.data.media_type
+                        postResponse.data.media_type
                     );
                 if (canDelete && !req.session.deleteCsrfToken) {
                     req.session.deleteCsrfToken = crypto
@@ -1269,7 +1281,16 @@ app.get(
                 }
             } catch (e) {
                 canDelete = false;
-                console.error(e?.response?.data?.error?.message ?? e.message);
+                canViewInsights = false;
+                const status = e?.response?.status;
+                console.error('Unable to verify post ownership.', {
+                    httpStatus:
+                        Number.isInteger(status) &&
+                        status >= 100 &&
+                        status <= 599
+                            ? status
+                            : null,
+                });
             }
         }
 
@@ -1277,6 +1298,7 @@ app.get(
             threadId,
             ...data,
             canDelete,
+            canViewInsights,
             deleteCsrfToken: canDelete
                 ? req.session.deleteCsrfToken
                 : undefined,

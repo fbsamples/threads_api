@@ -1,13 +1,20 @@
 extends layout_with_account
 
+block head
+    meta(name='viewport' content='width=device-width, initial-scale=1')
+
 block content
-    include insights
-    br
-    form.insights(action=`/threads/${threadId}/insights` method='GET')
-        span
-            label(for='since') Since
-            input#since(type='date' name='since' value=since)
-        span
-            label(for='until') Until
-            input#until(type='date' name='until' value=until)
-        input#submit.threads-button(type='submit' value='Refine')
+    .media-insights
+        if typeof threadId === 'string' && /^[1-9]\d*$/.test(threadId) && threadId.trim() === threadId
+            p
+                a(href=`/threads/${threadId}`) Post #{threadId}
+        .insights-table-scroll(role='region' aria-label='Media Insights Metrics' tabindex='0')
+            include insights
+        form.insights.insights-date-controls(action=`/threads/${threadId}/insights` method='GET')
+            .insights-date-field
+                label(for='since') Since
+                input#since(type='date' name='since' value=since)
+            .insights-date-field
+                label(for='until') Until
+                input#until(type='date' name='until' value=until)
+            input#submit.threads-button(type='submit' value='Refine')

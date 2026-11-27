@@ -123,10 +123,11 @@ block content
                         tr
                             td Is Ghost Post
                             td=is_ghost_post
-                    tr
-                        td Insights
-                        td
-                            a(href=`/threads/${threadId}/insights`) View Insights
+                    if canViewInsights
+                        tr
+                            td Insights
+                            td
+                                a(href=`/threads/${threadId}/insights`) View Insights
                     tr
                         td Reply
                         td

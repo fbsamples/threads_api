@@ -47,8 +47,33 @@ test('Post Details rejects excess requests before authentication and API work', 
                     if (name === 'axios')
                         return {
                             async get(url) {
+                                const api = new URL(url);
                                 reads++;
-                                assert.equal(new URL(url).pathname, '/123');
+                                if (api.pathname === '/debug_token') {
+                                    return {
+                                        data: {
+                                            data: {
+                                                is_valid: true,
+                                                user_id: '456',
+                                            },
+                                        },
+                                    };
+                                }
+                                if (api.pathname === '/456') {
+                                    return { data: { id: '456' } };
+                                }
+                                assert.equal(api.pathname, '/123');
+                                if (
+                                    api.searchParams.get('fields') ===
+                                    'id,media_type,owner'
+                                ) {
+                                    return {
+                                        data: {
+                                            id: '123',
+                                            owner: { id: '456' },
+                                        },
+                                    };
+                                }
                                 return {
                                     data: { id: '123', text: 'Synthetic post' },
                                 };
@@ -104,7 +129,7 @@ test('Post Details rejects excess requests before authentication and API work', 
         assert.ok(Number(blocked.headers.get('retry-after')) > 0);
         assert.deepEqual({ reads, authChecks }, before);
         assert.equal(authChecks, 60);
-        assert.equal(reads, signedIn ? 60 : 0);
+        assert.equal(reads, signedIn ? 181 : 0);
         assert.equal(
             (await request('/upload')).status,
             signedIn ? 200 : 302,

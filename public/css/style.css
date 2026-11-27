@@ -308,43 +308,52 @@ th {
     max-width: 100%;
 }
 
-.user-insights {
+.user-insights,
+.media-insights {
     max-width: 1100px;
     margin: 0 auto;
     min-width: 0;
 }
 
-.user-insights .insights-table-scroll {
+.user-insights .insights-table-scroll,
+.media-insights .insights-table-scroll {
     width: 100%;
     overflow-x: auto;
 }
 
-.user-insights table {
+.user-insights table,
+.media-insights table {
     border-collapse: collapse;
     table-layout: fixed;
     min-width: 640px;
 }
 
 .user-insights th,
-.user-insights td {
+.user-insights td,
+.media-insights th,
+.media-insights td {
     padding: 12px 16px;
     vertical-align: top;
     overflow-wrap: anywhere;
 }
 
-.user-insights th:nth-child(1) {
+.user-insights th:nth-child(1),
+.media-insights th:nth-child(1) {
     width: 16%;
 }
 
-.user-insights th:nth-child(2) {
+.user-insights th:nth-child(2),
+.media-insights th:nth-child(2) {
     width: 12%;
 }
 
-.user-insights th:nth-child(3) {
+.user-insights th:nth-child(3),
+.media-insights th:nth-child(3) {
     width: 40%;
 }
 
-.user-insights .insights-date-controls {
+.user-insights .insights-date-controls,
+.media-insights .insights-date-controls {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
     align-items: end;
@@ -355,18 +364,21 @@ th {
     border-radius: 8px;
 }
 
-.user-insights .insights-date-field {
+.user-insights .insights-date-field,
+.media-insights .insights-date-field {
     display: flex;
     flex-direction: column;
     gap: 8px;
     min-width: 0;
 }
 
-.user-insights .insights-date-field label {
+.user-insights .insights-date-field label,
+.media-insights .insights-date-field label {
     text-align: left;
 }
 
-.user-insights input[type='date'] {
+.user-insights input[type='date'],
+.media-insights input[type='date'] {
     box-sizing: border-box;
     width: 100%;
     min-width: 0;
@@ -374,7 +386,8 @@ th {
     padding: 8px;
 }
 
-.user-insights .insights-date-controls input[type='submit'] {
+.user-insights .insights-date-controls input[type='submit'],
+.media-insights .insights-date-controls input[type='submit'] {
     box-sizing: border-box;
     width: auto;
     min-height: 44px;
@@ -382,7 +395,8 @@ th {
 }
 
 @media (max-width: 640px) {
-    .user-insights .insights-date-controls {
+    .user-insights .insights-date-controls,
+    .media-insights .insights-date-controls {
         grid-template-columns: minmax(0, 1fr);
     }
 }
